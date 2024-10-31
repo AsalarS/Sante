@@ -12,6 +12,7 @@ import NotificationsPage from "./pages/Doctor/notifications"
 import MessagesPage from "./pages/Doctor/messages"
 import SettingsPage from "./pages/Doctor/settings"
 import ProfilePage from "./pages/Doctor/profile"
+import HelpPage from "./pages/Doctor/help"
 
 function Logout() {
   localStorage.clear()
@@ -49,6 +50,7 @@ function App() {
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
         </Routes>

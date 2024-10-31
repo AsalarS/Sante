@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 const SidebarContext = createContext();
 
-export default function Sidebar({ children }) {
+export default function Sidebar({ children, onImageClick }) {
   const [expanded, setExpanded] = useState(true);
   const navigate = useNavigate();
   const handleLogout = () => {
@@ -17,7 +17,7 @@ export default function Sidebar({ children }) {
     <aside className="h-screen">
       <nav className="h-full inline-flex flex-col bg-white border-r shadow-sm">
         <div className="p-4 pb-2 flex justify-between items-center">
-        <div
+          <div
             className={`transition-all overflow-hidden ${
               expanded ? "max-w-xs" : "max-w-0"
             }`}
@@ -38,7 +38,7 @@ export default function Sidebar({ children }) {
 
         <div className="border-t flex p-3">
           <img
-            onClick={() => setExpanded((curr) => !curr)}
+            onClick={onImageClick}
             src="https://ui-avatars.com/api/?background=c7d2fe&color=3730a3&bold=true"
             alt=""
             className="w-10 h-10 rounded-md"
@@ -63,7 +63,7 @@ export default function Sidebar({ children }) {
   );
 }
 
-export function SidebarItem({ icon, text, active, alert }) {
+export function SidebarItem({ icon, text, active, alert, onClick }) {
   const { expanded } = useContext(SidebarContext);
 
   return (
@@ -78,6 +78,7 @@ export function SidebarItem({ icon, text, active, alert }) {
             : "hover:bg-[#D4DFFD] text-gray-600"
         }
     `}
+      onClick={onClick}
     >
       {icon}
       <span
