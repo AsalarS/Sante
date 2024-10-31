@@ -1,5 +1,5 @@
 
-![Logo](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/th5xamgrr6se0x5ro4g6.png)
+![Logo](https://github.com/AsalarS/Sante/blob/master/frontend/src/assets/banner.png)
 
 
 # Santé
@@ -12,12 +12,11 @@ Health Care Appointment Management System
 
 ## Demo
 
-Insert gif or link to demo
+sante.alialfardan.com
 
 
 ## Screenshots
 
-![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
 
 
 ## Authors
