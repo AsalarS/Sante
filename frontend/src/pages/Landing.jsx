@@ -8,7 +8,7 @@ import { Features } from "@/components/landingPage/features"
 import { Hero } from "@/components/landingPage/hero"
 
 
-function Home() {
+function Landing() {
     return <>
         <Navbar />
         <Hero />
@@ -21,4 +21,4 @@ function Home() {
     </>
 }
 
-export default Home
+export default Landing

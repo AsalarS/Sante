@@ -22,6 +22,7 @@ interface LoginFormProps {
 export function LoginForm({ route, method }: LoginFormProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState(""); // State to hold the selected role
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const name = method === "login" ? "Login" : "Register";
@@ -31,10 +32,16 @@ export function LoginForm({ route, method }: LoginFormProps) {
     setLoading(true);
 
     try {
-      const res = await api.post(route, { username, password });
+      // Prepare request payload based on the method
+      const payload = method === "register" 
+        ? { username, password, role }  // Include role for registration
+        : { username, password };
+
+      const res = await api.post(route, payload);
       if (method === "login") {
         localStorage.setItem(ACCESS_TOKEN, res.data.access);
         localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
+        localStorage.setItem("role", res.data.role);
         navigate("/");
       } else {
         navigate("/login");
@@ -68,12 +75,7 @@ export function LoginForm({ route, method }: LoginFormProps) {
             />
           </div>
           <div className="grid gap-2">
-            <div className="flex items-center">
-              <Label htmlFor="password">Password</Label>
-              {/* <Link to="#" className="ml-auto inline-block text-sm underline">
-                Forgot your password?
-              </Link> */}
-            </div>
+            <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
@@ -83,10 +85,33 @@ export function LoginForm({ route, method }: LoginFormProps) {
               required
             />
           </div>
+
+          {/* Role selection dropdown (only for registration) */}
+          {method === "register" && (
+            <div className="grid gap-2">
+              <Label htmlFor="role">Role</Label>
+              <select
+                id="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+                className="p-2 border rounded-md"
+              >
+                <option value="">Select Role</option>
+                <option value="doctor">Doctor</option>
+                <option value="patient">Patient</option>
+                <option value="admin">Admin</option>
+                <option value="nurse">Nurse</option>
+                <option value="receptionist">Receptionist</option>
+              </select>
+            </div>
+          )}
+
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Loading..." : name}
           </Button>
         </form>
+
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{" "}
           <Link to={method === "login" ? "/register/" : "/login/"} className="underline">
