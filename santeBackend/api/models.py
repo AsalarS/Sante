@@ -1,13 +1,9 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 
-# api/models.py
-from django.contrib.auth.models import User
-from django.db import models
-
-class UserProfile(models.Model):
+class UserProfile(AbstractUser):
     ROLE_CHOICES = [
         ('doctor', 'Doctor'),
         ('patient', 'Patient'),
@@ -15,18 +11,12 @@ class UserProfile(models.Model):
         ('nurse', 'Nurse'),
         ('receptionist', 'Receptionist')
     ]
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    username = None  # remove the inherited username field
+    email = models.EmailField(unique=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
 
-    def __str__(self):
-        return f"{self.user.username} - {self.role}"
-
-
-class Note(models.Model):
-    title = models.CharField(max_length=100)
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notes")
+    USERNAME_FIELD = 'email'  # Set the email to the username field to make it unique
+    REQUIRED_FIELDS = [] 
 
     def __str__(self):
-        return self.title
+        return f"{self.email} - {self.role}"
