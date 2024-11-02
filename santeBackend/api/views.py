@@ -6,6 +6,8 @@ from django.http import JsonResponse, HttpResponseForbidden
 from rest_framework import generics
 from .models import UserProfile
 from django.http import JsonResponse
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import myTokenObtainPairSerializer
 
 # Create your views here.
 
@@ -49,3 +51,6 @@ def user_info(request):
         'first_name': user.first_name,
         'last_name': user.last_name
     })
+
+class myTokenObtainPairView(TokenObtainPairView):
+    serializer_class = myTokenObtainPairSerializer

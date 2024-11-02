@@ -22,3 +22,5 @@ function Landing() {
 }
 
 export default Landing
+
+// TODO: Change login button in the navbar to be home when a user is logged in

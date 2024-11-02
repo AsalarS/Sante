@@ -26,26 +26,25 @@ function RegisterAndLogout() {
 }
 
 function App() {
-
   return (
     <>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+
           <Route path="/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/register" element={<Register />} />
-          <Route path="*" element={<NotFound />}></Route>
+          <Route path="*" element={<NotFound />} />
 
-          <Route path="/Doctor" element={<Dashboard />} >
+          <Route
+            path="/Doctor"
+            element={
+              <ProtectedRoute allowedRoles={['doctor']}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          >
             <Route path="home" element={<DashboardHome />} />
             <Route path="patients" element={<PatientsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
@@ -55,7 +54,14 @@ function App() {
             <Route path="profile" element={<ProfilePage />} />
           </Route>
 
-          <Route path="/Patient" element={<Dashboard />} >
+          <Route
+            path="/Patient"
+            element={
+              <ProtectedRoute allowedRoles={['patient']}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          >
             <Route path="labs" element={<LabsPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="settings" element={<SettingsPage />} />
@@ -63,31 +69,51 @@ function App() {
             <Route path="profile" element={<ProfilePage />} />
           </Route>
 
-          <Route path="/Nurse/" element={<Dashboard />} >
+          <Route
+            path="/Nurse"
+            element={
+              <ProtectedRoute allowedRoles={['nurse']}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          >
             <Route path="messages" element={<MessagesPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
 
-          <Route path="/Receptionist/" element={<Dashboard />} >
+          <Route
+            path="/Receptionist"
+            element={
+              <ProtectedRoute allowedRoles={['receptionist']}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          >
             <Route path="messages" element={<MessagesPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
 
-          <Route path="/Admin/" element={<Dashboard />} >
+          <Route
+            path="/Admin"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          >
             <Route path="messages" element={<MessagesPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
-
         </Routes>
       </BrowserRouter>
     </>
-  )
+  );
 }
 
 export default App

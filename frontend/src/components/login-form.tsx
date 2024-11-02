@@ -20,7 +20,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ route, method }: LoginFormProps) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState(""); // State to hold the selected role
   const [loading, setLoading] = useState(false);
@@ -34,8 +34,8 @@ export function LoginForm({ route, method }: LoginFormProps) {
     try {
       // Prepare request payload based on the method
       const payload = method === "register" 
-        ? { username, password, role }  // Include role for registration
-        : { username, password };
+        ? { email, password, role } 
+        : { email, password };
 
       const res = await api.post(route, payload);
       if (method === "login") {
@@ -64,13 +64,13 @@ export function LoginForm({ route, method }: LoginFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="email">E-mail</Label>
             <Input
-              id="username"
+              id="email"
               type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
@@ -128,3 +128,6 @@ export function LoginForm({ route, method }: LoginFormProps) {
     </Card>
   );
 }
+
+//TODO: Add UI error messages for user
+//TODO: Redirect to dashboard if user registered or logged in

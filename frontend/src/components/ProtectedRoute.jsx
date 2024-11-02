@@ -1,18 +1,19 @@
-import {Navigate} from "react-router-dom"
-import {jwtDecode} from "jwt-decode"
-import api from "../api"
-import { REFRESH_TOKEN, ACCESS_TOKEN } from "../constants"
-import { useState, useEffect } from "react"
+import { Navigate } from "react-router-dom";
+import api from "../api";
+import { REFRESH_TOKEN, ACCESS_TOKEN } from "../constants";
+import { useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
 
-function ProtectedRoute({children}){
-    const [isAuthorized, setIsAuthorized] = useState(null)
+function ProtectedRoute({ children, allowedRoles }) {
+    const [isAuthorized, setIsAuthorized] = useState(null);
+    const [userRole, setUserRole] = useState(null);
 
     useEffect(() => {
-        auth().catch( () => setIsAuthorized(false))
-    })
+        auth().catch(() => setIsAuthorized(false));
+    }, []);
 
     const refreshToken = async () => {
-        const refreshToken = localStorage.getItem(REFRESH_TOKEN)
+        const refreshToken = localStorage.getItem(REFRESH_TOKEN);
 
         try {
             const res = await api.post("/api/token/refresh/", {
@@ -20,40 +21,55 @@ function ProtectedRoute({children}){
             });
 
             if (res.status === 200) {
-                localStorage.setItem(ACCESS_TOKEN, res.data.access)
-                setIsAuthorized(true)
+                localStorage.setItem(ACCESS_TOKEN, res.data.access);
+                setIsAuthorized(true);
             } else {
-                setIsAuthorized(false)
+                setIsAuthorized(false);
             }
-        } catch(error) {
-            console.log(error)
-            setIsAuthorized(false)
+        } catch (error) {
+            console.log(error);
+            setIsAuthorized(false);
         }
-    }
+    };
 
     const auth = async () => {
-        const token = localStorage.getItem(ACCESS_TOKEN)
-        if(!token) {
-            setIsAuthorized(false)
-            return
+        const token = localStorage.getItem(ACCESS_TOKEN);
+        if (!token) {
+            setIsAuthorized(false);
+            return;
         }
 
-        const decoded = jwtDecode(token)
-        const tokenExpiration = decoded.exp
-        const now = Date.now() / 1000
+        try {
+            const decoded = jwtDecode(token);
+            console.log('Decoded token:', decoded);
+            const tokenExpiration = decoded.exp;
+            const now = Date.now() / 1000;
+            
+            if (tokenExpiration < now) {
+                await refreshToken();
+            } else {
+                setIsAuthorized(true);
+            }
 
-        if(tokenExpiration < now) {
-            await refreshToken()
-        } else {
-            setIsAuthorized(true)
+            setUserRole(decoded.role);
+        } catch (error) {
+            console.log("Invalid token", error);
+            setIsAuthorized(false);
         }
+    };
+
+    if (isAuthorized === null) {
+        return <div>Loading...</div>;
     }
 
-    if(isAuthorized === null) {
-        return <div>Loading...</div>
+    if (isAuthorized && allowedRoles.includes(userRole)) {
+        return children;
+    } else {
+        console.log("Youre Unauthorized")
+        return <Navigate to="/login" />; //TODO: Add unathorized page here
     }
-
-    return isAuthorized ? children : <Navigate to="/login" />
 }
 
-export default ProtectedRoute
+export default ProtectedRoute;
+
+//TODO: Add an unathorized page
