@@ -13,10 +13,15 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { jwtDecode, JwtPayload } from "jwt-decode";
 
 interface LoginFormProps {
   route: string;
   method: "login" | "register";
+}
+
+interface CustomJwtPayload extends JwtPayload {
+  role: string;
 }
 
 export function LoginForm({ route, method }: LoginFormProps) {
@@ -39,9 +44,19 @@ export function LoginForm({ route, method }: LoginFormProps) {
 
       const res = await api.post(route, payload);
       if (method === "login") {
-        localStorage.setItem(ACCESS_TOKEN, res.data.access);
+        const accessToken = res.data.access;
+        const decodedPayload = jwtDecode<CustomJwtPayload>(accessToken);
+  
+        if (decodedPayload.role) {
+          localStorage.setItem("role", decodedPayload.role);
+          console.log('Role stored in localStorage:', decodedPayload.role); //Debug
+        } else {
+          console.warn('Role not found in the decoded JWT payload');
+        }
+
+        //Set the token in the local storage
+        localStorage.setItem(ACCESS_TOKEN, res.data.access); 
         localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
-        localStorage.setItem("role", res.data.role);
         navigate("/");
       } else {
         navigate("/login");

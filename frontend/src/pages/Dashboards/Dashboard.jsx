@@ -4,6 +4,7 @@ import PatientSidebar from "@/components/sidebars/patientSidebar";
 import AdminSidebar from "@/components/sidebars/adminSidebar";
 import NurseSidebar from "@/components/sidebars/nurseSidebar";
 import ReceptionistSidebar from "@/components/sidebars/receptionistSidebar";
+import DashBreadcrumb from "@/components/dashboardBreadcrumb";
 
 function Dashboard() {
     const location = useLocation();
@@ -27,10 +28,17 @@ function Dashboard() {
     return (
         <div className="flex">
             {renderSidebar()}
-            <main className="flex-1">
-                {/* To show pages */}
-                <Outlet /> 
-            </main>
+            <div className="flex flex-col flex-1">
+                <header className="flex h-16 shrink-0 items-center gap-2 border-b w-full">
+                    <div className="flex items-center gap-2 px-3">
+                        <DashBreadcrumb />
+                    </div>
+                </header>
+                <main className="flex-1">
+                    {/* To show pages */}
+                    <Outlet />
+                </main>
+            </div>
         </div>
     );
 }

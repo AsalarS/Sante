@@ -16,6 +16,7 @@ import { buttonVariants, Button } from "../ui/button";
 import { Menu } from "lucide-react";
 import { LogoIcon } from "../icons";
 import { Link } from "react-router-dom";
+import { ACCESS_TOKEN } from "@/constants";
 
 interface RouteProps {
   href: string;
@@ -118,7 +119,7 @@ export const Navbar = () => {
 
           <div className="hidden md:flex gap-2">
           <Button asChild className="w-20">
-              <Link to="/login">Login</Link>
+              {localStorage.getItem(ACCESS_TOKEN) ? <Link to="/logout">Logout</Link> : <Link to="/login">Login</Link>}
             </Button>
           </div>
         </NavigationMenuList>

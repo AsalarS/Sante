@@ -7,7 +7,6 @@ function MessagesPage() {
     const conversations = [
         { id: 1, name: 'Dr. Smith', role: 'Doctor', lastMessage: 'Hello! How can I assist you?', avatar: '/path/to/doctor-avatar.png' },
         { id: 2, name: 'Pharmacy', role: 'Support', lastMessage: 'Your prescription is ready.', avatar: '/path/to/pharmacy-avatar.png' },
-        // Add more conversations as needed
     ];
 
     return (

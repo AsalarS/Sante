@@ -1,9 +1,16 @@
+import { ACCESS_TOKEN } from "@/constants";
 import { Button } from "../ui/button";
 import { buttonVariants } from "../ui/button";
 import heroBackground from "@/assets/hero-background.png";
+import { Link } from "react-router-dom";
 
 //TODO: Make the background responsive
 export const Hero = () => {
+  const role = localStorage.getItem('role'); // Retrieve role from localStorage
+  const token = localStorage.getItem(ACCESS_TOKEN); // Retrieve token from localStorage
+  console.log(role);
+  
+
   return (
     <section
       style={{
@@ -33,12 +40,16 @@ export const Hero = () => {
           </p>
 
           <div className="space-y-4 md:space-y-0 md:space-x-4">
-            <Button className="w-full md:w-1/3">Register</Button>
-
-            <a
+            {token
+            ? <Button className="w-full md:w-1/3">
+                <Link to={`/${role}`}>Dashboard</Link>
+              </Button> 
+            : <Button className="w-full md:w-1/3">
+                <Link to="/register">Register</Link>
+              </Button>}
+            <a 
               rel="noreferrer noopener"
-              href="https://github.com/leoMirandaa/shadcn-landing-page.git"
-              target="_blank"
+              href="#footer"
               className={`w-full md:w-1/3 ${buttonVariants({
                 variant: "outline",
               })}`}

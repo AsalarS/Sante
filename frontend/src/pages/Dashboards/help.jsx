@@ -1,7 +1,10 @@
+import { FAQ } from "@/components/landingPage/FAQ";
+
 function HelpPage () {
     return(
         <>
-            <p>Help</p>
+        
+            <FAQ />
         </>
     )
 }

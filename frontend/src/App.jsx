@@ -17,7 +17,7 @@ import LabsPage from "./pages/Dashboards/Patient/labs"
 
 function Logout() {
   localStorage.clear()
-  return <Navigate to="/login" />
+  return <Navigate to="/" />
 }
 
 function RegisterAndLogout() {
