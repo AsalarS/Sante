@@ -15,10 +15,10 @@ function AdminSidebar() {
                     icon={<DashboardIcon />}
                     text="Dashboard"
                     onClick={() => {
-                        navigate("/admin");
+                        navigate("/admin/dashboard");
                     }}
-                    path="/admin"
-                    active={location.pathname === "/admin"}
+                    path="/admin/dashboard"
+                    active={location.pathname === "/admin/dashboard"}
                 />
                 <SidebarItem
                     icon={<MessagesIcon size={20} />}

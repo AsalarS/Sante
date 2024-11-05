@@ -15,10 +15,10 @@ function ReceptionistSidebar() {
                     icon={<DashboardIcon />}
                     text="Dashboard"
                     onClick={() => {
-                        navigate("/receptionist");
+                        navigate("/receptionist/dashboard");
                     }}
-                    path="/receptionist"
-                    active={location.pathname === "/receptionist"}
+                    path="/receptionist/dashboard"
+                    active={location.pathname === "/receptionist/dashboard"}
                 />
                 <SidebarItem
                     icon={<MessagesIcon size={20} />}

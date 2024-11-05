@@ -1,20 +1,27 @@
 import React from 'react';
 import { ChatBubbleAvatar } from './ui/chat/chat-bubble';
 import { Button } from '@/components/ui/button';
-import { Edit } from 'lucide-react';
+import { Edit, SearchIcon } from "lucide-react";
+import { Input } from "./ui/input";
 
 function MessageInbox({ conversations, onSelectConversation }) {
     return (
-        <div className="w-1/4 h-screen border-r bg-white overflow-y-auto shadow-md">
+        <div className="w-1/4 h-screen border-r bg-white shadow-md flex flex-col">
+            {/* Header Section */}
             <div className="flex items-center justify-between p-4 border-b">
-                <h2 className="text-xl font-bold">Inbox</h2>
+                <div className="relative flex items-center rounded-lg bg-gray-100 dark:bg-gray-800 w-full mr-4">
+                    <Input type="text" placeholder="Search Inbox" className="flex-grow rounded-lg appearance-none pl-8 text-xs" />
+                    <SearchIcon className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400 dark:text-gray-600" />
+                </div>
                 <Button variant="outline" className="flex items-center">
-                    <Edit size={16}/>
+                    <Edit size={16} />
                 </Button>
             </div>
-            <ul>
+            
+            {/* Scrollable List Section */}
+            <ul className="flex-1 overflow-y-auto">
                 {conversations.map((conversation) => (
-                    <li 
+                    <li
                         key={conversation.id}
                         className="flex items-center p-4 border-b hover:bg-gray-100 cursor-pointer"
                         onClick={() => onSelectConversation(conversation.id)}

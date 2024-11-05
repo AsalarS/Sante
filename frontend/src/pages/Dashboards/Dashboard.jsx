@@ -9,7 +9,7 @@ import DashBreadcrumb from "@/components/dashboardBreadcrumb";
 function Dashboard() {
     const location = useLocation();
 
-    const renderSidebar = () => { //Fucntion to decide which sidebar to choose
+    const renderSidebar = () => { //Fucntion to decide which sidebar to render
         if (location.pathname.startsWith("/doctor")) {
             return <DoctorSidebar />;
         } else if (location.pathname.startsWith("/patient")) {
@@ -21,7 +21,7 @@ function Dashboard() {
         } else if (location.pathname.startsWith("/receptionist")) {
             return <ReceptionistSidebar />;
         } else {
-            return <p>NO</p>;
+            return <p>NO ROLE</p>;
         }
     };
 

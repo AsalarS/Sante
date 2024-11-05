@@ -15,10 +15,10 @@ function PatientSidebar() {
                     icon={<DashboardIcon />}
                     text="Dashboard"
                     onClick={() => {
-                        navigate("/patient");
+                        navigate("/patient/dashboard");
                     }}
-                    path="/patient"
-                    active={location.pathname === "/patient"}
+                    path="/patient/dashboard"
+                    active={location.pathname === "/patient/dashboard"}
                 />
                 <SidebarItem
                     icon={<PatientsIcon size={20} />}

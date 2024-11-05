@@ -13,12 +13,12 @@ function NurseSidebar() {
         <Sidebar onImageClick={handleImageClick}>
                 <SidebarItem
                     icon={<DashboardIcon />}
-                    text="Dashboard"
+                    text="Dashboard/dashboard"
                     onClick={() => {
-                        navigate("/nurse");
+                        navigate("/nurse/dashboard");
                     }}
-                    path="/nurse"
-                    active={location.pathname === "/nurse"}
+                    path="/nurse/dashboard"
+                    active={location.pathname === "/nurse/dashboard"}
                 />
                 <SidebarItem
                     icon={<MessagesIcon size={20} />}

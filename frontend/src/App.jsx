@@ -5,15 +5,19 @@ import Register from "./pages/Register"
 import NotFound from "./pages/NotFound"
 import Dashboard from "./pages/Dashboards/Dashboard"
 import ProtectedRoute from "./components/ProtectedRoute"
-import DashboardHome from "./pages/Dashboards/Doctor/dashboardHome"
 import PatientsPage from "./pages/Dashboards/Doctor/patients"
 import NotificationsPage from "./pages/Dashboards/Doctor/notifications"
 import MessagesPage from "./pages/Dashboards/messages"
-import SettingsPage from "./pages/Dashboards/settings"
+// import SettingsPage from "./pages/Dashboards/settings"
 import ProfilePage from "./pages/Dashboards/profile"
 import HelpPage from "./pages/Dashboards/help"
 import Landing from "./pages/Landing"
 import LabsPage from "./pages/Dashboards/Patient/labs"
+import DoctorHome from "./pages/Dashboards/Doctor/doctorHome"
+import PatientHome from "./pages/Dashboards/Patient/patientHome"
+import NurseHome from "./pages/Dashboards/Nurse/nurseHome"
+import ReceptionistHome from "./pages/Dashboards/Receptionist/receptionistHome"
+import AdminHome from "./pages/Dashboards/Admin/adminHome"
 
 function Logout() {
   localStorage.clear()
@@ -38,14 +42,15 @@ function App() {
           <Route path="*" element={<NotFound />} />
 
           <Route
-            path="/Doctor"
+            path="/Doctor/"
             element={
               <ProtectedRoute allowedRoles={['doctor']}>
                 <Dashboard />
               </ProtectedRoute>
             }
           >
-            <Route path="home" element={<DashboardHome />} />
+            <Route path="dashboard" element={<DoctorHome />} />
+            <Route index element={<Navigate to="dashboard" />} />
             <Route path="patients" element={<PatientsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="messages" element={<MessagesPage />} />
@@ -62,6 +67,8 @@ function App() {
               </ProtectedRoute>
             }
           >
+            <Route index path="dashboard" element={<PatientHome />} />
+            <Route index element={<Navigate to="dashboard" />} />
             <Route path="labs" element={<LabsPage />} />
             <Route path="messages" element={<MessagesPage />} />
             {/* <Route path="settings" element={<SettingsPage />} /> */}
@@ -77,6 +84,8 @@ function App() {
               </ProtectedRoute>
             }
           >
+            <Route path="dashboard" element={<NurseHome />} />
+            <Route index element={<Navigate to="dashboard" />} />
             <Route path="messages" element={<MessagesPage />} />
             {/* <Route path="settings" element={<SettingsPage />} /> */}
             <Route path="help" element={<HelpPage />} />
@@ -91,6 +100,8 @@ function App() {
               </ProtectedRoute>
             }
           >
+            <Route path="dashboard" element={<ReceptionistHome />} />
+            <Route index element={<Navigate to="dashboard" />} />
             <Route path="messages" element={<MessagesPage />} />
             {/* <Route path="settings" element={<SettingsPage />} /> */}
             <Route path="help" element={<HelpPage />} />
@@ -105,6 +116,8 @@ function App() {
               </ProtectedRoute>
             }
           >
+            <Route path="dashboard" element={<AdminHome  />} />
+            <Route index element={<Navigate to="dashboard" />} />
             <Route path="messages" element={<MessagesPage />} />
             {/* <Route path="settings" element={<SettingsPage />} /> */}
             <Route path="help" element={<HelpPage />} />
