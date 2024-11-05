@@ -50,7 +50,7 @@ function DoctorSidebar() {
                     active={location.pathname === "/doctor/messages"}
                 />
                 <hr className="my-3" />
-                <SidebarItem
+                {/* <SidebarItem
                     icon={<SettingsIcon size={20} />}
                     text="Settings"
                     onClick={() => {
@@ -58,7 +58,7 @@ function DoctorSidebar() {
                     }}
                     path="/doctor/settings"
                     active={location.pathname === "/doctor/settings"}
-                />
+                /> */}
                 <SidebarItem
                     icon={<HelpIcon size={20} />}
                     text="Help"

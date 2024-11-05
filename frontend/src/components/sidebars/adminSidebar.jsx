@@ -31,7 +31,7 @@ function AdminSidebar() {
                     active={location.pathname === "/admin/messages"}
                 />
                 <hr className="my-3" />
-                <SidebarItem
+                {/* <SidebarItem
                     icon={<SettingsIcon size={20} />}
                     text="Settings"
                     onClick={() => {
@@ -39,7 +39,7 @@ function AdminSidebar() {
                     }}
                     path="/admin/settings"
                     active={location.pathname === "/admin/settings"}
-                />
+                /> */}
                 <SidebarItem
                     icon={<HelpIcon size={20} />}
                     text="Help"

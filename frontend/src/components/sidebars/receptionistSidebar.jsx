@@ -31,7 +31,7 @@ function ReceptionistSidebar() {
                     active={location.pathname === "/receptionist/messages"}
                 />
                 <hr className="my-3" />
-                <SidebarItem
+                {/* <SidebarItem
                     icon={<SettingsIcon size={20} />}
                     text="Settings"
                     onClick={() => {
@@ -39,7 +39,7 @@ function ReceptionistSidebar() {
                     }}
                     path="/receptionist/settings"
                     active={location.pathname === "/receptionist/settings"}
-                />
+                /> */}
                 <SidebarItem
                     icon={<HelpIcon size={20} />}
                     text="Help"

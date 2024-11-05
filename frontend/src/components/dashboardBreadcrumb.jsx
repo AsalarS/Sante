@@ -26,11 +26,12 @@ export default function DashBreadcrumb() {
         });
 
     return (
-        <Breadcrumb>
-            <BreadcrumbList>
-                {crumbs}
-            </BreadcrumbList>
-        </Breadcrumb>
+        <div className="flex items-center justify-between w-full">
+            <Breadcrumb>
+                <BreadcrumbList>
+                    {crumbs}
+                </BreadcrumbList>
+            </Breadcrumb>
+        </div>
     );
 }
-
