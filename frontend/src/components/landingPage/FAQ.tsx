@@ -51,7 +51,7 @@ import { Sponsors } from "./Sponsors";
         id="faq"
         className="container py-24"
       >
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">
+        <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
           Frequently Asked{" "}
           <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
             Questions
@@ -67,6 +67,7 @@ import { Sponsors } from "./Sponsors";
             <AccordionItem
               key={value}
               value={value}
+              className="text-foreground"
             >
               <AccordionTrigger className="text-left">
                 {question}
@@ -77,7 +78,7 @@ import { Sponsors } from "./Sponsors";
           ))}
         </Accordion>
 
-        <h2 className="text-3xl md:text-4xl font-bold mb-4 mt-12">
+        <h2 className="text-3xl md:text-4xl font-bold mb-4 mt-12 text-foreground">
           Need more help?{" "}
           <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
             

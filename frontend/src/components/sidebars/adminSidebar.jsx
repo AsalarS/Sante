@@ -30,7 +30,7 @@ function AdminSidebar() {
                     path="/admin/messages"
                     active={location.pathname === "/admin/messages"}
                 />
-                <hr className="my-3" />
+                <hr className="my-3 border-border" />
                 {/* <SidebarItem
                     icon={<SettingsIcon size={20} />}
                     text="Settings"

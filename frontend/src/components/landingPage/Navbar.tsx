@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -13,10 +13,11 @@ import {
 } from "@/components/ui/sheet";
 
 import { buttonVariants, Button } from "../ui/button";
-import { Menu } from "lucide-react";
+import { Menu, MoonIcon, SunIcon } from "lucide-react";
 import { LogoIcon } from "../icons";
 import { Link } from "react-router-dom";
 import { ACCESS_TOKEN } from "@/constants";
+import { DarkModeContext } from "../darkMode";
 
 interface RouteProps {
   href: string;
@@ -44,6 +45,7 @@ const routeList: RouteProps[] = [
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext); //Dark mode
   return (
     <header className="sticky border-b-[1px] top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">
       <NavigationMenu className="mx-auto">
@@ -121,6 +123,17 @@ export const Navbar = () => {
           <Button asChild className="w-20">
               {localStorage.getItem(ACCESS_TOKEN) ? <Link to="/logout">Logout</Link> : <Link to="/login">Login</Link>}
             </Button>
+            <Button //Darkmode toggle button
+            onClick={toggleDarkMode}
+            className="p-3 rounded-md transition-colors "
+            aria-label="Toggle Dark Mode"
+        >
+            {isDarkMode ? (
+                <SunIcon className="w-12 h-6 text-black" /> 
+            ) : (
+                <MoonIcon className="w-12 h-6 text-white" />
+            )}
+        </Button>
           </div>
         </NavigationMenuList>
       </NavigationMenu>

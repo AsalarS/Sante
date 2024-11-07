@@ -41,10 +41,10 @@ export const Hero = () => {
 
           <div className="space-y-4 md:space-y-0 md:space-x-4">
             {token
-            ? <Button className="w-full md:w-1/3">
+            ? <Button className="w-full md:w-1/3" asChild>
                 <Link to={`/${role}`}>Dashboard</Link>
               </Button> 
-            : <Button className="w-full md:w-1/3">
+            : <Button className="w-full md:w-1/3" asChild>
                 <Link to="/register">Register</Link>
               </Button>}
             <a 

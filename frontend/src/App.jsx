@@ -18,6 +18,7 @@ import PatientHome from "./pages/Dashboards/Patient/patientHome"
 import NurseHome from "./pages/Dashboards/Nurse/nurseHome"
 import ReceptionistHome from "./pages/Dashboards/Receptionist/receptionistHome"
 import AdminHome from "./pages/Dashboards/Admin/adminHome"
+import { DarkModeProvider } from "./components/darkMode"
 
 function Logout() {
   localStorage.clear()
@@ -31,7 +32,7 @@ function RegisterAndLogout() {
 
 function App() {
   return (
-    <>
+    <DarkModeProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -125,7 +126,7 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
-    </>
+    </DarkModeProvider>
   );
 }
 

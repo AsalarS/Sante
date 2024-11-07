@@ -1,7 +1,7 @@
 import { MoreVertical, ChevronLast, ChevronFirst, LogOut } from "lucide-react";
 import { useContext, createContext, useState } from "react";
 import { LogoAndText } from "./icons";
-import { useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
 const SidebarContext = createContext();
 
@@ -15,20 +15,23 @@ export default function Sidebar({ children, onImageClick }) {
 
   return (
     <aside className="h-screen sticky top-0">
-      <nav className="h-full inline-flex flex-col bg-white border-r shadow-sm">
+      <nav className="h-full inline-flex flex-col bg-background border-r border-border shadow-sm">
         <div className="p-4 pb-2 flex justify-between items-center">
           <div
             className={`transition-all overflow-hidden ${
               expanded ? "max-w-xs" : "max-w-0"
             }`}
           >
-            <LogoAndText className="w-32" />
+            <Link to={'/'}>
+            <LogoAndText className="w-32 cursor-pointer" />
+
+            </Link>
           </div>
           <button
             onClick={() => setExpanded((curr) => !curr)}
-            className="p-1.5 rounded-lg bg-gray-50 hover:bg-gray-100"
+            className="p-1.5 rounded-lg bg-darker-background hover:bg-even-darker-background "
           >
-            {expanded ? <ChevronFirst /> : <ChevronLast />}
+            {expanded ? <ChevronFirst className="text-foreground"/> : <ChevronLast className="text-foreground"/>}
           </button>
         </div>
 
@@ -36,7 +39,7 @@ export default function Sidebar({ children, onImageClick }) {
           <ul className="flex-1 px-3">{children}</ul>
         </SidebarContext.Provider>
 
-        <div className="border-t flex p-3">
+        <div className="border-t border-border flex p-3">
           <img
             onClick={onImageClick}
             src="https://ui-avatars.com/api/?background=c7d2fe&color=3730a3&bold=true"
@@ -50,11 +53,11 @@ export default function Sidebar({ children, onImageClick }) {
           `}
           >
             <div className="leading-4">
-              <h4 className="font-semibold">John Doe</h4>
-              <span className="text-xs text-gray-600">johndoe@gmail.com</span>
+              <h4 className="font-semibold text-foreground">John Doe</h4>
+              <span className="text-xs text-muted-foreground">johndoe@gmail.com</span>
             </div>
-            <div className="p-1.5 rounded-lg hover:bg-gray-100">
-              <LogOut size={20} onClick={handleLogout} />
+            <div className="p-1.5 rounded-lg bg-darker-background hover:bg-even-darker-background text-foreground">
+              <LogOut size={23} onClick={handleLogout} />
             </div>
           </div>
         </div>
@@ -74,17 +77,19 @@ export function SidebarItem({ icon, text, active, alert, onClick }) {
         transition-colors group
         ${
           active
-            ? "bg-[#D4DFFD] font-bold"
-            : "hover:bg-[#D4DFFD] text-gray-600"
+            ? "bg-dash-active font-bold"
+            : "hover:bg-dash-hover text-gray-600"
         }
     `}
       onClick={onClick}
     >
-      {icon}
+      <span className={`text-primary ${active ? "text-white" : "text-gray-600"}`}>
+        {icon}
+      </span>
       <span
-        className={`overflow-hidden transition-all ${
+        className={`overflow-hidden transition-all text-primary ${
           expanded ? "w-52 ml-3" : "w-0"
-        }`}
+        } ${active ? "text-white" : "text-gray-600"}`}
       >
         {text}
       </span>
@@ -100,7 +105,7 @@ export function SidebarItem({ icon, text, active, alert, onClick }) {
         <div
           className={`
           absolute left-full rounded-md px-2 py-1 ml-6
-          bg-[#D4DFFD] text-[#6B88FE] text-sm
+          bg-dash-hover text-[#6B88FE] text-sm
           invisible opacity-20 -translate-x-3 transition-all
           group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
       `}
@@ -111,3 +116,5 @@ export function SidebarItem({ icon, text, active, alert, onClick }) {
     </li>
   );
 }
+
+//TODO: Expanded  context tags are under the avatars in the messages tab  FIX IT!

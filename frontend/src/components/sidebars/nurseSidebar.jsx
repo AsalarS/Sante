@@ -30,7 +30,7 @@ function NurseSidebar() {
                     path="/nurse/messages"
                     active={location.pathname === "/nurse/messages"}
                 />
-                <hr className="my-3" />
+                <hr className="my-3 border-border" />
                 {/* <SidebarItem
                     icon={<SettingsIcon size={20} />}
                     text="Settings"

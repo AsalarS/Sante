@@ -49,7 +49,7 @@ function DoctorSidebar() {
                     path="/doctor/messages"
                     active={location.pathname === "/doctor/messages"}
                 />
-                <hr className="my-3" />
+                <hr className="my-3 border-border" />
                 {/* <SidebarItem
                     icon={<SettingsIcon size={20} />}
                     text="Settings"

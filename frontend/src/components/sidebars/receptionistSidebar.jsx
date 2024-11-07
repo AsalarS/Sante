@@ -30,7 +30,7 @@ function ReceptionistSidebar() {
                     path="/receptionist/messages"
                     active={location.pathname === "/receptionist/messages"}
                 />
-                <hr className="my-3" />
+                <hr className="my-3 border-border" />
                 {/* <SidebarItem
                     icon={<SettingsIcon size={20} />}
                     text="Settings"

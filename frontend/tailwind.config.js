@@ -53,13 +53,19 @@ export default {
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
+			'darker-background': 'hsl(var(--darker-background))',
+			'even-darker-background': 'hsl(var(--even-darker-background))',
+			'dash-hover': 'hsl(var(--dash-hover))',
+       		'dash-active': 'hsl(var(--dash-active))',
+			'background-hover': 'hsl(var(--background-hover))',
   			chart: {
   				'1': 'hsl(var(--chart-1))',
   				'2': 'hsl(var(--chart-2))',
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
-  			}
+  			},
+			
   		},
   		keyframes: {
   			'accordion-down': {
