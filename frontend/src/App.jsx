@@ -55,6 +55,7 @@ function App() {
             <Route path="patients" element={<PatientsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="messages" element={<MessagesPage />} />
+            <Route path="messages/:chatId" element={<MessagesPage />} />
             {/* <Route path="settings" element={<SettingsPage />} /> */}
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />

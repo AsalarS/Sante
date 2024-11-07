@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     "api",
-    "corsheaders"
+    "corsheaders",
+    "channels"
 ]
 
 MIDDLEWARE = [
@@ -139,5 +140,12 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
 ]
 
-AUTH_USER_MODEL = 'api.UserProfile'
+AUTH_USER_MODEL = 'api.UserProfile' #To use custom user model
 LOGIN_URL = '/login/'
+
+ASGI_APPLICATION = "api.routing.application" #routing.py will handle the ASGI
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': "channels.layers.InMemoryChannelLayer"
+        }
+    }

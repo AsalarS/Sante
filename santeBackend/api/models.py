@@ -1,9 +1,11 @@
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 
-class UserProfile(AbstractUser):
+#USER
+class UserProfile(AbstractUser): 
     ROLE_CHOICES = [
         ('doctor', 'Doctor'),
         ('patient', 'Patient'),
@@ -20,3 +22,20 @@ class UserProfile(AbstractUser):
 
     def __str__(self):
         return f"{self.email} - {self.role}"
+    
+#CHAT
+class Chat(models.Model):
+    participants = models.ManyToManyField(settings.AUTH_USER_MODEL)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Chat between {[user.email for user in self.participants.all()]}"
+# MESSAGES
+class Message(models.Model):
+    chat = models.ForeignKey(Chat, related_name="messages", on_delete=models.CASCADE)
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.sender.email}: {self.content[:50]}"
