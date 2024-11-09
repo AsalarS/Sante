@@ -10,17 +10,7 @@ export default function MessagesConversation() {
     const [messages, setMessages] = useState([
         { id: 1, sender: 'doctor', content: 'Hello! How can I assist you today?', timestamp: '10:00 AM', avatar: '/path/to/doctor-avatar.png' },
         { id: 2, sender: 'patient', content: 'I have some questions about my prescription.', timestamp: '10:01 AM', avatar: '/path/to/patient-avatar.png' },
-        { id: 1, sender: 'doctor', content: 'I have some questions about my prescription.', timestamp: '10:01 AM', avatar: '/path/to/patient-avatar.png' },
-        { id: 2, sender: 'patient', content: 'I have some questions about my prescription.', timestamp: '10:01 AM', avatar: '/path/to/patient-avatar.png' },
-        { id: 1, sender: 'patient', content: 'I have some questions about my prescription.', timestamp: '10:01 AM', avatar: '/path/to/patient-avatar.png' },
-        { id: 2, sender: 'doctor', content: 'I have some questions about my prescription.', timestamp: '10:01 AM', avatar: '/path/to/doctor-avatar.png' },
-        { id: 1, sender: 'patient', content: 'I have some questions about my prescription.', timestamp: '10:01 AM', avatar: '/path/to/patient-avatar.png' },
-        { id: 2, sender: 'doctor', content: 'I have some questions about my prescription.', timestamp: '10:01 AM', avatar: '/path/to/doctor-avatar.png' },
-        { id: 1, sender: 'patient', content: 'I have some questions about my prescription.', timestamp: '10:01 AM', avatar: '/path/to/patient-avatar.png' },
-        { id: 2, sender: 'patient', content: 'I have some questions about my prescription.', timestamp: '10:01 AM', avatar: '/path/to/patient-avatar.png' },
-        { id: 1, sender: 'doctor', content: 'I have some questions about my prescription.', timestamp: '10:01 AM', avatar: '/path/to/doctor-avatar.png' },
-        { id: 2, sender: 'patient', content: 'I have some questions about my prescription.', timestamp: '10:01 AM', avatar: '/path/to/patient-avatar.png' },
-        { id: 1, sender: 'patient', content: 'I have some questions about my prescription.', timestamp: '10:01 AM', avatar: '/path/to/patient-avatar.png' },
+
     ]);
     const [loading, setLoading] = useState(false);
     const [inputValue, setInputValue] = useState('');
@@ -48,7 +38,7 @@ export default function MessagesConversation() {
     }, [messages]);
 
     return (
-        <div className="flex flex-col h-screen">
+        <div className="flex flex-col h-full">
             <div className="flex flex-col flex-grow overflow-y-auto p-4">
                 {loading ? (
                     <MessageLoading />
@@ -59,8 +49,9 @@ export default function MessagesConversation() {
                                 <ChatBubbleAvatar className="text-foreground" src={msg.avatar} fallback={msg.sender.charAt(0).toUpperCase() + msg.sender.charAt(1).toUpperCase()} />
                                 <ChatBubbleMessage variant={msg.sender === 'doctor' ? 'sent' : 'received'}>
                                     {msg.content}
+                                    <ChatBubbleTimestamp timestamp={msg.timestamp} />
                                 </ChatBubbleMessage>
-                                <ChatBubbleTimestamp className="text-foreground" timestamp={msg.timestamp} />
+                                
                             </ChatBubble>
                         ))}
                         {/* Empty div to act as the bottom reference point */}

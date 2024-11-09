@@ -1,56 +1,35 @@
 from rest_framework import generics
-from .serializers import UserProfileSerializer
-from rest_framework.permissions import AllowAny
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponseForbidden
+from .serializers import UserSerializer
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.http import JsonResponse
 from rest_framework import generics
 from .models import UserProfile
 from django.http import JsonResponse
-from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import myTokenObtainPairSerializer
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
 
 # Create your views here.
 
 class CreateUserView(generics.CreateAPIView):
     queryset = UserProfile.objects.all()
-    serializer_class = UserProfileSerializer
+    serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
+def get_users(request):  # List users
+    if not request.user.is_authenticated:
+        return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    users = UserProfile.objects.all().values(
+        'id', 'email', 'first_name', 'last_name', 'role', 'profile_image')
+    serializedData = UserSerializer(users, many=True)
+    return JsonResponse(serializedData.data, safe=False)
 
-@login_required
-def user_dashboard(request):
-    role = request.user.role
-    # Pass user role to the frontend to route pages accordingly
-    return JsonResponse({'role': role})
+class UserInfoView(APIView):
+    permission_classes = [IsAuthenticated]
 
-
-@login_required
-def doctor_dashboard(request):
-    if request.user.role == 'doctor':
-        # Serve JSON response
-        return JsonResponse({'message': 'Welcome to the doctor dashboard'})
-    else:
-        return HttpResponseForbidden("You do not have permission to view this page.")
-
-
-@login_required
-def admin_dashboard(request):
-    if request.user.role == 'admin':
-        # Handle admin-specific logic
-        return JsonResponse({'message': 'Welcome to the admin dashboard'})
-    else:
-        return HttpResponseForbidden("You do not have permission to view this page.")
-
-@login_required
-def user_info(request):
-    user = request.user
-    return JsonResponse({
-        'id': user.id,
-        'email': user.email,
-        'role': user.role,
-        'first_name': user.first_name,
-        'last_name': user.last_name
-    })
-
-class myTokenObtainPairView(TokenObtainPairView):
-    serializer_class = myTokenObtainPairSerializer
+    def get(self, request):
+        # The request.user will contain the logged-in user's data
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data)

@@ -1,5 +1,3 @@
-from api.views import user_info, myTokenObtainPairView
-
 """
 URL configuration for santeBackend project.
 
@@ -20,15 +18,15 @@ from django.contrib import admin
 from django.urls import path, include
 from api.views import CreateUserView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from api.views import UserInfoView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("api/user/register/", CreateUserView.as_view(), name="register"),
-    # path("api/token/", TokenObtainPairView.as_view(), name="get_token"),
-    path("api/token/refresh/", TokenRefreshView.as_view(), name="refresh"), 
-    path("api-auth/", include("rest_framework.urls")),
-    # path("api/", include("api.urls")),
-    path('api/user-info/', user_info, name='user_info'),
-    path('api/token/', myTokenObtainPairView.as_view(), name='get_token'),
+    path("api/user/register/", CreateUserView.as_view(), name="register"), #register use
+    path("api/token/", TokenObtainPairView.as_view(), name="get_token"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="refresh"),  #login refresh, keeps the user logged in
+    path("api-auth/", include("rest_framework.urls")), #login url
+    path("api/", include("api.urls")),
+    path('api/user-info/', UserInfoView.as_view(), name='user_info'),
 ]
  

@@ -1,15 +1,23 @@
+import React from "react";
 import { ACCESS_TOKEN } from "@/constants";
 import { Button } from "../ui/button";
 import { buttonVariants } from "../ui/button";
 import heroBackground from "@/assets/hero-background.png";
 import { Link } from "react-router-dom";
 
-//TODO: Make the background responsive
 export const Hero = () => {
-  const role = localStorage.getItem('role'); // Retrieve role from localStorage
-  const token = localStorage.getItem(ACCESS_TOKEN); // Retrieve token from localStorage
-  console.log(role);
+  const userInfo = localStorage.getItem('user_info');
   
+  let token = null;
+  let role = null;
+
+
+  if (userInfo) {
+    const userInfoObject = JSON.parse(userInfo);
+    role = userInfoObject.role;
+    token = localStorage.getItem(ACCESS_TOKEN);
+    
+  }
 
   return (
     <section
@@ -62,3 +70,5 @@ export const Hero = () => {
     </section>
   );
 };
+
+//TODO: Make the background responsive

@@ -9,39 +9,44 @@ function ProtectedRoute({ children, allowedRoles }) {
     const [userRole, setUserRole] = useState(null);
 
     useEffect(() => {
-        auth().catch(() => setIsAuthorized(false));
+        auth().catch((error) => {
+            console.error("Authentication failed:", error);
+            setIsAuthorized(false);
+        });
     }, []);
 
     const refreshToken = async () => {
         const refreshToken = localStorage.getItem(REFRESH_TOKEN);
-
+        
         try {
             const res = await api.post("/api/token/refresh/", {
                 refresh: refreshToken,
             });
-
             if (res.status === 200) {
                 localStorage.setItem(ACCESS_TOKEN, res.data.access);
                 setIsAuthorized(true);
             } else {
                 setIsAuthorized(false);
+                console.error("Refresh failed");
             }
         } catch (error) {
-            console.log(error);
+            console.error("Refresh error:", error);
             setIsAuthorized(false);
         }
     };
 
     const auth = async () => {
         const token = localStorage.getItem(ACCESS_TOKEN);
-        if (!token) {
+        const userInfo = localStorage.getItem('user_info');
+
+        if (!token || !userInfo) {
+            console.log("No token or user info found");
             setIsAuthorized(false);
             return;
         }
 
         try {
             const decoded = jwtDecode(token);
-            console.log('Decoded token:', decoded); //debug
             const tokenExpiration = decoded.exp;
             const now = Date.now() / 1000;
             
@@ -49,9 +54,12 @@ function ProtectedRoute({ children, allowedRoles }) {
                 await refreshToken();
             } else {
                 setIsAuthorized(true);
+            
+                // Parse user info
+                const userInfoObject = JSON.parse(userInfo);
+                setUserRole(userInfoObject.role);
             }
 
-            setUserRole(decoded.role);
         } catch (error) {
             console.log("Invalid token", error);
             setIsAuthorized(false);
@@ -65,11 +73,12 @@ function ProtectedRoute({ children, allowedRoles }) {
     if (isAuthorized && allowedRoles.includes(userRole)) {
         return children;
     } else {
-        console.log("Youre Unauthorized")
-        return <Navigate to="/login" />; //TODO: Add unathorized page here
+        console.log("User unauthorized, redirecting to login");
+        return <Navigate to="/login" />;
     }
 }
 
 export default ProtectedRoute;
+
 
 //TODO: Add an unathorized page

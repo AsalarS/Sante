@@ -7,20 +7,11 @@ function MessagesPage() {
     const conversations = [
         { id: 1, name: 'Dr. Smith', role: 'Doctor', lastMessage: 'Hello! How can I assist you?', avatar: '/path/to/doctor-avatar.png' },
         { id: 2, name: 'Pharmacy', role: 'Support', lastMessage: 'Your prescription is ready.', avatar: '/path/to/pharmacy-avatar.png' },
-        { id: 2, name: 'Pharmacy', role: 'Support', lastMessage: 'Your prescription is ready.', avatar: '/path/to/pharmacy-avatar.png' },
-        { id: 2, name: 'Pharmacy', role: 'Support', lastMessage: 'Your prescription is ready.', avatar: '/path/to/pharmacy-avatar.png' },
-        { id: 2, name: 'Pharmacy', role: 'Support', lastMessage: 'Your prescription is ready.', avatar: '/path/to/pharmacy-avatar.png' },
-        { id: 2, name: 'Pharmacy', role: 'Support', lastMessage: 'Your prescription is ready.', avatar: '/path/to/pharmacy-avatar.png' },
-        { id: 2, name: 'Pharmacy', role: 'Support', lastMessage: 'Your prescription is ready.', avatar: '/path/to/pharmacy-avatar.png' },
-        { id: 2, name: 'Pharmacy', role: 'Support', lastMessage: 'Your prescription is ready.', avatar: '/path/to/pharmacy-avatar.png' },
-        { id: 2, name: 'Pharmacy', role: 'Support', lastMessage: 'Your prescription is ready.', avatar: '/path/to/pharmacy-avatar.png' },
-        { id: 2, name: 'Pharmacy', role: 'Support', lastMessage: 'Your prescription is ready.', avatar: '/path/to/pharmacy-avatar.png' },
-        { id: 2, name: 'Pharmacy', role: 'Support', lastMessage: 'Your prescription is ready.', avatar: '/path/to/pharmacy-avatar.png' },
-        { id: 2, name: 'Pharmacy', role: 'Support', lastMessage: 'Your prescription is ready.', avatar: '/path/to/pharmacy-avatar.png' },
+
     ];
 
     return (
-        <div className="flex">
+        <div className="flex h-screen">
             <MessageInbox 
                 conversations={conversations} 
                 onSelectConversation={(id) => setSelectedConversation(id)} 

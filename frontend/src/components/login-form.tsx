@@ -20,10 +20,6 @@ interface LoginFormProps {
   method: "login" | "register";
 }
 
-interface CustomJwtPayload extends JwtPayload {
-  role: string;
-}
-
 export function LoginForm({ route, method }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,25 +34,36 @@ export function LoginForm({ route, method }: LoginFormProps) {
 
     try {
       // Prepare request payload based on the method
-      const payload = method === "register" 
-        ? { email, password, role } 
+      const payload = method === "register"
+        ? { email, password, role }
         : { email, password };
 
       const res = await api.post(route, payload);
+
       if (method === "login") {
         const accessToken = res.data.access;
-        const decodedPayload = jwtDecode<CustomJwtPayload>(accessToken);
-  
-        if (decodedPayload.role) {
-          localStorage.setItem("role", decodedPayload.role);
-          console.log('Role stored in localStorage:', decodedPayload.role); //Debug
-        } else {
-          console.warn('Role not found in the decoded JWT payload');
+        const refreshToken = res.data.refresh;
+
+        // Decode the JWT to get the user's ID (sub) and other info
+        const decodedPayload = jwtDecode<JwtPayload>(accessToken);
+
+        // You can store the decoded payload directly if needed
+        const userId = decodedPayload.sub; // Standard JWT claim
+        if (userId) {
+          localStorage.setItem("user_id", userId);  // Save the user ID in localStorage
         }
 
-        //Set the token in the local storage
-        localStorage.setItem(ACCESS_TOKEN, res.data.access); 
-        localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
+        // Set the access and refresh tokens in localStorage
+        localStorage.setItem(ACCESS_TOKEN, accessToken);
+        localStorage.setItem(REFRESH_TOKEN, refreshToken);
+
+        // Fetch additional user info (like role) from the backend using the access token
+        const userInfoResponse = await api.get("/api/user-info/");
+
+        // Save the user info to localStorage (including the role, email, etc.)
+        localStorage.setItem("user_info", JSON.stringify(userInfoResponse.data));
+
+        // Redirect to the home page or another page after login
         navigate("/");
       } else {
         navigate("/login");
@@ -67,7 +74,6 @@ export function LoginForm({ route, method }: LoginFormProps) {
       setLoading(false);
     }
   };
-
   return (
     <Card className="mx-auto max-w-sm w-96">
       <CardHeader>

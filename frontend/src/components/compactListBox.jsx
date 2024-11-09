@@ -8,7 +8,7 @@ function CompactListBox({ title, emptyText = "No items available", data = [], on
 
   return (
     <div 
-      className="p-4 bg-background dark:bg-dark-background rounded-lg shadow-md cursor-pointer" 
+      className="p-4 bg-background rounded-lg shadow-md cursor-pointer" 
       onClick={onClickSelf}
     >
       {/* Title and Icon */}
@@ -16,7 +16,7 @@ function CompactListBox({ title, emptyText = "No items available", data = [], on
         <span onClick={onClickIcon} className="cursor-pointer text-foreground">
           <SquarePen />
         </span>
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
       </div>
 
       {/* List or Empty Text */}
