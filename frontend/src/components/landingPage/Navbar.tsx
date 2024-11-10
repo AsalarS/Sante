@@ -50,14 +50,14 @@ export const Navbar = () => {
     <header className="sticky border-b-[1px] top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">
       <NavigationMenu className="mx-auto">
         <NavigationMenuList className="container h-14 px-4 w-screen flex justify-between ">
-          <NavigationMenuItem className="font-bold flex">
+          <NavigationMenuItem className="font-bold flex items-center">
             <a
               rel="noreferrer noopener"
               href="/"
-              className="ml-2 font-bold text-xl flex"
+              className="ml-2 font-extrabold text-3xl flex items-center text-primary font-logo"
             >
               <LogoIcon />
-              Santé
+              <span className="ml-2">Santé</span>
             </a>
           </NavigationMenuItem>
 
@@ -71,7 +71,7 @@ export const Navbar = () => {
             >
               <SheetTrigger className="px-2">
                 <Menu
-                  className="flex md:hidden h-5 w-5"
+                  className="flex md:hidden h-5 w-5 text-foreground"
                   onClick={() => setIsOpen(true)}
                 >
                   <span className="sr-only">Menu Icon</span>
@@ -80,7 +80,7 @@ export const Navbar = () => {
 
               <SheetContent side={"left"}>
                 <SheetHeader>
-                  <SheetTitle className="font-bold text-xl">
+                  <SheetTitle className="font-bold text-3xl text-primary font-logo">
                     Santé
                   </SheetTitle>
                 </SheetHeader>
@@ -91,13 +91,23 @@ export const Navbar = () => {
                       key={label}
                       href={href}
                       onClick={() => setIsOpen(false)}
-                      className={buttonVariants({ variant: "ghost" })}
+                      className={`${buttonVariants({ variant: "ghost" })} text-foreground`}
                     >
                       {label}
                     </a>
                   ))}
                   <Button>Login</Button>
-
+                  <Button //Darkmode toggle button
+                    onClick={toggleDarkMode}
+                    className="p-3 rounded-md transition-colors "
+                    aria-label="Toggle Dark Mode"
+                  >
+                    {isDarkMode ? (
+                      <SunIcon className="w-12 h-6 text-black" />
+                    ) : (
+                      <MoonIcon className="w-12 h-6 text-white" />
+                    )}
+                  </Button>
                 </nav>
               </SheetContent>
             </Sheet>
@@ -110,9 +120,7 @@ export const Navbar = () => {
                 rel="noreferrer noopener"
                 href={route.href}
                 key={i}
-                className={`text-[17px] ${buttonVariants({
-                  variant: "ghost",
-                })}`}
+                className={`${buttonVariants({ variant: "ghost" })} text-foreground`}
               >
                 {route.label}
               </a>
@@ -120,20 +128,20 @@ export const Navbar = () => {
           </nav>
 
           <div className="hidden md:flex gap-2">
-          <Button asChild className="w-20">
+            <Button asChild className="w-20">
               {localStorage.getItem(ACCESS_TOKEN) ? <Link to="/logout">Logout</Link> : <Link to="/login">Login</Link>}
             </Button>
             <Button //Darkmode toggle button
-            onClick={toggleDarkMode}
-            className="p-3 rounded-md transition-colors "
-            aria-label="Toggle Dark Mode"
-        >
-            {isDarkMode ? (
-                <SunIcon className="w-12 h-6 text-black" /> 
-            ) : (
+              onClick={toggleDarkMode}
+              className="p-3 rounded-md transition-colors "
+              aria-label="Toggle Dark Mode"
+            >
+              {isDarkMode ? (
+                <SunIcon className="w-12 h-6 text-black" />
+              ) : (
                 <MoonIcon className="w-12 h-6 text-white" />
-            )}
-        </Button>
+              )}
+            </Button>
           </div>
         </NavigationMenuList>
       </NavigationMenu>

@@ -63,8 +63,11 @@ export function LoginForm({ route, method }: LoginFormProps) {
         // Save the user info to localStorage (including the role, email, etc.)
         localStorage.setItem("user_info", JSON.stringify(userInfoResponse.data));
 
-        // Redirect to the home page or another page after login
-        navigate("/");
+        // Extract the role from the user info
+        const role = userInfoResponse.data.role;
+
+        // Redirect to the dashboard based on the user's role
+        navigate(`/${role}`);
       } else {
         navigate("/login");
       }

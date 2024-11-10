@@ -6,6 +6,10 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}"
   ],
   theme: {
+	fontFamily: {
+		'logo': ['Comfortaa', 'sans' , 'sans-serif'],
+    	'body': ['Montserrat', 'sans', 'sans-serif'],
+	},
   	container: {
   		center: 'true',
   		padding: '1.5rem',

@@ -1,16 +1,39 @@
 import { DarkModeContext } from "@/components/darkMode";
+import { Button } from "@/components/ui/button";
 import { ChatBubbleAvatar } from "@/components/ui/chat/chat-bubble";
+import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 function ProfilePage() {
     const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext); //Darkmode functionality from the darkmode provider
     const [email, setEmail] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [userInfo, setUserInfo] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUserInfo = async () => {
+          try {
+            const userInfo = localStorage.getItem('user_info');
+            if (userInfo) {
+              const userInfoObject = JSON.parse(userInfo);
+              setUserInfo(userInfoObject);
+              
+            }
+          } catch (error) {
+            console.error('Failed to fetch user info:', error);
+          } finally {
+            setLoading(false);
+          }
+        };
+    
+        fetchUserInfo();
+      }, []);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -47,27 +70,28 @@ function ProfilePage() {
                 <Separator className="my-12 w-11/12 mx-auto" />
             </div>
             <div className="flex gap-8 flex-col ml-24">
-                <form onSubmit={handleSubmit}>
+                <Form onSubmit={handleSubmit}>
                     {/* Personal Information */}
                     <div className="flex items-center">
                         <Label className="w-36 text-lg font-medium mr-64 text-foreground">Email</Label>
                         <Input
                             className="w-64"
                             placeholder="Enter your email"
-                            value={email}
+                            type="email"
+                            defaultValue={userInfo?.email || ''}
                             onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
                     <div className="flex items-center">
                         <Label className="w-36 text-lg font-medium mr-64 text-foreground">Password</Label>
-                        <Input className="w-64" placeholder="Enter your password" />
+                        {/* <Input className="w-64" placeholder="Enter your password"  type="password" /> */}
                     </div>
                     <div className="flex items-center">
                         <Label className="w-36 text-lg font-medium mr-64 text-foreground">First Name</Label>
                         <Input
                             className="w-64"
                             placeholder="Enter your first name"
-                            value={firstName}
+                            defaultValue={userInfo?.firstName || ''}
                             onChange={(e) => setFirstName(e.target.value)}
                         />
                     </div>
@@ -76,12 +100,12 @@ function ProfilePage() {
                         <Input
                             className="w-64"
                             placeholder="Enter your last name"
-                            value={lastName}
+                            defaultValue={userInfo?.lastName || ''}
                             onChange={(e) => setLastName(e.target.value)}
                         />
                     </div>
-                    <button type="submit" className="mt-4 p-2 bg-blue-500 text-white">Update Information</button>
-                </form>
+                    <Button type="submit" className="mt-4 !mr-64 w-40">Update Information</Button>
+                </Form>
             </div>
             <div className="w-full">
                 <Separator className="my-12 mt-12 w-11/12 mx-auto" />

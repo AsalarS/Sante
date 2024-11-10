@@ -85,8 +85,8 @@ export default function Sidebar({ children, onImageClick }) {
             <div className="leading-4">
               {userInfo ? (
                 <>
-                  <h4 className="font-semibold text-foreground">{userInfo.firstName + ' ' + userInfo.lastName}</h4>
-                  <span className="text-xs text-muted-foreground">{userInfo.email}</span>
+                  <h4 className="font-semibold text-foreground line-clamp-1 break-all">{userInfo.firstName} {userInfo.lastName}</h4>
+                  <span className="text-xs text-muted-foreground line-clamp-1 break-all">{userInfo.email}</span>
                 </>
               ) : (
                 <p className="text-foreground">Loading...</p>

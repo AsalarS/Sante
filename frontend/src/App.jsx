@@ -19,6 +19,7 @@ import NurseHome from "./pages/Dashboards/Nurse/nurseHome"
 import ReceptionistHome from "./pages/Dashboards/Receptionist/receptionistHome"
 import AdminHome from "./pages/Dashboards/Admin/adminHome"
 import { DarkModeProvider } from "./components/darkMode"
+import "./styles/Index.css";
 
 function Logout() {
   localStorage.clear()

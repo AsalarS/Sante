@@ -26,3 +26,4 @@ function MessagesPage() {
 export default MessagesPage;
 
 //TODO: Fix issues with the whole page scrolling
+//TODO: Add line-clamp-1 break-all turnacate to the user names
