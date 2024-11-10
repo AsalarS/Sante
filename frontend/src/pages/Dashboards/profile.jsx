@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { useContext, useEffect, useState } from "react";
+import api from "@/api";
 
 function ProfilePage() {
-    const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext); //Darkmode functionality from the darkmode provider
+    const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
     const [email, setEmail] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -18,28 +19,55 @@ function ProfilePage() {
 
     useEffect(() => {
         const fetchUserInfo = async () => {
-          try {
-            const userInfo = localStorage.getItem('user_info');
-            if (userInfo) {
-              const userInfoObject = JSON.parse(userInfo);
-              setUserInfo(userInfoObject);
-              
+            try {
+                const response = await api.get('/api/user-info/');
+                if (response.status === 200) {
+                    const userInfoObject = response.data;
+                    setUserInfo(userInfoObject);
+                    setEmail(userInfoObject.email || '');
+                    setFirstName(userInfoObject.first_name || '');
+                    setLastName(userInfoObject.last_name || '');
+                } else {
+                    console.error('Failed to fetch user info:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Failed to fetch user info:', error);
+            } finally {
+                setLoading(false);
             }
-          } catch (error) {
-            console.error('Failed to fetch user info:', error);
-          } finally {
-            setLoading(false);
-          }
         };
-    
-        fetchUserInfo();
-      }, []);
 
-    const handleSubmit = (e) => {
+        fetchUserInfo();
+    }, []);
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Add your update logic here
-        console.log('Updated Information:', { email, firstName, lastName });
+        try {
+            const response = await api.put('/api/user-info/', {
+                email: email,
+                first_name: firstName,
+                last_name: lastName
+            });
+            if (response.status === 200) {
+                const updatedUserInfo = response.data;
+                setUserInfo(updatedUserInfo);
+                console.log('Updated Information:', updatedUserInfo);
+            } else {
+                console.error('Failed to update user info:', response.statusText);
+            }
+        } catch (error) {
+            if (error.response) {
+                console.error('Backend Error:', error.response.data); // Logs backend response
+            } else {
+                console.error('Request Failed:', error.message);
+            }
+        }
     };
+    
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className="bg-background">
@@ -57,7 +85,7 @@ function ProfilePage() {
                             type="file"
                             accept="image/*"
                             className="hidden"
-                            onChange={() => { }} //TODO: Add functionality
+                            onChange={() => { }} // TODO: Add functionality
                         />
                         Change Profile Image
                     </Label>
@@ -78,20 +106,16 @@ function ProfilePage() {
                             className="w-64"
                             placeholder="Enter your email"
                             type="email"
-                            defaultValue={userInfo?.email || ''}
+                            value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
-                    </div>
-                    <div className="flex items-center">
-                        <Label className="w-36 text-lg font-medium mr-64 text-foreground">Password</Label>
-                        {/* <Input className="w-64" placeholder="Enter your password"  type="password" /> */}
                     </div>
                     <div className="flex items-center">
                         <Label className="w-36 text-lg font-medium mr-64 text-foreground">First Name</Label>
                         <Input
                             className="w-64"
                             placeholder="Enter your first name"
-                            defaultValue={userInfo?.firstName || ''}
+                            value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
                         />
                     </div>
@@ -100,11 +124,11 @@ function ProfilePage() {
                         <Input
                             className="w-64"
                             placeholder="Enter your last name"
-                            defaultValue={userInfo?.lastName || ''}
+                            value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
                         />
                     </div>
-                    <Button type="submit" className="mt-4 !mr-64 w-40">Update Information</Button>
+                    <Button type="submit" className="mt-4 !mr-64 w-40" onClick={handleSubmit}>Update Information</Button>
                 </Form>
             </div>
             <div className="w-full">

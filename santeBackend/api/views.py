@@ -1,4 +1,5 @@
 from rest_framework import generics
+from rest_framework.decorators import api_view
 from .serializers import UserSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.http import JsonResponse
@@ -16,6 +17,8 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
+
+@api_view(['GET'])
 def get_users(request):  # List users
     if not request.user.is_authenticated:
         return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -33,3 +36,11 @@ class UserInfoView(APIView):
         user = request.user
         serializer = UserSerializer(user)
         return Response(serializer.data)
+    
+    def put(self, request):
+        user = request.user
+        serializer = UserSerializer(user, data=request.data, partial=True)  # partial=True allows partial updates to certain fields
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
