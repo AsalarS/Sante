@@ -3,6 +3,7 @@ import api from "../api";
 import { REFRESH_TOKEN, ACCESS_TOKEN } from "../constants";
 import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
+import ErrorPage from "@/pages/errorPage";
 
 function ProtectedRoute({ children, allowedRoles }) {
     const [isAuthorized, setIsAuthorized] = useState(null);
@@ -74,11 +75,8 @@ function ProtectedRoute({ children, allowedRoles }) {
         return children;
     } else {
         console.log("User unauthorized, redirecting to login");
-        return <Navigate to="/login" />;
+        return <ErrorPage error={401} />;
     }
 }
 
 export default ProtectedRoute;
-
-
-//TODO: Add an unathorized page

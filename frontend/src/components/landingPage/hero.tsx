@@ -26,6 +26,7 @@ export const Hero = () => {
         backgroundSize: "110%",
       }}
       className="w-full min-h-screen max-w-full flex items-center bg-cover bg-center object-cover sm:max-h-full md:max-h-full lg:max-h-full xl:max-h-full"
+      id="hero"
     >
       <div className="container grid lg:grid-cols-2 place-items-center py-20 md:py-32 gap-10 ">
         <div className="text-center lg:text-start space-y-6">

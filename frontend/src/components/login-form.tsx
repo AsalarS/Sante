@@ -154,4 +154,3 @@ export function LoginForm({ route, method }: LoginFormProps) {
 }
 
 //TODO: Add UI error messages for user
-//TODO: Redirect to dashboard if user registered or logged in

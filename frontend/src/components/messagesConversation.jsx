@@ -39,6 +39,13 @@ export default function MessagesConversation() {
 
     return (
         <div className="flex flex-col h-full">
+            <div className="flex items-center p-4 border-b border-border bg-background w-full"> {/* Top Section */}
+            <ChatBubbleAvatar className="text-foreground bg-muted" fallback='PA' />
+                <div className='ml-4'>
+                    <div className="font-semibold text-lg text-foreground leading-5">John Doe</div>
+                    <div className="text-sm text-muted-foreground">Patient</div>
+                </div>
+            </div>
             <div className="flex flex-col flex-grow overflow-y-auto p-4">
                 {loading ? (
                     <MessageLoading />
@@ -51,7 +58,7 @@ export default function MessagesConversation() {
                                     {msg.content}
                                     <ChatBubbleTimestamp timestamp={msg.timestamp} />
                                 </ChatBubbleMessage>
-                                
+
                             </ChatBubble>
                         ))}
                         {/* Empty div to act as the bottom reference point */}
@@ -67,11 +74,10 @@ export default function MessagesConversation() {
                     className="flex-grow border p-2 rounded-md text-foreground"
                 />
                 <Button onClick={handleSendMessage} className="flex items-center">
-                    <Send size={24} className='text-foreground'/>
+                    <Send size={24} className='text-foreground' />
                 </Button>
             </div>
         </div>
     );
 };
-//TODO: Add top section to include who the person is talking to
 

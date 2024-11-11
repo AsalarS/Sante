@@ -35,7 +35,7 @@ function SettingsPage() {
                                     type="file"
                                     accept="image/*"
                                     className="hidden"
-                                    onChange={() => { }} //TODO: Add
+                                    onChange={() => { }}
                                 />
                                 Change Profile Image
                             </label>

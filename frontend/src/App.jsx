@@ -2,7 +2,7 @@ import React from "react"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
-import NotFound from "./pages/NotFound"
+import errorPage from "./pages/errorPage"
 import Dashboard from "./pages/Dashboards/Dashboard"
 import ProtectedRoute from "./components/ProtectedRoute"
 import PatientsPage from "./pages/Dashboards/Doctor/patients"
@@ -41,7 +41,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/register" element={<Register />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<errorPage />} />
 
           <Route
             path="/Doctor/"

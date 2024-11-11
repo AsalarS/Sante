@@ -82,9 +82,9 @@ function MessageInbox({ conversations, onSelectConversation }) {
                     >
                         <ChatBubbleAvatar src={conversation.avatar} className="w-12 h-12 mr-3 text-foreground bg-muted" fallback={conversation.name.charAt(0).toUpperCase()} />
                         <div>
-                            <div className="font-semibold text-lg text-foreground">{conversation.name}</div>
-                            <div className="text-sm text-muted-foreground">{conversation.role}</div>
-                            <div className="text-sm text-gray-500 truncate">{conversation.lastMessage}</div>
+                            <div className="font-semibold text-lg text-foreground line-clamp-1 break-all">{conversation.name}</div>
+                            <div className="text-sm text-muted-foreground line-clamp-1 break-all">{conversation.role}</div>
+                            <div className="text-sm text-gray-500 truncate line-clamp-1 break-all">{conversation.lastMessage}</div>
                         </div>
                     </li>
                 ))}
