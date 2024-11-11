@@ -25,9 +25,9 @@ export const Hero = () => {
         backgroundImage: `url(${heroBackground})`,
         backgroundSize: "110%",
       }}
-      className="w-full h-[80vh] flex items-center"
+      className="w-full min-h-screen max-w-full flex items-center bg-cover bg-center object-cover sm:max-h-full md:max-h-full lg:max-h-full xl:max-h-full"
     >
-      <div className="container grid lg:grid-cols-2 place-items-center py-20 md:py-32 gap-10">
+      <div className="container grid lg:grid-cols-2 place-items-center py-20 md:py-32 gap-10 ">
         <div className="text-center lg:text-start space-y-6">
           <main className="text-5xl md:text-6xl font-bold text-white">
             <h1 className="inline">
@@ -58,7 +58,7 @@ export const Hero = () => {
             <a 
               rel="noreferrer noopener"
               href="#footer"
-              className={`w-full md:w-1/3 ${buttonVariants({
+              className={`w-full md:w-1/3 text-foreground ${buttonVariants({
                 variant: "outline",
               })}`}
             >

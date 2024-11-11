@@ -78,7 +78,7 @@ export function LoginForm({ route, method }: LoginFormProps) {
     }
   };
   return (
-    <Card className="mx-auto max-w-sm w-96">
+    <Card className="mx-auto max-w-sm w-96 bg-background">
       <CardHeader>
         <CardTitle className="text-2xl">{name}</CardTitle>
         <CardDescription>

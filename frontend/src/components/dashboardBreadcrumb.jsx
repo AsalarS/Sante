@@ -5,7 +5,6 @@ import React from "react";
 export default function DashBreadcrumb() {
     let currentLink = '';
     const location = useLocation();
-    console.log('Current path:', location.pathname);
     const crumbs = location.pathname.split('/')
         .filter((crumb, index) => crumb !== '' && index > 0)
         .map((crumb, index) => {

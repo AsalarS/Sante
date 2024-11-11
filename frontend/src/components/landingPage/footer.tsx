@@ -3,17 +3,17 @@ import { LogoIcon } from "../icons";
 export const Footer = () => {
   return (
     <footer id="footer">
-      <hr className="w-11/12 mx-auto" />
+      <hr className="w-11/12 mx-auto bg-background" />
 
-      <section className="container py-20 grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-x-12 gap-y-8">
-        <div className="col-span-full xl:col-span-2">
+      <section className="container py-20 grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-x-12 gap-y-8 text-foreground">
+        <div className="col-span-full xl:col-span-2 ">
           <a
             rel="noreferrer noopener"
             href="/"
-            className="font-bold text-xl flex"
+            className="ml-2 font-extrabold text-3xl flex items-center text-primary font-logo"
           >
             <LogoIcon />
-            Santé
+            <span className="ml-2">Santé</span>
           </a>
         </div>
 
@@ -150,7 +150,7 @@ export const Footer = () => {
         </div>
       </section>
 
-      <section className="container pb-14 text-center">
+      <section className="container pb-14 text-center text-foreground">
         <h3>
           &copy; 2024 Landing page made by{" "}
           <a
@@ -159,7 +159,7 @@ export const Footer = () => {
             href="https://www.linkedin.com/in/leopoldo-miranda/"
             className="text-primary transition-all border-primary hover:border-b-2"
           >
-            Leo Miranda
+            Ali Alfardan
           </a>
         </h3>
       </section>

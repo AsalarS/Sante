@@ -55,7 +55,7 @@ export const Features = () => {
       id="features"
       className="container py-24 sm:py-32 space-y-8"
     >
-      <h2 className="text-3xl lg:text-4xl font-bold md:text-center">
+      <h2 className="text-3xl lg:text-4xl font-bold md:text-center text-foreground">
         Many{" "}
         <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
           Great Features
@@ -77,7 +77,7 @@ export const Features = () => {
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         {features.map(({ title, description, image }: FeatureProps) => (
-          <Card key={title}>
+          <Card key={title} className="bg-background">
             <CardHeader>
               <CardTitle>{title}</CardTitle>
             </CardHeader>

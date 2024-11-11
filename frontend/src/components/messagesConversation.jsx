@@ -46,7 +46,7 @@ export default function MessagesConversation() {
                     <ChatMessageList>
                         {messages.map((msg) => (
                             <ChatBubble key={msg.id} variant={msg.sender === 'doctor' ? 'sent' : 'received'}>
-                                <ChatBubbleAvatar className="text-foreground" src={msg.avatar} fallback={msg.sender.charAt(0).toUpperCase() + msg.sender.charAt(1).toUpperCase()} />
+                                <ChatBubbleAvatar className="text-foreground bg-muted" src={msg.avatar} fallback={msg.sender.charAt(0).toUpperCase() + msg.sender.charAt(1).toUpperCase()} />
                                 <ChatBubbleMessage variant={msg.sender === 'doctor' ? 'sent' : 'received'}>
                                     {msg.content}
                                     <ChatBubbleTimestamp timestamp={msg.timestamp} />
@@ -64,7 +64,7 @@ export default function MessagesConversation() {
                     onChange={(e) => setInputValue(e.target.value)}
                     value={inputValue}
                     placeholder="Type a message..."
-                    className="flex-grow border p-2 rounded-md"
+                    className="flex-grow border p-2 rounded-md text-foreground"
                 />
                 <Button onClick={handleSendMessage} className="flex items-center">
                     <Send size={24} className='text-foreground'/>

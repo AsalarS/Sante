@@ -49,7 +49,7 @@ import { Sponsors } from "./Sponsors";
     return (
       <section
         id="faq"
-        className="container py-24"
+        className="container py-24 bg-background"
       >
         <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
           Frequently Asked{" "}
