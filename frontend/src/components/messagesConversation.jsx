@@ -73,8 +73,8 @@ export default function MessagesConversation() {
                     placeholder="Type a message..."
                     className="flex-grow border p-2 rounded-md text-foreground"
                 />
-                <Button onClick={handleSendMessage} className="flex items-center">
-                    <Send size={24} className='text-foreground' />
+                <Button onClick={handleSendMessage} className="flex items-center h-full">
+                    <Send size={32} className='text-white w-32 h-32'/>
                 </Button>
             </div>
         </div>

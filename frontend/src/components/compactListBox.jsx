@@ -1,8 +1,9 @@
 import React from 'react';
-import { Separator } from '@/components/ui/separator'; 
-import { SquarePen } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { SquarePen, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
-function CompactListBox({ title, emptyText = "No items available", data = [], onClickIcon, onClickSelf }) {
+function CompactListBox({ title, emptyText = "No items available", data = [], onClickIcon, onClickSelf, displayAsBadges = false }) {
   const maxItemsToShow = 3;
   const displayData = data.slice(0, maxItemsToShow);
 
@@ -25,8 +26,17 @@ function CompactListBox({ title, emptyText = "No items available", data = [], on
           <>
             {displayData.map((item, index) => (
               <React.Fragment key={index}>
-                <div className="text-muted-foreground">{item}</div>
-                {index < displayData.length - 1 && <Separator/>}
+                {displayAsBadges ? (
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Badge className="flex items-center space-x-1 bg-chart-5 text-foreground hover:bg-chart-5/50">
+                      <span>{item}</span>
+                      <X className="cursor-pointer text-secondary" size={12} strokeWidth={4}/>
+                    </Badge>
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground">{item}</div>
+                )}
+                {index < displayData.length - 1 && !displayAsBadges && <Separator />}
               </React.Fragment>
             ))}
             {data.length > maxItemsToShow && (

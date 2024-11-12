@@ -12,9 +12,9 @@ function PatientInformation() {
         <div className="bg-[#E1E7FE] h-screen p-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {listData.map((item, index) => (
                 <CompactListBox
+                    displayAsBadges={true}
                     key={index}
                     title={item.title}
-
                     data={item.data}
                     onClickIcon={() => console.log(`${item.title} icon clicked`)}
                     onClickSelf={() => console.log(`${item.title} clicked`)}

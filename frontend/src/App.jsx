@@ -20,6 +20,7 @@ import ReceptionistHome from "./pages/Dashboards/Receptionist/receptionistHome"
 import AdminHome from "./pages/Dashboards/Admin/adminHome"
 import { DarkModeProvider } from "./components/darkMode"
 import "./styles/Index.css";
+import ErrorPage from "./pages/errorPage"
 
 function Logout() {
   localStorage.clear()
@@ -41,7 +42,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/register" element={<Register />} />
-          <Route path="*" element={<errorPage />} />
+          <Route path="*" element={<ErrorPage />} />
 
           <Route
             path="/Doctor/"
