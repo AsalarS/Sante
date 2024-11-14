@@ -119,7 +119,7 @@ export function LoginForm({ route, method }: LoginFormProps) {
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 required
-                className="p-2 border rounded-md"
+                className="p-2 border rounded-md bg-background"
               >
                 <option value="">Select Role</option>
                 <option value="doctor">Doctor</option>
@@ -131,7 +131,8 @@ export function LoginForm({ route, method }: LoginFormProps) {
             </div>
           )}
 
-          <Button type="submit" className="w-full" disabled={loading}>
+
+          <Button type="submit" className="w-full text-white" disabled={loading}>
             {loading ? "Loading..." : name}
           </Button>
         </form>

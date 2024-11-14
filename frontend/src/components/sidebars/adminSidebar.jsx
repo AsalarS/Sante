@@ -1,5 +1,6 @@
 import { DashboardIcon, HelpIcon, MessagesIcon, SettingsIcon } from "@/components/icons";
 import Sidebar, { SidebarItem } from "@/components/sidebar";
+import { Calendar, Calendar1, MessagesSquare, NotebookTabs, User2 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 function AdminSidebar() {
@@ -19,6 +20,46 @@ function AdminSidebar() {
                     }}
                     path="/admin/dashboard"
                     active={location.pathname === "/admin/dashboard"}
+                />
+                <SidebarItem
+                    icon={<User2 size={20} />}
+                    text="Users"
+                    
+                    onClick={() => {
+                        navigate("/admin/users");
+                    }}
+                    path="/admin/users"
+                    active={location.pathname === "/admin/users"}
+                />
+                <SidebarItem
+                    icon={<Calendar size={20} />}
+                    text="Appointments"
+                    
+                    onClick={() => {
+                        navigate("/admin/appointments");
+                    }}
+                    path="/admin/appointments"
+                    active={location.pathname === "/admin/appointments"}
+                />
+                <SidebarItem
+                    icon={<MessagesSquare size={20} />}
+                    text="Chat"
+                    
+                    onClick={() => {
+                        navigate("/admin/chat");
+                    }}
+                    path="/admin/chat"
+                    active={location.pathname === "/admin/chat"}
+                />
+                <SidebarItem
+                    icon={<NotebookTabs size={20} />}
+                    text="Logs"
+                    
+                    onClick={() => {
+                        navigate("/admin/logs");
+                    }}
+                    path="/admin/logs"
+                    active={location.pathname === "/admin/logs"}
                 />
                 <SidebarItem
                     icon={<MessagesIcon size={20} />}
