@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { jwtDecode, JwtPayload } from "jwt-decode";
+import { Loader2 } from "lucide-react";
 
 interface LoginFormProps {
   route: string;
@@ -133,7 +134,7 @@ export function LoginForm({ route, method }: LoginFormProps) {
 
 
           <Button type="submit" className="w-full text-white" disabled={loading}>
-            {loading ? "Loading..." : name}
+            {loading ? <Loader2  className="animate-spin" /> : name}
           </Button>
         </form>
 

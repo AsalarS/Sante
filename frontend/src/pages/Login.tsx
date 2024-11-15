@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { jwtDecode, JwtPayload } from "jwt-decode";
+import { Loader2 } from 'lucide-react';
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -80,7 +81,7 @@ function Login() {
                                     />
                                 </div>
                                 <Button type="submit" className="w-full text-white" disabled={loading}>
-                                    {loading ? "Loading..." : "Login"}
+                                    {loading ? <Loader2  className="animate-spin" /> : "Login"}
                                 </Button>
                             </form>
 

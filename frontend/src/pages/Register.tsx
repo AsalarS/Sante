@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import PhoneInput from '@/components/ui/phoneInput';
 import { DatePicker } from '@/components/ui/datePicker';
 import { format } from "date-fns";
+import { Loader2 } from "lucide-react";
 
 const Register = () => {
     const [email, setEmail] = useState("");
@@ -177,7 +178,7 @@ const Register = () => {
                                 </div>
                                 {/* SUBMIT BUTTON */}
                                 <Button type="submit" className="w-full col-span-1 md:col-span-2 text-white" disabled={loading}>
-                                    {loading ? "Loading..." : "Register"}
+                                    {loading ? <Loader2  className="animate-spin" /> : "Register"}
                                 </Button>
                             </form>
 
