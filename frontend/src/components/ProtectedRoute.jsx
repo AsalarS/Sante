@@ -4,35 +4,26 @@ import { REFRESH_TOKEN, ACCESS_TOKEN } from "../constants";
 import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 import ErrorPage from "@/pages/errorPage";
+import { Loader2 } from "lucide-react";
 
 function ProtectedRoute({ children, allowedRoles }) {
     const [isAuthorized, setIsAuthorized] = useState(null);
     const [userRole, setUserRole] = useState(null);
 
-    useEffect(() => {
-        auth().catch((error) => {
-            console.error("Authentication failed:", error);
-            setIsAuthorized(false);
-        });
-    }, []);
-
     const refreshToken = async () => {
         const refreshToken = localStorage.getItem(REFRESH_TOKEN);
-        
         try {
             const res = await api.post("/api/token/refresh/", {
                 refresh: refreshToken,
             });
             if (res.status === 200) {
                 localStorage.setItem(ACCESS_TOKEN, res.data.access);
-                setIsAuthorized(true);
-            } else {
-                setIsAuthorized(false);
-                console.error("Refresh failed");
+                return true;
             }
+            return false;
         } catch (error) {
             console.error("Refresh error:", error);
-            setIsAuthorized(false);
+            return false;
         }
     };
 
@@ -50,31 +41,48 @@ function ProtectedRoute({ children, allowedRoles }) {
             const decoded = jwtDecode(token);
             const tokenExpiration = decoded.exp;
             const now = Date.now() / 1000;
-            
-            if (tokenExpiration < now) {
-                await refreshToken();
-            } else {
-                setIsAuthorized(true);
-            
-                // Parse user info
-                const userInfoObject = JSON.parse(userInfo);
-                setUserRole(userInfoObject.role);
+
+            // If token will expire in the next 2 minutes or has expired, refresh it
+            if (tokenExpiration - now < 120) {
+                const refreshSuccess = await refreshToken();
+                if (!refreshSuccess) {
+                    setIsAuthorized(false);
+                    return;
+                }
             }
 
+            // Parse user info and set authorization
+            const userInfoObject = JSON.parse(userInfo);
+            setUserRole(userInfoObject.role);
+            setIsAuthorized(true);
         } catch (error) {
-            console.log("Invalid token", error);
+            console.error("Authentication error:", error);
             setIsAuthorized(false);
         }
     };
 
+    useEffect(() => {
+        // Initial authentication check
+        auth();
+
+        // Set up periodic authentication check every minute
+        const authInterval = setInterval(auth, 300000);
+
+        return () => clearInterval(authInterval);
+    }, []);
+
     if (isAuthorized === null) {
-        return <div>Loading...</div>;
+        return <Loader2 className="animate-spin h-8 w-8" />;
     }
 
-    if (isAuthorized && allowedRoles.includes(userRole)) {
+    if (!isAuthorized) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (allowedRoles.includes(userRole)) {
         return children;
     } else {
-        console.log("User unauthorized, redirecting to login");
+        console.log("User unauthorized, redirecting to error page");
         return <ErrorPage error={401} />;
     }
 }

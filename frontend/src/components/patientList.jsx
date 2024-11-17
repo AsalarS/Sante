@@ -38,7 +38,7 @@ function PatientList({ onSelectConversation }) {
 
     return (
         <>
-            <div className="w-1/4 h-screen border-r bg-background overflow-y-auto shadow-md border-border">
+            <div className="w-1/4 h-screen border-r bg-background overflow-y-auto shadow-md border-border sticky top-0">
                 <div className="flex items-center justify-between p-4 border-b border-border">
                     <div className="relative flex items-center rounded-lg bg-gray-100 dark:bg-gray-800 w-full mr-4">
                         <Input type="text" placeholder="Search Patients" className="flex-grow rounded-lg appearance-none pl-8 text-xs" />

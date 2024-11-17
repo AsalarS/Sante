@@ -13,7 +13,7 @@ function PatientsPage() {
 
     return (
         <>
-            <div className="flex">
+            <div className="flex overflow-y-auto">
                 <PatientList
                     conversations={conversations}
                     onSelectConversation={(id) => setSelectedConversation(id)}

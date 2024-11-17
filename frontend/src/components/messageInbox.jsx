@@ -31,7 +31,7 @@ function MessageInbox({ conversations, onSelectConversation }) {
     }, []);
 
     return (
-        <div className="w-1/4 h-full border-r bg-background shadow-md flex flex-col border-border">
+        <div className="w-1/4 h-full border-r bg-background shadow-md flex flex-col border-border sticky top-0">
             {/* Header Section */}
             <div className="flex items-center justify-between p-4 border-b border-border">
                 <div className="relative flex items-center rounded-lg bg-gray-100 dark:bg-gray-800 w-full mr-4">
