@@ -32,7 +32,7 @@ const Register = () => {
         const trimmedPayload = {
             first_name: first_name.trim(),
             last_name: last_name.trim(),
-            email: email.trim(),
+            email: email.trim().toLowerCase(),
             address: address.trim(),
             password,
             date_of_birth: dob,
