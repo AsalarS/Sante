@@ -92,7 +92,7 @@ function ProfilePage() {
     }
 
     return (
-        <div className="bg-background">
+        <div className="bg-background h-full">
             <div className="flex gap-8 flex-col ml-24">
                 {/* Profile Image */}
                 <div className="flex items-center mt-6">

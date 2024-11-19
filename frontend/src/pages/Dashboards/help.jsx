@@ -2,10 +2,9 @@ import { FAQ } from "@/components/landingPage/FAQ";
 
 function HelpPage () {
     return(
-        <>
-        
-            <FAQ />
-        </>
+        <div className="bg-background h-full">
+            <FAQ/> 
+        </div>
     )
 }
 

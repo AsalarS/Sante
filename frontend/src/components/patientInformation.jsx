@@ -6,7 +6,7 @@ import { Separator } from "./ui/separator";
 
 function PatientInformation() {
     return (
-        <div className="bg-dash-hover h-screen flex flex-col sm:flex-row p-6 gap-4">
+        <div className="bg-even-darker-background h-screen flex flex-col sm:flex-row p-6 gap-4">
             {/* Left Section (Main Content) */}
             <div className="flex flex-col space-y-4 flex-grow sm:w-3/4">
                 {/* <div className="bg-background p-4 rounded-lg flex items-center space-x-4">

@@ -34,7 +34,7 @@ function Dashboard() {
                         <DashBreadcrumb />
                     </div>
                 </header>
-                <main className="flex-1 bg-background">
+                <main className="flex-1 bg-even-darker-background">
                     {/* To show pages */}
                     <Outlet/>
                 </main>
