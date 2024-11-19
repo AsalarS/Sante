@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from .models import Log
 
 User = get_user_model()
 
@@ -16,6 +17,11 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
+class LogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Log
+        fields = '__all__'
+        
 # # Serializer to handle input and update logic
 # class UserProfileSerializer(serializers.ModelSerializer):
 #     class Meta:

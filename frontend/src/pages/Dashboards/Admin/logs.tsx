@@ -10,7 +10,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -20,157 +19,84 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Ellipsis, Filter } from "lucide-react";
+import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter } from "lucide-react";
 import api from "@/api";
 
-export type User = {
+export type Log = {
   id: number;
-  email: string;
-  first_name: string;
-  last_name: string;
-  role: string;
-  profile_image: string | null;
-  gender: string | null;
-  date_of_birth: string | null;
-  phone_number: string | null;
-  address: string | null;
+  user: string; // Assuming this is a username or string representation
+  action: string;
+  timestamp: string; // ISO format string
+  ip_address: string;
+  description: string;
 };
 
-export const columns: ColumnDef<User>[] = [
+export const columns: ColumnDef<Log>[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
+    accessorKey: "user",
+    header: "User",
+    cell: ({ row }) => <div>{row.getValue<string>("user") || "-"}</div>,
   },
   {
-    accessorKey: "email",
+    accessorKey: "action",
+    header: "Action",
+    cell: ({ row }) => <div>{row.getValue<string>("action") || "-"}</div>,
+  },
+  {
+    accessorKey: "timestamp",
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Email <ArrowUpDown className="ml-1" />
+        Timestamp <ArrowUpDown className="ml-1" />
       </Button>
     ),
     cell: ({ row }) => {
-      const email = row.getValue<string | null>("email");
-      return <div className="lowercase">{email || "-"}</div>;
+      const timestamp = row.getValue<string>("timestamp");
+      return <div>{timestamp ? new Date(timestamp).toLocaleString() : "-"}</div>;
     },
   },
   {
-    accessorKey: "first_name",
-    header: "First Name",
-    cell: ({ row }) => {
-      const firstName = row.getValue<string | null>("first_name");
-      return <div>{firstName || "-"}</div>;
-    },
+    accessorKey: "ip_address",
+    header: "IP Address",
+    cell: ({ row }) => <div>{row.getValue<string>("ip_address") || "-"}</div>,
   },
   {
-    accessorKey: "last_name",
-    header: "Last Name",
-    cell: ({ row }) => {
-      const lastName = row.getValue<string | null>("last_name");
-      return <div>{lastName || "-"}</div>;
-    },
-  },
-  {
-    accessorKey: "role",
-    header: "Role",
-    cell: ({ row }) => {
-      const role = row.getValue<string | null>("role");
-      return <div>{role || "-"}</div>;
-    },
-  },
-  {
-    accessorKey: "date_of_birth",
-    header: "Date of Birth",
-    cell: ({ row }) => {
-      const dob = row.getValue<string | null>("date_of_birth");
-      return <div>{dob ? new Date(dob).toLocaleDateString() : "-"}</div>;
-    },
-  },
-  {
-    accessorKey: "gender",
-    header: "Gender",
-    cell: ({ row }) => {
-      const gender = row.getValue<string | null>("gender");
-      return <div>{gender || "-"}</div>;
-    },
-  },
-  {
-    accessorKey: "phone_number",
-    header: "Phone",
-    cell: ({ row }) => {
-      const phone = row.getValue<string | null>("phone_number");
-      return <div>{phone || "-"}</div>;
-    },
-  },
-  {
-    accessorKey: "address",
-    header: "Address",
-    cell: ({ row }) => {
-      const address = row.getValue<string | null>("address");
-      return <div>{address || "-"}</div>;
-    },
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => {
-      const user = row.original;
-      return (
-        <Button variant="ghost" onClick={() => console.log("View user:", user)}>
-          <Ellipsis className="text-foreground" />
-        </Button>
-      );
-    },
+    accessorKey: "description",
+    header: "Description",
+    cell: ({ row }) => <div>{row.getValue<string>("description") || "-"}</div>,
   },
 ];
 
-export function UserAdminPage() {
+export function LogAdminPage() {
   const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState<User[]>([]);
+  const [logs, setLogs] = useState<Log[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
 
-  const fetchUsers = async () => {
+  const fetchLogs = async () => {
     try {
-      const response = await api.get("/api/users/admin/");
+      const response = await api.get("/api/logs/admin/");
       if (response.status === 200) {
-        setUsers(response.data);
+        setLogs(response.data);
       } else {
-        console.error("Failed to fetch users:", response.statusText);
+        console.error("Failed to fetch logs:", response.statusText);
       }
     } catch (error) {
-      console.error("Failed to fetch users:", error);
+      console.error("Failed to fetch logs:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchLogs();
   }, []);
 
   const table = useReactTable({
-    data: users,
+    data: logs,
     columns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
@@ -195,10 +121,10 @@ export function UserAdminPage() {
     <div className="w-full px-4">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter by email..."
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
+          placeholder="Filter by user..."
+          value={(table.getColumn("user")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
+            table.getColumn("user")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
@@ -251,7 +177,6 @@ export function UserAdminPage() {
           </TableBody>
         </Table>
       </div>
-      {/* Pagination Controls */}
       <div className="flex items-center justify-center py-4 space-x-1">
         <Button
           variant="ghost"

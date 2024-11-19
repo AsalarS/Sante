@@ -5,7 +5,6 @@ import { Edit, Loader2, SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import api from '@/api';
-import { ACCESS_TOKEN } from '../constants';
 
 function MessageInbox({ conversations, onSelectConversation }) {
     const [loading, setLoading] = useState(true);
@@ -16,6 +15,7 @@ function MessageInbox({ conversations, onSelectConversation }) {
             const response = await api.get('/api/users/');
             if (response.status === 200) {
                 setUsers(response.data);
+                console.log(response.data)
             } else {
                 console.error('Failed to fetch users:', response.statusText);
             }

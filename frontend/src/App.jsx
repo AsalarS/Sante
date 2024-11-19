@@ -22,6 +22,7 @@ import { DarkModeProvider } from "./components/darkMode"
 import "./styles/Index.css";
 import ErrorPage from "./pages/errorPage"
 import { UserAdminPage } from "./pages/Dashboards/Admin/users"
+import { LogAdminPage } from "./pages/Dashboards/Admin/logs"
 
 function Logout() {
   localStorage.clear()
@@ -125,8 +126,8 @@ function App() {
             <Route path="users" element={<UserAdminPage />} />
             <Route path="appointments" element={<AdminHome />} />
             <Route path="chat" element={<AdminHome />} />
-            <Route path="logs" element={<AdminHome />} />
-         -----            <Route path="messages" element={<MessagesPage />} />
+            <Route path="logs" element={<LogAdminPage />} />
+            <Route path="messages" element={<MessagesPage />} />
             {/* <Route path="settings" element={<SettingsPage />} /> */}
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
