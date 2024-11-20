@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Log
+from .models import Log, Patient
 
 User = get_user_model()
 
@@ -22,6 +22,10 @@ class LogSerializer(serializers.ModelSerializer):
         model = Log
         fields = '__all__'
         
+class PatientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Patient
+        fields = '__all__'
 # # Serializer to handle input and update logic
 # class UserProfileSerializer(serializers.ModelSerializer):
 #     class Meta:

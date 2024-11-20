@@ -1,6 +1,32 @@
+import { useEffect, useState } from "react";
 import StatBox from "@/components/statBox";
+import { Loader2 } from "lucide-react";
+import api from "@/api";
 
 function DoctorHome() {
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchPatients = async () => {
+    try {
+      const response = await api.get("/api/users/patients/");
+      if (response.status === 200) {
+        setPatients(response.data);
+        console.log(response.data)
+      } else {
+        console.error("Failed to fetch patient data:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error fetching patient data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+
   return (
     <>
       <div className="p-6 grid grid-cols-12 md:grid-cols-12 lg:grid-cols-8 gap-6 bg-even-darker-background h-full">
@@ -36,7 +62,15 @@ function DoctorHome() {
             Smaller Box
           </div>
           <div className="p-4 bg-background rounded-lg shadow-md flex-grow text-foreground">
-            Longer Box
+            {loading ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              <ul>
+                {patients.map((patient, index) => (
+                  <li key={index}>{patient.email}</li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </div>

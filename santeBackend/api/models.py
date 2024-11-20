@@ -65,14 +65,11 @@ class Patient(models.Model):
     emergency_contact_name = models.CharField(max_length=100)
     emergency_contact_phone = models.CharField(max_length=15)
     blood_type = models.CharField(max_length=3)
-    allergies = models.TextField()
     chronic_conditions = models.TextField()
-    family_history = models.TextField()
-    insurance_number = models.CharField(max_length=50)
+    family_history = models.TextField() 
 
     def __str__(self):
         return f"Patient: {self.user}"
-
 
 class Doctor(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE, primary_key=True)
@@ -84,6 +81,13 @@ class Doctor(models.Model):
     def __str__(self):
         return f"Doctor: {self.user}"
 
+class Receptionist(models.Model):
+    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE, primary_key=True)
+    shift_start = models.TimeField()
+    shift_end = models.TimeField()
+
+    def __str__(self):
+        return f"Receptionist: {self.user}"
 
 class Appointment(models.Model):
     STATUS_CHOICES = [
@@ -105,7 +109,6 @@ class Appointment(models.Model):
     def __str__(self):
         return f"Appointment: {self.appointment_date} - {self.patient}"
 
-
 class MedicalRecord(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     created_date = models.DateTimeField(auto_now_add=True)
@@ -119,7 +122,6 @@ class MedicalRecord(models.Model):
     def __str__(self):
         return f"MedicalRecord: {self.patient}"
 
-
 class Chat(models.Model):
     user1 = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='chat_user1')
     user2 = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='chat_user2')
@@ -128,7 +130,6 @@ class Chat(models.Model):
 
     def __str__(self):
         return f"Chat between {self.user1} and {self.user2}"
-
 
 class ChatMessage(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
@@ -140,7 +141,6 @@ class ChatMessage(models.Model):
     def __str__(self):
         return f"Message from {self.sender} in chat {self.chat}"
 
-
 class Log(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     action = models.CharField(max_length=50)
@@ -150,7 +150,6 @@ class Log(models.Model):
 
     def __str__(self):
         return f"Log: {self.action} by {self.user}"
-
 
 class Prescription(models.Model):
     appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE, related_name='prescriptions')
@@ -163,7 +162,6 @@ class Prescription(models.Model):
     def __str__(self):
         return f"Prescription: {self.medication_name} for {self.appointment}"
 
-
 class Treatment(models.Model):
     medical_record = models.ForeignKey(MedicalRecord, on_delete=models.CASCADE)
     appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE)
@@ -173,15 +171,6 @@ class Treatment(models.Model):
 
     def __str__(self):
         return f"Treatment for {self.medical_record.patient} on {self.treatment_date}"
-
-
-class Receptionist(models.Model):
-    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE, primary_key=True)
-    shift_start = models.TimeField()
-    shift_end = models.TimeField()
-
-    def __str__(self):
-        return f"Receptionist: {self.user}"
 
 
 # class Notification(models.Model):

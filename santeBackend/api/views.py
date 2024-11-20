@@ -1,10 +1,10 @@
 from rest_framework import generics
 from rest_framework.decorators import api_view
-from .serializers import UserSerializer, LogSerializer
+from .serializers import *
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.http import JsonResponse
 from rest_framework import generics
-from .models import UserProfile, Log
+from .models import *
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
@@ -46,6 +46,18 @@ def get_users_admin(request):
     serializedData = UserSerializer(users, many=True)
     return JsonResponse(serializedData.data, safe=False)
 
+@api_view(['GET'])
+def get_patients(request):
+    if not request.user.is_authenticated:
+        return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    patients = Patient.objects.all().values(
+        'user__id', 'user__email', 'user__first_name', 'user__last_name', 'user__role', 'user__profile_image',
+        'medical_record_id', 'emergency_contact_name', 'emergency_contact_phone', 'blood_type', 'allergies',
+        'chronic_conditions', 'family_history', 'insurance_number'
+    )
+    serializedData = PatientSerializer(patients, many=True)
+    return JsonResponse(serializedData.data, safe=False)
 
 @api_view(['GET'])
 def get_logs_admin(request):
