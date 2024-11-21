@@ -1,4 +1,9 @@
-import { ChatBubble, ChatBubbleAvatar, ChatBubbleMessage, ChatBubbleTimestamp } from '@/components/ui/chat/chat-bubble';
+import {
+    ChatBubble,
+    ChatBubbleAvatar,
+    ChatBubbleMessage,
+    ChatBubbleTimestamp,
+} from '@/components/ui/chat/chat-bubble';
 import { ChatInput } from '@/components/ui/chat/chat-input';
 import { ChatMessageList } from '@/components/ui/chat/chat-message-list';
 import MessageLoading from '@/components/ui/chat/message-loading';
@@ -13,6 +18,13 @@ export default function MessagesConversation({ selectedConversation }) {
     const bottomRef = useRef(null); // Reference to the bottom of the chat for auto-scroll
 
     const userId = localStorage.getItem('user_id'); // Get the current user's ID
+
+    const getFormattedTime = (date) => {
+        return new Date(date).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    };
 
     // Establish WebSocket connection when the selected conversation changes
     useEffect(() => {
@@ -39,7 +51,7 @@ export default function MessagesConversation({ selectedConversation }) {
                     id: prevMessages.length + 1,
                     sender: data.sender,
                     content: data.message,
-                    timestamp: new Date().toLocaleTimeString(),
+                    timestamp: getFormattedTime(Date.now()), // Format the time
                 },
             ]);
         };
@@ -76,7 +88,7 @@ export default function MessagesConversation({ selectedConversation }) {
                     id: prevMessages.length + 1,
                     sender: userId,
                     content: inputValue,
-                    timestamp: new Date().toLocaleTimeString(),
+                    timestamp: getFormattedTime(Date.now()), // Format the time
                 },
             ]);
 
