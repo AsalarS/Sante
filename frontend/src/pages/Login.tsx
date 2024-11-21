@@ -1,13 +1,17 @@
 import { Navbar } from '../components/landingPage/Navbar';
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import api from "../api";
+import api from "@/api";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { jwtDecode, JwtPayload } from "jwt-decode";
+import { jwtDecode, JwtPayload as DefaultJwtPayload } from "jwt-decode";
+
+interface JwtPayload extends DefaultJwtPayload {
+    user_id: string;
+}
 import { Loader2 } from 'lucide-react';
 
 function Login() {
@@ -28,7 +32,8 @@ function Login() {
             const refreshToken = res.data.refresh;
 
             const decodedPayload = jwtDecode < JwtPayload > (accessToken);
-            const userId = decodedPayload.sub;
+            const userId = decodedPayload.user_id;
+
             if (userId) {
                 localStorage.setItem("user_id", userId);
             }

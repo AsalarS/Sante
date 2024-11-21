@@ -4,33 +4,87 @@ import { ChatMessageList } from '@/components/ui/chat/chat-message-list';
 import MessageLoading from '@/components/ui/chat/message-loading';
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-export default function MessagesConversation() {
-    const [messages, setMessages] = useState([
-        { id: 1, sender: 'doctor', content: 'Hello! How can I assist you today?', timestamp: '10:00 AM', avatar: '/path/to/doctor-avatar.png' },
-        { id: 2, sender: 'patient', content: 'I have some questions about my prescription.', timestamp: '10:01 AM', avatar: '/path/to/patient-avatar.png' },
+export default function MessagesConversation({ selectedConversation }) {
+    const [messages, setMessages] = useState([]); // Holds all chat messages
+    const [inputValue, setInputValue] = useState(''); // Holds the current input message
+    const [ws, setWs] = useState(null); // WebSocket connection state
+    const bottomRef = useRef(null); // Reference to the bottom of the chat for auto-scroll
 
-    ]);
-    const [loading, setLoading] = useState(false);
-    const [inputValue, setInputValue] = useState('');
-    const bottomRef = useRef(null); // Ref to track the bottom of the chat
+    const userId = localStorage.getItem('user_id'); // Get the current user's ID
 
+    // Establish WebSocket connection when the selected conversation changes
+    useEffect(() => {
+        if (!selectedConversation) return;
+
+        console.log(`Connecting WebSocket for user ${userId} with conversation ${selectedConversation}`);
+
+        const newWs = new WebSocket(
+            `ws://localhost:8001/ws/chat/${userId}/${selectedConversation}/`
+        );
+        setWs(newWs);
+
+        newWs.onopen = () => {
+            console.log('WebSocket connection established');
+        };
+
+        newWs.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('Received message:', data);
+
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                {
+                    id: prevMessages.length + 1,
+                    sender: data.sender,
+                    content: data.message,
+                    timestamp: new Date().toLocaleTimeString(),
+                },
+            ]);
+        };
+
+        newWs.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+
+        newWs.onclose = (event) => {
+            console.log('WebSocket connection closed:', event.code, event.reason);
+        };
+
+        return () => {
+            if (newWs && newWs.readyState === WebSocket.OPEN) {
+                newWs.close();
+            }
+        };
+    }, [selectedConversation, userId]);
+
+    // Handle sending a message
     const handleSendMessage = () => {
-        if (inputValue.trim() !== '') {
+        if (inputValue.trim() && ws) {
             const newMessage = {
-                id: messages.length + 1,
-                sender: 'doctor',
-                content: inputValue,
-                timestamp: new Date().toLocaleTimeString(),
-                avatar: '/path/to/doctor-avatar.png',
+                message: inputValue,
+                sender: userId,
             };
-            setMessages([...messages, newMessage]);
-            setInputValue('');
+
+            ws.send(JSON.stringify(newMessage)); // Send message to WebSocket server
+
+            // Add the message to the chat locally for instant feedback
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                {
+                    id: prevMessages.length + 1,
+                    sender: userId,
+                    content: inputValue,
+                    timestamp: new Date().toLocaleTimeString(),
+                },
+            ]);
+
+            setInputValue(''); // Clear the input field
         }
     };
 
-    // Scroll to the bottom of the chat whenever messages change
+    // Auto-scroll to the bottom of the chat whenever messages change
     useEffect(() => {
         if (bottomRef.current) {
             bottomRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -39,45 +93,54 @@ export default function MessagesConversation() {
 
     return (
         <div className="flex flex-col h-full">
-            <div className="flex items-center p-4 border-b border-border bg-background w-full"> {/* Top Section */}
-            <ChatBubbleAvatar className="text-foreground bg-muted" fallback='PA' />
-                <div className='ml-4'>
-                    <div className="font-semibold text-lg text-foreground leading-5">John Doe</div>
-                    <div className="text-sm text-muted-foreground">Patient</div>
-                </div>
-            </div>
+            {/* Chat Messages Section */}
             <div className="flex flex-col flex-grow overflow-y-auto p-4">
-                {loading ? (
-                    <MessageLoading />
+                {messages.length === 0 ? (
+                    <MessageLoading /> // Show a loading or placeholder when there are no messages
                 ) : (
                     <ChatMessageList>
                         {messages.map((msg) => (
-                            <ChatBubble key={msg.id} variant={msg.sender === 'doctor' ? 'sent' : 'received'}>
-                                <ChatBubbleAvatar className="text-foreground bg-muted" src={msg.avatar} fallback={msg.sender.charAt(0).toUpperCase() + msg.sender.charAt(1).toUpperCase()} />
-                                <ChatBubbleMessage variant={msg.sender === 'doctor' ? 'sent' : 'received'}>
+                            <ChatBubble
+                                key={msg.id}
+                                variant={msg.sender === userId ? 'sent' : 'received'}
+                            >
+                                <ChatBubbleAvatar
+                                    className="text-foreground bg-muted"
+                                    fallback={msg.sender.charAt(0).toUpperCase()}
+                                />
+                                <ChatBubbleMessage
+                                    variant={msg.sender === userId ? 'sent' : 'received'}
+                                >
                                     {msg.content}
                                     <ChatBubbleTimestamp timestamp={msg.timestamp} />
                                 </ChatBubbleMessage>
-
                             </ChatBubble>
                         ))}
-                        {/* Empty div to act as the bottom reference point */}
-                        <div ref={bottomRef} />
+                        <div ref={bottomRef} /> {/* Dummy div for auto-scroll */}
                     </ChatMessageList>
                 )}
             </div>
+
+            {/* Message Input Section */}
             <div className="p-4 border-t border-border sticky bottom-0 bg-background flex items-center space-x-2">
                 <ChatInput
                     onChange={(e) => setInputValue(e.target.value)}
                     value={inputValue}
                     placeholder="Type a message..."
-                    className="flex-grow border p-2 rounded-md text-foreground"
+                    // TODO: Make this scrollbar into a tailwind variable or combined class
+                    className="flex-grow border p-2 rounded-md text-foreground
+                    [&::-webkit-scrollbar]:w-2
+                    [&::-webkit-scrollbar-track]:rounded-full
+                    [&::-webkit-scrollbar-track]:bg-gray-100
+                    [&::-webkit-scrollbar-thumb]:rounded-full
+                    [&::-webkit-scrollbar-thumb]:bg-gray-300
+                    dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+                    dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500"
                 />
                 <Button onClick={handleSendMessage} className="flex items-center h-full">
-                    <Send size={32} className='text-white w-32 h-32'/>
+                    <Send size={24} className="text-white" />
                 </Button>
             </div>
         </div>
     );
-};
-
+}

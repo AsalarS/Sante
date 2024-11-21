@@ -53,8 +53,8 @@ def get_patients(request):
 
     patients = Patient.objects.all().values(
         'user__id', 'user__email', 'user__first_name', 'user__last_name', 'user__role', 'user__profile_image',
-        'medical_record_id', 'emergency_contact_name', 'emergency_contact_phone', 'blood_type', 'allergies',
-        'chronic_conditions', 'family_history', 'insurance_number'
+        'medical_record_id', 'emergency_contact_name', 'emergency_contact_phone', 'blood_type',
+        'chronic_conditions', 'family_history',
     )
     serializedData = PatientSerializer(patients, many=True)
     return JsonResponse(serializedData.data, safe=False)

@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     "api",
-    "corsheaders"
+    "corsheaders",
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -145,8 +146,18 @@ CORS_ALLOWS_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:8001",
+    "http://127.0.0.1:8001",
 ]
 
-
+# For live messaging
 AUTH_USER_MODEL = 'api.UserProfile'
 LOGIN_URL = '/login/'
+
+ASGI_APPLICATION = "api.routing.application" #routing.py will handle the ASGI
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
