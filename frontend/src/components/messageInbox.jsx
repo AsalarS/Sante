@@ -1,26 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import { ChatBubbleAvatar } from './ui/chat/chat-bubble';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { FixedSizeList as List } from "react-window";
+import { ChatBubbleAvatar } from "./ui/chat/chat-bubble";
+import { Button } from "@/components/ui/button";
 import { Edit, Loader2, SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import api from '@/api';
+import api from "@/api";
+import { Dialog, DialogContent, DialogHeader, DialogTrigger, DialogDescription, DialogTitle } from "./ui/dialog";
 
 function MessageInbox({ conversations, onSelectConversation }) {
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [users, setUsers] = useState([]);
 
     const fetchUsers = async () => {
+        setLoading(true);
         try {
-            const response = await api.get('/api/users/');
-            if (response.status === 200) {
-                setUsers(response.data);
-                console.log(response.data)
+            const response = await api.get(`/api/users/`);
+            if (response.status === 200 && Array.isArray(response.data)) {
+                setUsers(response.data); // Set the user list
             } else {
-                console.error('Failed to fetch users:', response.statusText);
+                console.error("Unexpected response format:", response.data);
             }
         } catch (error) {
-            console.error('Failed to fetch users:', error);
+            console.error("Failed to fetch users:", error);
         } finally {
             setLoading(false);
         }
@@ -30,6 +31,33 @@ function MessageInbox({ conversations, onSelectConversation }) {
         fetchUsers();
     }, []);
 
+    // Render a single user item
+    const renderUser = ({ index, style }) => {
+        const user = users[index];
+        return (
+            <li
+                key={user.id}
+                style={style} // For react-window
+                className="flex items-center p-4 border-b hover:bg-background-hover cursor-pointer border-border"
+                onClick={() => onSelectConversation(user.id)}
+            >
+                <ChatBubbleAvatar
+                    src={user.avatar || ""}
+                    className="w-12 h-12 mr-3 text-foreground bg-muted"
+                    fallback={user.first_name.charAt(0).toUpperCase() + user.last_name.charAt(0).toUpperCase()}
+                />
+                <div>
+                    <div className="font-semibold text-lg text-foreground line-clamp-1 break-all">
+                        {user.first_name + " " + user.last_name}
+                    </div>
+                    <div className="text-sm text-muted-foreground line-clamp-1 break-all">
+                        {user.email}
+                    </div>
+                </div>
+            </li>
+        );
+    };
+
     return (
         <div className="w-1/4 h-full border-r bg-background shadow-md flex flex-col border-border sticky top-0">
             {/* Header Section */}
@@ -38,26 +66,33 @@ function MessageInbox({ conversations, onSelectConversation }) {
                     <Input type="text" placeholder="Search Inbox" className="flex-grow rounded-lg appearance-none pl-8 text-xs" />
                     <SearchIcon className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400 dark:text-gray-600" />
                 </div>
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button variant="outline" className="flex items-center" onClick={fetchUsers}>
-                            <Edit size={16} className='text-foreground' />
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" className="flex items-center">
+                            <Edit size={16} className="text-foreground" />
                         </Button>
-                    </PopoverTrigger>
-                    <PopoverContent>
+                    </DialogTrigger>
+                    <DialogContent className="bg-background border-border text-foreground">
+                        <DialogHeader>
+                            <DialogTitle>Start a conversation</DialogTitle>
+                            <DialogDescription>Choose a person to start a conversation with.</DialogDescription>
+                        </DialogHeader>
+
+                        <Input type="text" placeholder="Search users" className="mb-2" />
                         {loading ? (
-                            <Loader2 className="animate-spin" />
+                            <Loader2 className="animate-spin mx-auto my-4" />
                         ) : (
-                            <ul>
-                                {users.map(user => (
-                                    <li key={user.id}>
-                                        {user.username} ({user.email})
-                                    </li>
-                                ))}
-                            </ul>
+                            <List
+                                height={300} // Height of the visible area
+                                itemCount={users.length} // Total number of users
+                                itemSize={80} // Height of each user item
+                                width="100%" // Width of the list
+                            >
+                                {renderUser}
+                            </List>
                         )}
-                    </PopoverContent>
-                </Popover>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             {/* List Section */}
@@ -68,7 +103,11 @@ function MessageInbox({ conversations, onSelectConversation }) {
                         className="flex items-center p-4 border-b hover:bg-background-hover cursor-pointer border-border"
                         onClick={() => onSelectConversation(conversation.id)}
                     >
-                        <ChatBubbleAvatar src={conversation.avatar} className="w-12 h-12 mr-3 text-foreground bg-muted" fallback={conversation.name.charAt(0).toUpperCase()} />
+                        <ChatBubbleAvatar
+                            src={conversation.avatar}
+                            className="w-12 h-12 mr-3 text-foreground bg-muted"
+                            fallback={conversation.name.charAt(0).toUpperCase()}
+                        />
                         <div>
                             <div className="font-semibold text-lg text-foreground line-clamp-1 break-all">{conversation.name}</div>
                             <div className="text-sm text-muted-foreground line-clamp-1 break-all">{conversation.role}</div>
