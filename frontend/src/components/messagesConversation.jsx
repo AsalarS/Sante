@@ -15,6 +15,8 @@ export default function MessagesConversation({ selectedConversation }) {
     const [messages, setMessages] = useState([]); // Holds all chat messages
     const [inputValue, setInputValue] = useState(''); // Holds the current input message
     const [ws, setWs] = useState(null); // WebSocket connection state
+    const [isTyping, setIsTyping] = useState(false);
+    const typingTimeoutRef = useRef(null);
     const bottomRef = useRef(null); // Reference to the bottom of the chat for auto-scroll
 
     const userId = localStorage.getItem('user_id'); // Get the current user's ID
@@ -44,6 +46,11 @@ export default function MessagesConversation({ selectedConversation }) {
         newWs.onmessage = (event) => {
             const data = JSON.parse(event.data);
             console.log('Received message:', data);
+
+            if (data.type === 'typing') {
+                setIsTyping(data.isTyping);
+                return;
+            }
 
             setMessages((prevMessages) => [
                 ...prevMessages,
@@ -75,24 +82,25 @@ export default function MessagesConversation({ selectedConversation }) {
     const handleSendMessage = () => {
         if (inputValue.trim() && ws) {
             const newMessage = {
+                type: 'message', // Ensure the type is specified
                 message: inputValue,
                 sender: userId,
             };
 
-            ws.send(JSON.stringify(newMessage)); // Send message to WebSocket server
+            ws.send(JSON.stringify(newMessage));
 
-            // Add the message to the chat locally for instant feedback
             setMessages((prevMessages) => [
                 ...prevMessages,
                 {
                     id: prevMessages.length + 1,
                     sender: userId,
                     content: inputValue,
-                    timestamp: getFormattedTime(Date.now()), // Format the time
+                    timestamp: getFormattedTime(Date.now()),
                 },
             ]);
 
-            setInputValue(''); // Clear the input field
+            setInputValue('');
+            sendTyping(false);
         }
     };
 
@@ -101,15 +109,28 @@ export default function MessagesConversation({ selectedConversation }) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault(); // Prevent adding a newline
             handleSendMessage();
+        } else {
+            sendTyping(true);
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = setTimeout(() => {
+                sendTyping(false);
+            }, 1000);
         }
     };
+
+    const sendTyping = (typing) => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'typing', isTyping: typing, sender: userId }));
+        }
+    };
+    
 
     // Auto-scroll to the bottom of the chat whenever messages change
     useEffect(() => {
         if (bottomRef.current) {
             bottomRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [messages]);
+    }, [messages, isTyping]);
 
     return (
         <div className="flex flex-col h-full">
@@ -136,6 +157,15 @@ export default function MessagesConversation({ selectedConversation }) {
                                 </ChatBubbleMessage>
                             </ChatBubble>
                         ))}
+                        {isTyping && (
+                            <ChatBubble variant="received">
+                                <ChatBubbleAvatar
+                                    className="text-foreground bg-muted"
+                                    fallback="?"
+                                />
+                                <ChatBubbleMessage isLoading />
+                            </ChatBubble>
+                        )}
                         <div ref={bottomRef} /> {/* Dummy div for auto-scroll */}
                     </ChatMessageList>
                 )}

@@ -61,7 +61,7 @@ function MessageInbox({ conversations, onSelectConversation }) {
             </div>
 
             {/* List Section */}
-            <ul className="flex-1 overflow-y-auto">
+            <ul className="flex-1 overflow-y-auto overflow-x-hidden">
                 {conversations.map((conversation) => (
                     <li
                         key={conversation.id}
