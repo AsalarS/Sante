@@ -96,6 +96,14 @@ export default function MessagesConversation({ selectedConversation }) {
         }
     };
 
+    // Handle "Enter" key to send the message
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevent adding a newline
+            handleSendMessage();
+        }
+    };
+
     // Auto-scroll to the bottom of the chat whenever messages change
     useEffect(() => {
         if (bottomRef.current) {
@@ -139,7 +147,7 @@ export default function MessagesConversation({ selectedConversation }) {
                     onChange={(e) => setInputValue(e.target.value)}
                     value={inputValue}
                     placeholder="Type a message..."
-                    // TODO: Make this scrollbar into a tailwind variable or combined class
+                    onKeyDown={handleKeyDown} // Listen for "Enter" key
                     className="flex-grow border p-2 rounded-md text-foreground
                     [&::-webkit-scrollbar]:w-2
                     [&::-webkit-scrollbar-track]:rounded-full
