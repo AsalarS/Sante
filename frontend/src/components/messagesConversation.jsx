@@ -48,7 +48,9 @@ export default function MessagesConversation({ selectedConversation }) {
             console.log('Received message:', data);
 
             if (data.type === 'typing') {
-                setIsTyping(data.isTyping);
+                if (data.sender !== userId) {
+                    setIsTyping(data.isTyping);
+                }
                 return;
             }
 
