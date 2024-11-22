@@ -12,13 +12,14 @@ function MessageInbox({ conversations, onSelectConversation }) {
     const [users, setUsers] = useState([]);
     const [inboxSearch, setInboxSearch] = useState('');
     const [userSearch, setUserSearch] = useState('');
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const fetchUsers = async () => {
         setLoading(true);
         try {
             const response = await api.get(`/api/users/`);
             if (response.status === 200 && Array.isArray(response.data)) {
-                setUsers(response.data); // Set the user list
+                setUsers(response.data);
             } else {
                 console.error("Unexpected response format:", response.data);
             }
@@ -51,7 +52,10 @@ function MessageInbox({ conversations, onSelectConversation }) {
                 key={user.id}
                 style={style} // For react-window
                 className="flex items-center p-4 border-b hover:bg-background-hover cursor-pointer border-border"
-                onClick={() => onSelectConversation(user.id)}
+                onClick={() => {
+                    onSelectConversation(user.id);
+                    setIsDialogOpen(false); // Close the dialog
+                }}
             >
                 <ChatBubbleAvatar
                     src={user.avatar || ""}
@@ -84,7 +88,7 @@ function MessageInbox({ conversations, onSelectConversation }) {
                     />
                     <SearchIcon className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400 dark:text-gray-600" />
                 </div>
-                <Dialog>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                         <Button variant="outline" className="flex items-center">
                             <Edit size={16} className="text-foreground" />
@@ -111,6 +115,13 @@ function MessageInbox({ conversations, onSelectConversation }) {
                                 itemCount={filteredUsers.length} // Total number of users
                                 itemSize={80} // Height of each user item
                                 width="100%" // Width of the list
+                                className="[&::-webkit-scrollbar]:w-2
+                                [&::-webkit-scrollbar-track]:rounded-full
+                                [&::-webkit-scrollbar-track]:bg-gray-100
+                                [&::-webkit-scrollbar-thumb]:rounded-full
+                                [&::-webkit-scrollbar-thumb]:bg-gray-300
+                                dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+                                dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500"
                             >
                                 {renderUser}
                             </List>

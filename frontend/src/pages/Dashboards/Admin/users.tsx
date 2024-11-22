@@ -255,7 +255,7 @@ export function UserAdminPage() {
       <div className="flex items-center justify-center py-4 space-x-1">
         <Button
           variant="ghost"
-          className="light:text-gray-700 dark:text-gray-200"
+          className="text-gray-700 dark:text-gray-200"
           onClick={() => table.setPageIndex(0)}
           disabled={!table.getCanPreviousPage()}
         >
@@ -263,7 +263,7 @@ export function UserAdminPage() {
         </Button>
         <Button
           variant="ghost"
-          className="light:text-gray-700 dark:text-gray-200"
+          className="text-gray-700 dark:text-gray-200"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
@@ -283,7 +283,7 @@ export function UserAdminPage() {
         ))}
         <Button
           variant="ghost"
-          className="light:text-gray-700 dark:text-gray-200"
+          className="text-gray-700 dark:text-gray-200"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
@@ -291,7 +291,7 @@ export function UserAdminPage() {
         </Button>
         <Button
           variant="ghost"
-          className="light:text-gray-700 dark:text-gray-200"
+          className="text-gray-700 dark:text-gray-200"
           onClick={() => table.setPageIndex(pageCount - 1)}
           disabled={!table.getCanNextPage()}
         >

@@ -8,8 +8,9 @@ import { ChatInput } from '@/components/ui/chat/chat-input';
 import { ChatMessageList } from '@/components/ui/chat/chat-message-list';
 import MessageLoading from '@/components/ui/chat/message-loading';
 import { Button } from '@/components/ui/button';
-import { Send } from 'lucide-react';
+import { Loader2, Send } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MessagesConversation({ selectedConversation }) {
     const [messages, setMessages] = useState([]); // Holds all chat messages
@@ -21,7 +22,7 @@ export default function MessagesConversation({ selectedConversation }) {
 
     const userId = localStorage.getItem('user_id'); // Get the current user's ID
 
-    const getFormattedTime = (date) => {
+    const getFormattedTime = (date) => { //Proper Date format
         return new Date(date).toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
@@ -125,7 +126,7 @@ export default function MessagesConversation({ selectedConversation }) {
             ws.send(JSON.stringify({ type: 'typing', isTyping: typing, sender: userId }));
         }
     };
-    
+
 
     // Auto-scroll to the bottom of the chat whenever messages change
     useEffect(() => {
@@ -139,7 +140,23 @@ export default function MessagesConversation({ selectedConversation }) {
             {/* Chat Messages Section */}
             <div className="flex flex-col flex-grow overflow-y-auto p-4">
                 {messages.length === 0 ? (
-                    <MessageLoading /> // Show a loading or placeholder when there are no messages
+                    // Display Skeletons while loading
+                    <div className="space-y-4 p-4">
+                {/* Received message skeleton */}
+                <div className="flex items-center space-x-4">
+                    <Skeleton className="h-12 w-12 rounded-full mt-8" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-20 w-[300px] rounded-bl-none" />
+                    </div>
+                </div>
+                {/* Sent message skeleton */}
+                <div className="flex items-center space-x-4 justify-end">
+                    <div className="space-y-2">
+                        <Skeleton className="h-20 w-[300px] rounded-br-none" />
+                    </div>
+                    <Skeleton className="h-12 w-12 rounded-full mt-8" />
+                </div>
+            </div>
                 ) : (
                     <ChatMessageList>
                         {messages.map((msg) => (
