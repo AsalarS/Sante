@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTrigger, DialogDescription, 
 function MessageInbox({ conversations, onSelectConversation }) {
     const [loading, setLoading] = useState(false);
     const [users, setUsers] = useState([]);
+    const [inboxSearch, setInboxSearch] = useState('');
+    const [userSearch, setUserSearch] = useState('');
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -31,9 +33,19 @@ function MessageInbox({ conversations, onSelectConversation }) {
         fetchUsers();
     }, []);
 
+    const filteredMessages = conversations.filter(conversation =>
+        conversation.name.toLowerCase().includes(inboxSearch.toLowerCase())
+    );
+
+    const filteredUsers = users.filter(user =>
+        user.first_name.toLowerCase().includes(userSearch.toLowerCase()) ||
+        user.last_name.toLowerCase().includes(userSearch.toLowerCase()) ||
+        user.email.toLowerCase().includes(userSearch.toLowerCase())
+    );
+
     // Render a single user item
     const renderUser = ({ index, style }) => {
-        const user = users[index];
+        const user = filteredUsers[index];
         return (
             <li
                 key={user.id}
@@ -63,7 +75,13 @@ function MessageInbox({ conversations, onSelectConversation }) {
             {/* Header Section */}
             <div className="flex items-center justify-between p-4 border-b border-border">
                 <div className="relative flex items-center rounded-lg bg-gray-100 dark:bg-gray-800 w-full mr-4">
-                    <Input type="text" placeholder="Search Inbox" className="flex-grow rounded-lg appearance-none pl-8 text-xs" />
+                    <Input
+                        type="text"
+                        placeholder="Search Inbox"
+                        className="flex-grow rounded-lg appearance-none pl-8 text-xs"
+                        value={inboxSearch}
+                        onChange={(e) => setInboxSearch(e.target.value)}
+                    />
                     <SearchIcon className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400 dark:text-gray-600" />
                 </div>
                 <Dialog>
@@ -78,13 +96,19 @@ function MessageInbox({ conversations, onSelectConversation }) {
                             <DialogDescription>Choose a person to start a conversation with.</DialogDescription>
                         </DialogHeader>
 
-                        <Input type="text" placeholder="Search users" className="mb-2" />
+                        <Input
+                            type="text"
+                            placeholder="Search users"
+                            className="mb-2"
+                            value={userSearch}
+                            onChange={(e) => setUserSearch(e.target.value)}
+                        />
                         {loading ? (
                             <Loader2 className="animate-spin mx-auto my-4" />
                         ) : (
                             <List
                                 height={300} // Height of the visible area
-                                itemCount={users.length} // Total number of users
+                                itemCount={filteredUsers.length} // Total number of users
                                 itemSize={80} // Height of each user item
                                 width="100%" // Width of the list
                             >
@@ -97,7 +121,7 @@ function MessageInbox({ conversations, onSelectConversation }) {
 
             {/* List Section */}
             <ul className="flex-1 overflow-y-auto overflow-x-hidden">
-                {conversations.map((conversation) => (
+                {filteredMessages.map((conversation) => (
                     <li
                         key={conversation.id}
                         className="flex items-center p-4 border-b hover:bg-background-hover cursor-pointer border-border"
