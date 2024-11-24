@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Log, Patient
+from .models import Chat, ChatMessage, Log, Patient
 
 User = get_user_model()
 
@@ -16,6 +16,16 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
+
+class ChatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Chat
+        fields = '__all__'
+
+class ChatMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatMessage
+        fields = '__all__'
 
 class LogSerializer(serializers.ModelSerializer):
     class Meta:

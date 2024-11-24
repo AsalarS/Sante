@@ -1,16 +1,23 @@
 import os
-from django.core.asgi import get_asgi_application
+import django
+# These need to be before import to avoid loding issues when running the daphne server
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'santeBackend.settings')
+django.setup()
+
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
-import api.routing
+from django.core.asgi import get_asgi_application
+import api.routing 
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'santeBackend.settings')
+# 2. Initialize Django's ASGI application
+django_asgi_app = get_asgi_application()
 
+# 3. Define the ProtocolTypeRouter
 application = ProtocolTypeRouter({
-    "http": get_asgi_application(),  # Handles HTTP requests
+    "http": django_asgi_app,
     "websocket": AuthMiddlewareStack(
         URLRouter(
-            api.routing.websocket_urlpatterns  # Your WebSocket routes
+            api.routing.websocket_urlpatterns
         )
     ),
 })

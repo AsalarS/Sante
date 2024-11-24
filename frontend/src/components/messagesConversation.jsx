@@ -1,175 +1,150 @@
+import api from "@/api";
 import {
     ChatBubble,
     ChatBubbleAvatar,
     ChatBubbleMessage,
     ChatBubbleTimestamp,
-} from '@/components/ui/chat/chat-bubble';
-import { ChatInput } from '@/components/ui/chat/chat-input';
-import { ChatMessageList } from '@/components/ui/chat/chat-message-list';
-import MessageLoading from '@/components/ui/chat/message-loading';
-import { Button } from '@/components/ui/button';
-import { Loader2, Send } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@/components/ui/chat/chat-bubble";
+import { ChatInput } from "@/components/ui/chat/chat-input";
+import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "./ui/button";
+import { Send } from "lucide-react";
 
 export default function MessagesConversation({ selectedConversation }) {
-    const [messages, setMessages] = useState([]); // Holds all chat messages
-    const [inputValue, setInputValue] = useState(''); // Holds the current input message
-    const [ws, setWs] = useState(null); // WebSocket connection state
+    const [messages, setMessages] = useState([]);
+    const [inputValue, setInputValue] = useState("");
+    const ws = useRef(null);
     const [isTyping, setIsTyping] = useState(false);
-    const typingTimeoutRef = useRef(null);
-    const bottomRef = useRef(null); // Reference to the bottom of the chat for auto-scroll
+    const bottomRef = useRef(null);
 
-    const userId = localStorage.getItem('user_id'); // Get the current user's ID
+    const senderId = localStorage.getItem('user_id');
+    const receiverId = selectedConversation;
 
-    const getFormattedTime = (date) => { //Proper Date format
+    const getFormattedTime = (date) => {
         return new Date(date).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
+            hour: "2-digit",
+            minute: "2-digit",
         });
     };
 
-    // Establish WebSocket connection when the selected conversation changes
     useEffect(() => {
-        if (!selectedConversation) return;
+        if (!selectedConversation || !senderId || !receiverId) {
+            return;
+        }
 
-        console.log(`Connecting WebSocket for user ${userId} with conversation ${selectedConversation}`);
-
-        const newWs = new WebSocket(
-            `ws://localhost:8001/ws/chat/${userId}/${selectedConversation}/`
-        );
-        setWs(newWs);
-
-        newWs.onopen = () => {
-            console.log('WebSocket connection established');
-        };
-
-        newWs.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log('Received message:', data);
-
-            if (data.type === 'typing') {
-                if (data.sender !== userId) {
-                    setIsTyping(data.isTyping);
+        const fetchMessageHistory = async () => {
+            try {
+                const response = await api.get(`/api/chats/${receiverId}/history/`);
+                'chats/<int:chat_id>/history/'
+                if (response.status === 200) {
+                    setMessages(response.data);
+                } else {
+                    console.error("Failed to fetch messages.");
                 }
-                return;
+            } catch (error) {
+                console.error("Error fetching messages:", error);
             }
-
-            setMessages((prevMessages) => [
-                ...prevMessages,
-                {
-                    id: prevMessages.length + 1,
-                    sender: data.sender,
-                    content: data.message,
-                    timestamp: getFormattedTime(Date.now()), // Format the time
-                },
-            ]);
         };
 
-        newWs.onerror = (error) => {
-            console.error('WebSocket error:', error);
+        fetchMessageHistory();
+
+        // Establish WebSocket connection
+        ws.current = new WebSocket(
+            `ws://localhost:8001/ws/chat/${senderId}/${receiverId}/`
+        );
+
+        ws.current.onopen = () => {
+            console.log("WebSocket connection established");
         };
 
-        newWs.onclose = (event) => {
-            console.log('WebSocket connection closed:', event.code, event.reason);
+        ws.current.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log("Received message:", data);
+
+            if (data.type === "message") {
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    {
+                        id: Date.now(),
+                        content: data.message,
+                        sender_id: data.sender_id,
+                        timestamp: new Date().toISOString(),
+                    },
+                ]);
+            }
+        };
+
+        ws.current.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+
+        ws.current.onclose = (event) => {
+            console.log("WebSocket connection closed:", event.code, event.reason);
         };
 
         return () => {
-            if (newWs && newWs.readyState === WebSocket.OPEN) {
-                newWs.close();
+            if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+                ws.current.close();
             }
         };
-    }, [selectedConversation, userId]);
+    }, [selectedConversation, senderId, receiverId]);
 
-    // Handle sending a message
     const handleSendMessage = () => {
-        if (inputValue.trim() && ws) {
+        if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
+            console.error("WebSocket is not open. Cannot send message.");
+            console.log("WebSocket readyState:", ws.current?.readyState);
+            return;
+        }
+
+        if (inputValue.trim()) {
             const newMessage = {
-                type: 'message', // Ensure the type is specified
+                type: "message",
                 message: inputValue,
-                sender: userId,
+                sender_id: senderId,
             };
 
-            ws.send(JSON.stringify(newMessage));
+            console.log("Sending message payload:", JSON.stringify(newMessage));
+
+            ws.current.send(JSON.stringify(newMessage));
 
             setMessages((prevMessages) => [
                 ...prevMessages,
                 {
-                    id: prevMessages.length + 1,
-                    sender: userId,
+                    id: Date.now(),
+                    sender_id: senderId,
                     content: inputValue,
                     timestamp: getFormattedTime(Date.now()),
                 },
             ]);
 
-            setInputValue('');
-            sendTyping(false);
+            setInputValue("");
         }
     };
 
-    // Handle "Enter" key to send the message
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault(); // Prevent adding a newline
-            handleSendMessage();
-        } else {
-            sendTyping(true);
-            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-            typingTimeoutRef.current = setTimeout(() => {
-                sendTyping(false);
-            }, 1000);
-        }
-    };
-
-    const sendTyping = (typing) => {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: 'typing', isTyping: typing, sender: userId }));
-        }
-    };
-
-
-    // Auto-scroll to the bottom of the chat whenever messages change
     useEffect(() => {
         if (bottomRef.current) {
-            bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+            bottomRef.current.scrollIntoView({ behavior: "smooth" });
         }
-    }, [messages, isTyping]);
+    }, [messages]);
 
     return (
         <div className="flex flex-col h-full">
             {/* Chat Messages Section */}
-            <div className="flex flex-col flex-grow overflow-y-auto p-4">
-                {messages.length === 0 ? (
-                    // Display Skeletons while loading
-                    <div className="space-y-4 p-4">
-                {/* Received message skeleton */}
-                <div className="flex items-center space-x-4">
-                    <Skeleton className="h-12 w-12 rounded-full mt-8" />
-                    <div className="space-y-2">
-                        <Skeleton className="h-20 w-[300px] rounded-bl-none" />
-                    </div>
-                </div>
-                {/* Sent message skeleton */}
-                <div className="flex items-center space-x-4 justify-end">
-                    <div className="space-y-2">
-                        <Skeleton className="h-20 w-[300px] rounded-br-none" />
-                    </div>
-                    <Skeleton className="h-12 w-12 rounded-full mt-8" />
-                </div>
-            </div>
-                ) : (
+            {selectedConversation ? (
+                <div className="flex flex-col flex-grow overflow-y-auto p-4">
                     <ChatMessageList>
                         {messages.map((msg) => (
                             <ChatBubble
                                 key={msg.id}
-                                variant={msg.sender === userId ? 'sent' : 'received'}
+                                variant={msg.sender_id === senderId ? "sent" : "received"}
                             >
                                 <ChatBubbleAvatar
                                     className="text-foreground bg-muted"
-                                    fallback={msg.sender.charAt(0).toUpperCase()}
+                                    fallback={msg.sender_id.toString()[0].toUpperCase()}
                                 />
                                 <ChatBubbleMessage
-                                    variant={msg.sender === userId ? 'sent' : 'received'}
+                                    variant={msg.sender_id === senderId ? "sent" : "received"}
                                 >
                                     {msg.content}
                                     <ChatBubbleTimestamp timestamp={msg.timestamp} />
@@ -187,29 +162,40 @@ export default function MessagesConversation({ selectedConversation }) {
                         )}
                         <div ref={bottomRef} /> {/* Dummy div for auto-scroll */}
                     </ChatMessageList>
-                )}
-            </div>
+                </div>
+            ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                    Select a conversation to view messages.
+                </div>
+            )}
 
             {/* Message Input Section */}
-            <div className="p-4 border-t border-border sticky bottom-0 bg-background flex items-center space-x-2">
-                <ChatInput
-                    onChange={(e) => setInputValue(e.target.value)}
-                    value={inputValue}
-                    placeholder="Type a message..."
-                    onKeyDown={handleKeyDown} // Listen for "Enter" key
-                    className="flex-grow border p-2 rounded-md text-foreground
-                    [&::-webkit-scrollbar]:w-2
-                    [&::-webkit-scrollbar-track]:rounded-full
-                    [&::-webkit-scrollbar-track]:bg-gray-100
-                    [&::-webkit-scrollbar-thumb]:rounded-full
-                    [&::-webkit-scrollbar-thumb]:bg-gray-300
-                    dark:[&::-webkit-scrollbar-track]:bg-neutral-700
-                    dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500"
-                />
-                <Button onClick={handleSendMessage} className="flex items-center h-full">
-                    <Send size={24} className="text-white" />
-                </Button>
-            </div>
+            {selectedConversation && (
+                <div className="p-4 border-t border-border sticky bottom-0 bg-background flex items-center space-x-2">
+                    <ChatInput
+                        onChange={(e) => setInputValue(e.target.value)}
+                        value={inputValue}
+                        placeholder="Type a message..."
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSendMessage();
+                            }
+                        }}
+                        className="flex-grow border p-2 rounded-md text-foreground
+                        [&::-webkit-scrollbar]:w-2
+                        [&::-webkit-scrollbar-track]:rounded-full
+                        [&::-webkit-scrollbar-track]:bg-gray-100
+                        [&::-webkit-scrollbar-thumb]:rounded-full
+                        [&::-webkit-scrollbar-thumb]:bg-gray-300
+                        dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+                        dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500"
+                    />
+                    <Button onClick={handleSendMessage} className="flex items-center h-full">
+                        <Send size={24} className="text-white" />
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }
