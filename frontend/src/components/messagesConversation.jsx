@@ -36,14 +36,17 @@ export default function MessagesConversation({ selectedConversation }) {
         const fetchMessageHistory = async () => {
             try {
                 const response = await api.get(`/api/chats/${receiverId}/history/`);
-                'chats/<int:chat_id>/history/'
                 if (response.status === 200) {
                     setMessages(response.data);
                 } else {
                     console.error("Failed to fetch messages.");
                 }
             } catch (error) {
-                console.error("Error fetching messages:", error);
+                if(error.status === 404){
+                    console.log("No previous chats");
+                } else {
+                    console.error("Error fetching messages:", error);
+                }
             }
         };
 

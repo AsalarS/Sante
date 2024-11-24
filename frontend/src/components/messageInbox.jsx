@@ -24,6 +24,7 @@ function MessageInbox({ onSelectConversation, userId }) {
             const response = await api.get("/api/chats/user/");
             if (response.status === 200) {
                 setChats(response.data);
+                
             } else {
                 console.error("Failed to fetch chats.");
             }
