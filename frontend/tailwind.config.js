@@ -69,6 +69,9 @@ export default {
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
   			},
+			gradient: {
+				'1': 'hsl(var(--gradient-1))',
+			},
 			
   		},
   		keyframes: {
