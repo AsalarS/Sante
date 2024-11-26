@@ -9,9 +9,11 @@ from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
-
 
 class CreateUserView(generics.CreateAPIView):
     queryset = UserProfile.objects.all()
@@ -53,8 +55,8 @@ def get_patients(request):
 
     patients = Patient.objects.all().values(
         'user__id', 'user__email', 'user__first_name', 'user__last_name', 'user__role', 'user__profile_image',
-        'medical_record_id', 'emergency_contact_name', 'emergency_contact_phone', 'blood_type', 'allergies',
-        'chronic_conditions', 'family_history', 'insurance_number'
+        'medical_record_id', 'emergency_contact_name', 'emergency_contact_phone', 'blood_type',
+        'chronic_conditions', 'family_history'
     )
     serializedData = PatientSerializer(patients, many=True)
     return JsonResponse(serializedData.data, safe=False)
@@ -72,6 +74,21 @@ def get_logs_admin(request):
     )
     serializedData = LogSerializer(logs, many=True)
     return JsonResponse(serializedData.data, safe=False)
+
+
+@api_view(['DELETE'])
+def delete_user_admin(request, user_id):
+    try:
+        user = UserProfile.objects.get(id=user_id)
+        user.delete()
+        logger.info(f"Admin {request.user.id} deleted user {user_id}.")
+        return JsonResponse({"message": "User deleted successfully."}, status=status.HTTP_200_OK)
+    except UserProfile.DoesNotExist:
+        logger.warning(f"Admin {request.user.id} attempted to delete non-existent user {user_id}.")
+        return JsonResponse({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error deleting user {user_id} by admin {request.user.id}: {e}")
+        return JsonResponse({"error": "An error occurred while deleting the user."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserInfoView(APIView):

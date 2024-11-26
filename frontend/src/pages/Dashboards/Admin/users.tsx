@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   ColumnDef,
   SortingState,
@@ -20,8 +20,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Ellipsis, Filter } from "lucide-react";
+import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Ellipsis, UserRoundPlus } from "lucide-react";
 import api from "@/api";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 export type User = {
   id: number;
@@ -135,9 +136,17 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       const user = row.original;
       return (
-        <Button variant="ghost" onClick={() => console.log("View user:", user)}>
-          <Ellipsis className="text-foreground" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" onClick={() => console.log("View user:", user)}>
+              <Ellipsis className="text-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>Edit</DropdownMenuItem>
+            <DropdownMenuItem className="text-red-500 focus:text-red-500">Delete</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       );
     },
   },
@@ -202,8 +211,8 @@ export function UserAdminPage() {
           }
           className="max-w-sm"
         />
-        <Button variant="outline" className="ml-auto">
-          <Filter className="text-foreground" />
+        <Button className="ml-auto">
+          <UserRoundPlus className="text-white" />
         </Button>
       </div>
       <div className="rounded-md border">

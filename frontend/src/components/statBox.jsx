@@ -1,6 +1,6 @@
 function StatBox({ title, number }) {
   return (
-    <div className="p-4 bg-background rounded-lg shadow-md flex flex-col md:flex-row items-center justify-between">
+    <div className="p-4 bg-background rounded-lg shadow-md flex flex-col md:flex-row items-center justify-between lg:h-20">
       <div className="w-full md:w-auto mb-2 md:mb-0">
         <h3 className="text-lg md:text-md font-semibold text-foreground text-center md:text-left">
           {title}
