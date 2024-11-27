@@ -107,7 +107,7 @@ export const Navbar = () => {
                     aria-label="Toggle Dark Mode"
                   >
                     {isDarkMode ? (
-                      <SunIcon className="w-12 h-6 text-black" />
+                      <SunIcon className="w-12 h-6 text-white" />
                     ) : (
                       <MoonIcon className="w-12 h-6 text-white" />
                     )}
@@ -141,7 +141,7 @@ export const Navbar = () => {
               aria-label="Toggle Dark Mode"
             >
               {isDarkMode ? (
-                <SunIcon className="w-12 h-6 text-black" />
+                <SunIcon className="w-12 h-6 text-white" />
               ) : (
                 <MoonIcon className="w-12 h-6 text-white" />
               )}

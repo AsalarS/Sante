@@ -87,85 +87,85 @@ function DoctorHome() {
           {/* Main Content */}
           <div className="flex flex-col">
             {/* Bar Chart */}
-          <Card className="p-4 bg-background rounded-lg shadow-md mb-6 text-foreground mt-6 border-none">
-            <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
-              <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-                <CardTitle>Bar Chart - Interactive</CardTitle>
-                <CardDescription>
-                  Showing total visitors for the last 3 months
-                </CardDescription>
-              </div>
-              <div className="flex">
-                {["desktop", "mobile"].map((key) => {
-                  const chart = key
-                  return (
-                    <button
-                      key={chart}
-                      data-active={activeChart === chart}
-                      className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
-                      onClick={() => setActiveChart(chart)}
-                    >
-                      <span className="text-xs text-muted-foreground">
-                        {BarChartConfig[chart].label}
-                      </span>
-                      <span className="text-lg font-bold leading-none sm:text-3xl">
-                        {totalBar[key].toLocaleString()}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            </CardHeader>
-            <CardContent className="px-2 sm:p-6">
-              <ChartContainer
-                config={BarChartConfig}
-                className="aspect-auto h-[250px] w-full"
-              >
-                <BarChart
-                  accessibilityLayer
-                  data={BarChartData}
-                  margin={{
-                    left: 12,
-                    right: 12,
-                  }}
+            <Card className="p-4 bg-background rounded-lg mb-6 text-foreground mt-6 border-none">
+              <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
+                <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
+                  <CardTitle>Bar Chart - Interactive</CardTitle>
+                  <CardDescription>
+                    Showing total visitors for the last 3 months
+                  </CardDescription>
+                </div>
+                <div className="flex">
+                  {["desktop", "mobile"].map((key) => {
+                    const chart = key
+                    return (
+                      <button
+                        key={chart}
+                        data-active={activeChart === chart}
+                        className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
+                        onClick={() => setActiveChart(chart)}
+                      >
+                        <span className="text-xs text-muted-foreground">
+                          {BarChartConfig[chart].label}
+                        </span>
+                        <span className="text-lg font-bold leading-none sm:text-3xl">
+                          {totalBar[key].toLocaleString()}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </CardHeader>
+              <CardContent className="px-2 sm:p-6">
+                <ChartContainer
+                  config={BarChartConfig}
+                  className="aspect-auto h-[250px] w-full"
                 >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="date"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    minTickGap={32}
-                    tickFormatter={(value) => {
-                      const date = new Date(value)
-                      return date.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })
+                  <BarChart
+                    accessibilityLayer
+                    data={BarChartData}
+                    margin={{
+                      left: 12,
+                      right: 12,
                     }}
-                  />
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        className="w-[150px]"
-                        nameKey="views"
-                        labelFormatter={(value) => {
-                          return new Date(value).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
-                        }}
-                      />
-                    }
-                  />
-                  <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
-                </BarChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
+                  >
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                      dataKey="date"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      minTickGap={32}
+                      tickFormatter={(value) => {
+                        const date = new Date(value)
+                        return date.toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })
+                      }}
+                    />
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent
+                          className="w-[150px]"
+                          nameKey="views"
+                          labelFormatter={(value) => {
+                            return new Date(value).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
+                          }}
+                        />
+                      }
+                    />
+                    <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
             {/* Calendar */}
-            <div className="p-4 bg-background rounded-lg shadow-md mb-6 text-foreground h-fill">
+            <div className="p-4 bg-background rounded-lg mb-6 text-foreground h-fill">
               <div className="flex justify-between mb-4">
                 <div className="flex justify-between">
                   <Input placeholder="Search patients" />
@@ -230,10 +230,10 @@ function DoctorHome() {
 
         {/* Sidebar */}
         <div className="col-span-12 lg:col-span-2 flex flex-col">
-          <div className="p-6 bg-background rounded-lg shadow-md mb-6 text-foreground flex flex-col items-center justify-center">
-            <h1 className="text-2xl font-bold mb-4 px-2 text-foreground">
+          <Card className="p-6 bg-background rounded-lg mb-6 text-foreground flex flex-col items-center justify-center border-none">
+            <CardHeader className="text-2xl font-bold px-2 text-foreground">
               Next Patient
-            </h1>
+            </CardHeader>
 
             <Avatar className="w-24 h-24 mb-4">
               <AvatarImage src="path-to-image.jpg" alt="Ali Alfardan's profile image" />
@@ -253,7 +253,7 @@ function DoctorHome() {
                 <span className="font-bold bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">30:00</span>
                 Until Appointment</Button>
             </div>
-          </div>
+          </Card>
           <Card className="p-4 bg-background rounded-lg mb-6 text-foreground min-h-36 flex flex-col border-none">
             <CardHeader className="items-center pb-0">
               <CardTitle>Appointment Chart</CardTitle>
@@ -315,17 +315,13 @@ function DoctorHome() {
               </div>
             </CardFooter>
           </Card>
-          <div className="p-4 bg-background rounded-lg shadow-md flex-grow text-foreground mb-6">
+          <Card className="p-4 bg-background rounded-lg flex-grow text-foreground mb-6 border-none">
             {loading ? (
               <Loader2 className="animate-spin text-foreground" />
             ) : (
-              <ul>
-                {patients.map((patient, index) => (
-                  <li key={index}>{patient.email}</li>
-                ))}
-              </ul>
+              <></>
             )}
-          </div>
+          </Card>
         </div>
       </div>
     </>
