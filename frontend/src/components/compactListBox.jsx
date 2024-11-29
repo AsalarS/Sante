@@ -1,5 +1,5 @@
 import React from 'react';
-import { Maximize2, SquarePen, X } from 'lucide-react';
+import { Maximize2, Plus} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
@@ -27,10 +27,11 @@ function CompactListBox({ title, emptyText = "No items available", data = [], on
             {displayAsBadges ? (
               <div className="flex flex-wrap items-center space-x-2 mb-2">
                 {displayData.map((item, index) => (
-                  <Badge key={index} className="flex items-center space-x-1 bg-chart-5 text-white hover:bg-chart-5/75 mb-2">
+                  <Badge key={index} className="bg-chart-5 text-white hover:bg-chart-5/75 mb-2">
                     <span>{item}</span>
                   </Badge>
                 ))}
+                <div className='bg-foreground/10 text-white hover:bg-foreground/25 mb-2 rounded-full'><Plus size={16} className='m-1'/></div>
               </div>
             ) : (
               displayData.map((item, index) => (

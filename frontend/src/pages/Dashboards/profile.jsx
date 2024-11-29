@@ -87,7 +87,9 @@ function ProfilePage() {
 
     if (loading) {
         return (
-            <Loader2  className="animate-spin" />
+            <div className="flex justify-center items-center h-lvh w-lvh">
+                <Loader2 className="animate-spin w-12 h-12 text-primary" />
+            </div>
         );
     }
 

@@ -67,6 +67,7 @@ class Patient(models.Model):
     blood_type = models.CharField(max_length=3)
     chronic_conditions = models.TextField()
     family_history = models.TextField() 
+    CPR_number = models.CharField(max_length=8)
 
     def __str__(self):
         return f"Patient: {self.user}"

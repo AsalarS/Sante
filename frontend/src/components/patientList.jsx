@@ -32,7 +32,7 @@ function PatientList({ onSelectConversation }) {
 
     if (loading) {
         return (
-            <Loader2  className="animate-spin" />
+            <Loader2  className="animate-spin text-primary" />
         );
     }
 

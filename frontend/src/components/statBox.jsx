@@ -1,8 +1,8 @@
 import { Card } from "./ui/card";
 
-function StatBox({ title, number }) {
+function StatBox({ title, number, ...props }) {
   return (
-    <Card className="p-4 bg-background rounded-lg flex flex-col md:flex-row items-center justify-between lg:h-20 border-none">
+    <Card className="p-4 bg-background rounded-lg flex flex-col md:flex-row items-center justify-between lg:h-20 border-none" {...props}>
       <div className="w-full md:w-auto mb-2 md:mb-0">
         <h3 className="text-lg md:text-md font-semibold text-foreground text-center md:text-left">
           {title}

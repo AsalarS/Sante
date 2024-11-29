@@ -44,10 +44,10 @@ function DoctorHome() {
   }, []);
 
   const statusColors = {
-    Scheduled: "border-primary text-primary",
-    Completed: "border-green-400 text-green-400",
-    Canceled: "border-red-400 text-red-400",
-  };
+    Scheduled: "bg-primary/20 text-primary font-semibold",
+    Completed: "bg-green-400/20 text-green-400 font-semibold",
+    Canceled:  "bg-red-400/20 text-red-400 font-semibold",
+};
 
   const [activeChart, setActiveChart] = useState("desktop")
 
@@ -88,7 +88,7 @@ function DoctorHome() {
           <div className="flex flex-col">
             {/* Bar Chart */}
             <Card className="p-4 bg-background rounded-lg mb-6 text-foreground mt-6 border-none">
-              <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
+              <CardHeader className="flex flex-col items-stretch space-y-0 border-b border-border p-0 sm:flex-row">
                 <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
                   <CardTitle>Bar Chart - Interactive</CardTitle>
                   <CardDescription>
@@ -96,24 +96,16 @@ function DoctorHome() {
                   </CardDescription>
                 </div>
                 <div className="flex">
-                  {["desktop", "mobile"].map((key) => {
-                    const chart = key
-                    return (
-                      <button
-                        key={chart}
-                        data-active={activeChart === chart}
-                        className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
-                        onClick={() => setActiveChart(chart)}
+                      <div
+                        className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l border-border sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
                       >
                         <span className="text-xs text-muted-foreground">
-                          {BarChartConfig[chart].label}
+                          Total Appointments
                         </span>
                         <span className="text-lg font-bold leading-none sm:text-3xl">
-                          {totalBar[key].toLocaleString()}
+                          192,212
                         </span>
-                      </button>
-                    )
-                  })}
+                      </div>
                 </div>
               </CardHeader>
               <CardContent className="px-2 sm:p-6">
@@ -214,7 +206,7 @@ function DoctorHome() {
                         {/* Status */}
                         <TableCell className="text-center">
                           <div
-                            className={`px-2 py-1 text-sm rounded-lg border ${statusColors[patient.status]}`}
+                            className={`px-2 py-1 text-sm rounded-md ${statusColors[patient.status]}`}
                           >
                             {patient.status}
                           </div>
@@ -317,7 +309,7 @@ function DoctorHome() {
           </Card>
           <Card className="p-4 bg-background rounded-lg flex-grow text-foreground mb-6 border-none">
             {loading ? (
-              <Loader2 className="animate-spin text-foreground" />
+              <Loader2 className="animate-spin text-primary" />
             ) : (
               <></>
             )}

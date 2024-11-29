@@ -3,6 +3,8 @@ import { Textarea } from "./ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Separator } from "./ui/separator";
+import { Heart, CircleGauge, Thermometer, Activity, Wind, PenLine } from "lucide-react";
+import { Card} from "./ui/card";
 
 function PatientInformation() {
     return (
@@ -16,22 +18,67 @@ function PatientInformation() {
                     </Avatar>
                     <h2 className="text-2xl font-semibold text-foreground">John Doe</h2>
                 </div> */}
-                <div className="bg-background p-4 rounded-lg flex-grow flex flex-col">
-                    <h3 className="font-medium text-foreground mb-2">Complaints</h3>
-                    <Textarea placeholder="Enter details..." className="w-full h-32 flex-grow bg-border resize-none text-foreground" />
-                </div>
-                <div className="bg-background p-4 rounded-lg flex-grow flex flex-col">
-                    <h3 className="font-medium text-foreground mb-2">Observations</h3>
-                    <Textarea placeholder="Enter details..." className="w-full h-32 flex-grow bg-border resize-none text-foreground" />
-                </div>
-                <div className="bg-background p-4 rounded-lg flex-grow flex flex-col">
-                    <h3 className="font-medium text-foreground">Assesment</h3>
-                    <Textarea placeholder="Enter details..." className="w-full h-32 flex-grow bg-border resize-none text-foreground" />
-                </div>
-                <div className="bg-background p-4 rounded-lg flex-grow flex flex-col">
-                    <h3 className="font-medium text-foreground mb-2">Care Plan</h3>
-                    <Textarea placeholder="Enter details..." className="w-full h-32 flex-grow bg-border resize-none text-foreground" />
-                </div>
+                <Card className="bg-background p-4 rounded-lg flex-grow flex flex-col border-none max-h-56">
+                    <div className="flex flex-row justify-between mb-2">
+                        <span className="text-lg font-semibold mb-2 ml-1">Vitals</span>
+                        <Button className="size-8" variant={"secondary"}><PenLine size={20}/></Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                        {/* Heart Rate */}
+                        <div className="bg-red-300 dark:bg-red-300/20 text-white rounded-md  p-4 flex flex-col items-center">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Heart className="text-white bg-red-500 rounded-full p-2 w-8 h-8" />
+                                <h3 className="font-semibold">Heart Rate</h3>
+                            </div>
+                            <h1 className="text-4xl font-bold flex flex-col items-center">90 <span className="text-white/40 text-lg">BPM</span></h1>
+                        </div>
+
+                        {/* Blood Pressure */}
+                        <div className="bg-blue-300 dark:bg-blue-300/20 text-white rounded-md p-4 flex flex-col items-center">
+                            <div className="flex items-center gap-2 mb-2">
+                                <CircleGauge className="text-white bg-blue-500 rounded-full p-2 w-8 h-8" />
+                                <h3 className="font-semibold">Blood Pressure</h3>
+                            </div>
+                            <h1 className="text-3xl font-bold flex flex-col items-center">120/80<span className="text-white/40 text-lg">mmHg</span></h1>
+                        </div>
+
+                        {/* Temperature */}
+                        <div className="bg-green-300 dark:bg-green-300/20 text-white rounded-md p-4 flex flex-col items-center">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Thermometer className="text-white bg-green-500 rounded-full p-2 w-8 h-8" />
+                                <h3 className="font-semibold">Temperature</h3>
+                            </div>
+                            <h1 className="text-4xl font-bold">36.8°C</h1>
+                        </div>
+
+                        {/* Oxygen Saturation */}
+                        <div className="bg-yellow-400/60 dark:bg-yellow-300/20 text-white rounded-md p-4 flex flex-col items-center">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Wind className="text-white bg-yellow-500 rounded-full p-2 w-8 h-8" />
+                                <h3 className="font-semibold line-clamp-2 break-words">Oxygen Saturation</h3>
+                            </div>
+                            <h1 className="text-4xl font-bold">98%</h1>
+                        </div>
+                        {/* Respiratory Rate */}
+                        <div className="bg-purple-300 dark:bg-purple-300/20 text-white rounded-md p-4 flex flex-col items-center">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Activity className="text-white bg-purple-500 rounded-full p-2 w-8 h-8" />
+                                <h3 className="font-semibold line-clamp-2 break-words">Respiratory Rate</h3>
+                            </div>
+                            <h1 className="text-3xl font-bold flex flex-col items-center">16 <span className="text-white/40 text-lg">BPM</span></h1>
+                        </div>
+                    </div>
+                </Card>
+                <Card className="bg-background p-4 rounded-lg flex-grow flex flex-col border-none">
+                    <span className="text-lg font-semibold mb-2 ml-1 text-foreground">Care Plan</span>
+                    
+                </Card>
+                {/* Observations */}
+                <Card className="bg-background p-4 rounded-lg flex-grow flex flex-col max-h-44 border-none">
+                    <span className="text-lg font-semibold mb-2 ml-1 text-foreground">Observations</span>
+                    <Textarea placeholder="Enter details..." className="w-full h-32 flex-grow bg-muted dark:bg-border resize-none text-foreground" />
+                </Card>
                 {/* <div className="flex space-x-2">
                     <Button className="px-4 py-2 rounded-md">Show Lab Results</Button>
                     <Button className="px-4 py-2 rounded-md">Add Care Plan</Button>
