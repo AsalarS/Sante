@@ -23,7 +23,9 @@ import "./styles/Index.css";
 import ErrorPage from "./pages/errorPage"
 import { UserAdminPage } from "./pages/Dashboards/Admin/users"
 import { LogAdminPage } from "./pages/Dashboards/Admin/logs"
-import Patient2 from "./pages/Dashboards/Doctor/patients2"
+import Patient2 from "./pages/Dashboards/Doctor/patientProfile"
+import AppointmentPage from "./components/patientInformation"
+import PatientProfile from "./pages/Dashboards/Doctor/patientProfile"
 
 function Logout() {
   localStorage.clear()
@@ -57,8 +59,8 @@ function App() {
           >
             <Route path="dashboard" element={<DoctorHome />} />
             <Route index element={<Navigate to="dashboard" />} />
-            <Route path="patients" element={<PatientsPage />} />
-            <Route path="patients2" element={<Patient2 />} />
+            <Route path="patients" element={<PatientProfile />} />
+            <Route path="appointment" element={<AppointmentPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="messages" element={<MessagesPage />} />
             {/* <Route path="settings" element={<SettingsPage />} /> */}

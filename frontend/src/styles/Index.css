@@ -41,11 +41,12 @@ html {
         --dash-hover: 224 91% 91%;
         --dash-active: 228 99% 71%;
         --background-hover: 220 14% 96%;
-        /* --gradient-1: linear-gradient(to right, #6b88fe, #fe6b8a); */
         --gradient-1: 228 99% 91%;
+        --btn-normal: 235 10% 40%;
+        --btn-hover: 235 12% 30%; 
     }
 
-    /* .dark {
+    .dark {
         --background: 228 13% 12%;
         --foreground: 0 0% 100%;
         --card: 228 15% 8%;
@@ -75,9 +76,11 @@ html {
         --dash-hover: 228 20% 18%;
         --dash-active: 228 24% 25%;
         --background-hover: 228 13% 16%;
-    } */
+        --btn-normal: 235 13% 19%;
+        --btn-hover: 235 15% 15%;
+    }
     
-    .dark {
+    /* .dark {
       --background: 0 0% 17%;
       --foreground: 0 0% 100%;
       --card: 20 14.3% 4.1%;
@@ -107,7 +110,7 @@ html {
       --dash-hover: 228 20% 24%;
       --dash-active: 230 24% 30%;
       --background-hover: 0 0% 23%;
-  }
+  } */
 
   /* Custom Scrollbar */
   * {

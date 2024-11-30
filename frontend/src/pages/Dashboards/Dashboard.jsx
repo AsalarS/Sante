@@ -29,11 +29,11 @@ function Dashboard() {
         <div className="flex">
             {renderSidebar()}
             <div className="flex flex-col flex-1">
-                <header className="flex h-16 shrink-0 items-center gap-2 border-b w-full bg-background border-border">
+                {/* <header className="flex h-16 shrink-0 items-center gap-2 border-b w-full bg-background border-border">
                     <div className="flex items-center gap-2 px-3">
                         <DashBreadcrumb />
                     </div>
-                </header>
+                </header> */}
                 <main className="flex-1 bg-darker-background overflow-y-auto">
                     {/* To show pages */}
                     <Outlet/>

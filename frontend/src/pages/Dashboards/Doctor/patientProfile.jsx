@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Copy, Ellipsis } from "lucide-react";
 
-function Patient2() {
+function PatientProfile() {
 
     const [selectedConversation, setSelectedConversation] = useState(null);
     const conversations = [
@@ -38,104 +38,6 @@ function Patient2() {
             appointmentTime: '02:00 PM'
         },
         {
-            id: 3,
-            doctorName: 'Dr. Williams',
-            appointmentDate: '2023-11-30',
-            status: 'Canceled',
-            flowUpRequired: true,
-            appointmentTime: '03:30 PM'
-        },{
-            id: 3,
-            doctorName: 'Dr. Williams',
-            appointmentDate: '2023-11-30',
-            status: 'Canceled',
-            flowUpRequired: true,
-            appointmentTime: '03:30 PM'
-        },{
-            id: 3,
-            doctorName: 'Dr. Williams',
-            appointmentDate: '2023-11-30',
-            status: 'Canceled',
-            flowUpRequired: true,
-            appointmentTime: '03:30 PM'
-        },{
-            id: 3,
-            doctorName: 'Dr. Williams',
-            appointmentDate: '2023-11-30',
-            status: 'Canceled',
-            flowUpRequired: true,
-            appointmentTime: '03:30 PM'
-        },{
-            id: 3,
-            doctorName: 'Dr. Williams',
-            appointmentDate: '2023-11-30',
-            status: 'Canceled',
-            flowUpRequired: true,
-            appointmentTime: '03:30 PM'
-        },{
-            id: 3,
-            doctorName: 'Dr. Williams',
-            appointmentDate: '2023-11-30',
-            status: 'Canceled',
-            flowUpRequired: true,
-            appointmentTime: '03:30 PM'
-        },{
-            id: 3,
-            doctorName: 'Dr. Williams',
-            appointmentDate: '2023-11-30',
-            status: 'Canceled',
-            flowUpRequired: true,
-            appointmentTime: '03:30 PM'
-        },{
-            id: 3,
-            doctorName: 'Dr. Williams',
-            appointmentDate: '2023-11-30',
-            status: 'Canceled',
-            flowUpRequired: true,
-            appointmentTime: '03:30 PM'
-        },{
-            id: 3,
-            doctorName: 'Dr. Williams',
-            appointmentDate: '2023-11-30',
-            status: 'Canceled',
-            flowUpRequired: true,
-            appointmentTime: '03:30 PM'
-        },{
-            id: 3,
-            doctorName: 'Dr. Williams',
-            appointmentDate: '2023-11-30',
-            status: 'Canceled',
-            flowUpRequired: true,
-            appointmentTime: '03:30 PM'
-        },{
-            id: 3,
-            doctorName: 'Dr. Williams',
-            appointmentDate: '2023-11-30',
-            status: 'Canceled',
-            flowUpRequired: true,
-            appointmentTime: '03:30 PM'
-        },{
-            id: 3,
-            doctorName: 'Dr. Williams',
-            appointmentDate: '2023-11-30',
-            status: 'Canceled',
-            flowUpRequired: true,
-            appointmentTime: '03:30 PM'
-        },{
-            id: 3,
-            doctorName: 'Dr. Williams',
-            appointmentDate: '2023-11-30',
-            status: 'Canceled',
-            flowUpRequired: true,
-            appointmentTime: '03:30 PM'
-        },{
-            id: 3,
-            doctorName: 'Dr. Williams',
-            appointmentDate: '2023-11-30',
-            status: 'Canceled',
-            flowUpRequired: true,
-            appointmentTime: '03:30 PM'
-        },{
             id: 3,
             doctorName: 'Dr. Williams',
             appointmentDate: '2023-11-30',
@@ -219,7 +121,7 @@ function Patient2() {
                         </Card>
                         <Card className="bg-background p-4 rounded-lg flex-grow flex flex-col border-none">
                             <Tabs defaultValue="appointments">
-                                <TabsList className="flex justify-center w-fit mx-auto">
+                                <TabsList className="flex justify-center w-fit mx-auto mb-4">
                                     <TabsTrigger value="appointments">Appointments</TabsTrigger>
                                     <TabsTrigger value="workups">Workups</TabsTrigger>
                                     <TabsTrigger value="history">History</TabsTrigger>
@@ -325,4 +227,4 @@ function Patient2() {
     )
 }
 
-export default Patient2
+export default PatientProfile

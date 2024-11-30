@@ -235,7 +235,7 @@ export const chartData = [
     },
     desktop: {
       label: "Desktop",
-      color: "hsl(var(--primary))",
+      color: "hsl(var(--chart-5))",
     },
     mobile: {
       label: "Mobile",

@@ -62,6 +62,8 @@ export default {
 			'dash-hover': 'hsl(var(--dash-hover))',
        		'dash-active': 'hsl(var(--dash-active))',
 			'background-hover': 'hsl(var(--background-hover))',
+			'btn-normal': 'hsl(var(--btn-normal))',
+			'btn-hover': 'hsl(var(--btn-hover))',
   			chart: {
   				'1': 'hsl(var(--chart-1))',
   				'2': 'hsl(var(--chart-2))',
