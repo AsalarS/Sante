@@ -6,15 +6,28 @@ import { Separator } from "./ui/separator";
 import { Heart, CircleGauge, Thermometer, Activity, Wind, PenLine, Plus, CornerDownRight, Ellipsis, ChevronLeft } from "lucide-react";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
+import { Switch } from "./ui/switch";
+import { useNavigate } from "react-router-dom";
 
 function AppointmentPage() {
+    const navigate = useNavigate();
+
     return (
         <div className="bg-even-darker-background flex flex-col sm:flex-row p-6 gap-4 h-lvh ">
             {/* Left Section (Main Content) */}
             <div className="flex flex-col space-y-4 flex-grow sm:w-3/4 overflow-y-auto">
                 {/* Title */}
                 <div className="rounded-md flex flex-row items-center">
-                    <div className="flex text-foreground bg-btn-normal rounded-md mr-4 items-center p-1 hover:bg-btn-normal/80">
+                    <div className="flex text-foreground bg-btn-normal rounded-md mr-4 items-center p-1 hover:bg-btn-normal/80" 
+                        onClick={() => {
+                            if (window.history.length > 1) {
+                                // Go back to the previous page
+                                navigate(-1);
+                            } else {
+                                // If there's no history, navigate to the /patients page
+                                navigate('/patients');
+                            }
+                    }}>
                         <ChevronLeft size={24} />
                     </div>
                     <h1 className="text-white font-bold text-xl">Appointment</h1>
@@ -97,7 +110,7 @@ function AppointmentPage() {
                         </div>
                         {/* List of plans */}
                         <div className="flex flex-col gap-4 overflow-y-auto max-h-60">
-                            {Array.from({ length: 12}, (_, index) => (
+                            {Array.from({ length: 12 }, (_, index) => (
                                 <div key={index} className="w-full bg-background-hover rounded-md p-4 flex flex-row justify-between mb-2">
                                     <div className="self-center">
                                         <div className="flex flex-row mb-1">
@@ -122,11 +135,6 @@ function AppointmentPage() {
                         <span className="text-lg font-semibold mb-2 ml-1 text-foreground">Notes</span>
                         <Textarea placeholder="Enter details..." className="w-full flex-grow bg-muted dark:bg-border resize-none text-foreground" />
                     </Card>
-                    {/* <div className="flex space-x-2">
-                        <Button className="px-4 py-2 rounded-md">Show Lab Results</Button>
-                        <Button className="px-4 py-2 rounded-md">Add Care Plan</Button>
-                        <Button className="px-4 py-2 rounded-md">Generate Document</Button>
-                    </div> */}
                 </div>
             </div>
 
@@ -195,15 +203,12 @@ function AppointmentPage() {
                         className="flex-grow"
                     />
                 </div>
-                <div className="max-w-64">
-                    <CompactListBox
-                        displayAsBadges={false}
-                        title="Patient Information"
-                        data={["F", "23y", "23y", "O+"]}
-                        onClickIcon={() => console.log("Patient Information icon clicked")}
-                        onClickSelf={() => console.log("Patient Information clicked")}
-                        className="flex-grow"
-                    />
+                <div className="max-w-64 p-4 bg-background rounded-lg shadow-md flex flex-col">
+                    <div className="flex text-foreground justify-between mb-4">
+                        <label>Follow up needed</label>
+                        <Switch />
+                    </div>
+                    <Button className="w-full">Complete Appointment</Button>
                 </div>
             </div>
         </div>

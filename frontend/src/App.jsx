@@ -24,8 +24,9 @@ import ErrorPage from "./pages/errorPage"
 import { UserAdminPage } from "./pages/Dashboards/Admin/users"
 import { LogAdminPage } from "./pages/Dashboards/Admin/logs"
 import Patient2 from "./pages/Dashboards/Doctor/patientProfile"
-import AppointmentPage from "./components/patientInformation"
+import AppointmentPage from "./components/appointmentPage"
 import PatientProfile from "./pages/Dashboards/Doctor/patientProfile"
+import NursePatientProfile from "./pages/Dashboards/Nurse/NursePatientProfile"
 
 function Logout() {
   localStorage.clear()
@@ -59,8 +60,10 @@ function App() {
           >
             <Route path="dashboard" element={<DoctorHome />} />
             <Route index element={<Navigate to="dashboard" />} />
-            <Route path="patients" element={<PatientProfile />} />
-            <Route path="appointment" element={<AppointmentPage />} />
+            <Route path="patients" element={<PatientsPage />} />
+            <Route path="patients" element={<PatientsPage />} />
+            <Route path="patients/appointment" element={<AppointmentPage />} />
+            <Route path="patients/appointment/:patientID" element={<AppointmentPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="messages" element={<MessagesPage />} />
             {/* <Route path="settings" element={<SettingsPage />} /> */}
@@ -95,6 +98,7 @@ function App() {
           >
             <Route path="dashboard" element={<NurseHome />} />
             <Route index element={<Navigate to="dashboard" />} />
+            <Route path="patients" element={<NursePatientProfile />} />
             <Route path="messages" element={<MessagesPage />} />
             {/* <Route path="settings" element={<SettingsPage />} /> */}
             <Route path="help" element={<HelpPage />} />
@@ -125,7 +129,7 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="dashboard" element={<AdminHome  />} />
+            <Route path="dashboard" element={<AdminHome />} />
             <Route index element={<Navigate to="dashboard" />} />
             <Route path="users" element={<UserAdminPage />} />
             <Route path="appointments" element={<AdminHome />} />

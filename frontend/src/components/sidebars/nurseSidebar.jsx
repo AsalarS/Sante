@@ -1,4 +1,4 @@
-import { DashboardIcon, HelpIcon, MessagesIcon, SettingsIcon } from "@/components/icons";
+import { DashboardIcon, HelpIcon, MessagesIcon, PatientsIcon, SettingsIcon } from "@/components/icons";
 import Sidebar, { SidebarItem } from "@/components/sidebar";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -13,12 +13,21 @@ function NurseSidebar() {
         <Sidebar onImageClick={handleImageClick}>
                 <SidebarItem
                     icon={<DashboardIcon />}
-                    text="Dashboard/dashboard"
+                    text="Dashboard"
                     onClick={() => {
                         navigate("/nurse/dashboard");
                     }}
                     path="/nurse/dashboard"
                     active={location.pathname === "/nurse/dashboard"}
+                />
+                <SidebarItem
+                    icon={<PatientsIcon size={20} />}
+                    text="Patients"
+                    onClick={() => {
+                        navigate("/nurse/patients");
+                    }}
+                    path="/nurse/patients"
+                    active={location.pathname === "/nurse/patients"}
                 />
                 <SidebarItem
                     icon={<MessagesIcon size={20} />}

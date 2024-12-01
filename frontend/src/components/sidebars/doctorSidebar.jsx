@@ -27,7 +27,7 @@ function DoctorSidebar() {
                         navigate("/doctor/patients");
                     }}
                     path="/doctor/patients"
-                    active={location.pathname === "/doctor/patients"}
+                    active={location.pathname.startsWith("/doctor/patients")}
                 />
                 <SidebarItem
                     icon={<NotificationIcon size={20} />}

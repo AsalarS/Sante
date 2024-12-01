@@ -1,6 +1,6 @@
-import PatientInformation from "@/components/patientInformation";
 import PatientList from "@/components/patientList";
 import { useState } from "react";
+import PatientProfile from "./patientProfile";
 
 function PatientsPage() {
 
@@ -19,7 +19,7 @@ function PatientsPage() {
                     onSelectConversation={(id) => setSelectedConversation(id)}
                 />
                 <div className="grow">
-                    <PatientInformation />
+                    <PatientProfile />
                 </div>
             </div>
         </>

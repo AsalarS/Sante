@@ -10,15 +10,15 @@ function Dashboard() {
     const location = useLocation();
 
     const renderSidebar = () => { //Fucntion to decide which sidebar to render
-        if (location.pathname.startsWith("/doctor")) {
+        if (location.pathname.toLowerCase().startsWith("/doctor")) {
             return <DoctorSidebar />;
-        } else if (location.pathname.startsWith("/patient")) {
+        } else if (location.pathname.toLowerCase().startsWith("/patient")) {
             return <PatientSidebar />;
-        } else if (location.pathname.startsWith("/admin")) {
+        } else if (location.pathname.toLowerCase().startsWith("/admin")) {
             return <AdminSidebar />;
-        } else if (location.pathname.startsWith("/nurse")) {
+        } else if (location.pathname.toLowerCase().startsWith("/nurse")) {
             return <NurseSidebar />;
-        } else if (location.pathname.startsWith("/receptionist")) {
+        } else if (location.pathname.toLowerCase().startsWith("/receptionist")) {
             return <ReceptionistSidebar />;
         } else {
             return <p>NO ROLE</p>;
