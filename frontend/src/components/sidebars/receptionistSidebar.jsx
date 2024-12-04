@@ -1,5 +1,6 @@
 import { DashboardIcon, HelpIcon, MessagesIcon, SettingsIcon } from "@/components/icons";
 import Sidebar, { SidebarItem } from "@/components/sidebar";
+import { Calendar, CalendarRange, User2 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 function ReceptionistSidebar() {
@@ -19,6 +20,26 @@ function ReceptionistSidebar() {
                     }}
                     path="/receptionist/dashboard"
                     active={location.pathname === "/receptionist/dashboard"}
+                />
+                <SidebarItem
+                    icon={<CalendarRange size={20} />}
+                    text="Appointments"
+                    
+                    onClick={() => {
+                        navigate("/receptionist/appointments");
+                    }}
+                    path="/receptionist/appointments"
+                    active={location.pathname.startsWith("/receptionist/appointments")}
+                />
+                <SidebarItem
+                    icon={<User2 size={20} />}
+                    text="Patients"
+                    
+                    onClick={() => {
+                        navigate("/receptionist/patients");
+                    }}
+                    path="/receptionist/patients"
+                    active={location.pathname.startsWith("/receptionist/patients")}
                 />
                 <SidebarItem
                     icon={<MessagesIcon size={20} />}

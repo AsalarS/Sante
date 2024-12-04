@@ -27,6 +27,9 @@ import Patient2 from "./pages/Dashboards/Doctor/patientProfile"
 import AppointmentPage from "./components/appointmentPage"
 import PatientProfile from "./pages/Dashboards/Doctor/patientProfile"
 import NursePatientProfile from "./pages/Dashboards/Nurse/NursePatientProfile"
+import ReceptionistPatientProfile from "./pages/Dashboards/Receptionist/receptionistPatientsPage"
+import Scheduler from "./components/schduler"
+import { ReceptionistAppointment } from "./pages/Dashboards/Receptionist/receptionistAppointment"
 
 function Logout() {
   localStorage.clear()
@@ -115,6 +118,8 @@ function App() {
           >
             <Route path="dashboard" element={<ReceptionistHome />} />
             <Route index element={<Navigate to="dashboard" />} />
+            <Route path="patients" element={<ReceptionistPatientProfile />} />
+            <Route path="appointments" element={<ReceptionistAppointment />} />
             <Route path="messages" element={<MessagesPage />} />
             {/* <Route path="settings" element={<SettingsPage />} /> */}
             <Route path="help" element={<HelpPage />} />
