@@ -1,7 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/datePicker";
 import { Input } from "@/components/ui/input";
-import Scheduler from "@/components/schduler"; // Assuming Scheduler is in this path
+import Scheduler from "@/components/schduler";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+
 
 export function ReceptionistAppointment() {
     return (
@@ -12,7 +20,17 @@ export function ReceptionistAppointment() {
                         <Input placeholder="Search patients" />
                     </div>
                     <div className="flex justify-end gap-4">
-                        <DatePicker className="h-12"/>
+                        <Select>
+                            <SelectTrigger className="w-[180px] text-foreground">
+                                <SelectValue placeholder="Department" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All</SelectItem>
+                                <SelectItem value="dep1">dep1</SelectItem>
+                                <SelectItem value="dep2">dep2</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <DatePicker className="h-12" />
                         <Button className="mt-1">Today</Button>
                     </div>
                 </div>

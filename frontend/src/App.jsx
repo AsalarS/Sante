@@ -30,6 +30,7 @@ import NursePatientProfile from "./pages/Dashboards/Nurse/NursePatientProfile"
 import ReceptionistPatientProfile from "./pages/Dashboards/Receptionist/receptionistPatientsPage"
 import Scheduler from "./components/schduler"
 import { ReceptionistAppointment } from "./pages/Dashboards/Receptionist/receptionistAppointment"
+import { Toaster } from "sonner"
 
 function Logout() {
   localStorage.clear()
@@ -147,6 +148,7 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+      <Toaster richColors toastOptions={{}} />
     </DarkModeProvider>
   );
 }

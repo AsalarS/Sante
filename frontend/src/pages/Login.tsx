@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { jwtDecode, JwtPayload } from "jwt-decode";
 import { Loader2 } from 'lucide-react';
+import { toast, Toaster } from 'sonner';
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -27,7 +28,7 @@ function Login() {
             const accessToken = res.data.access;
             const refreshToken = res.data.refresh;
 
-            const decodedPayload = jwtDecode < JwtPayload > (accessToken);
+            const decodedPayload = jwtDecode<JwtPayload>(accessToken);
             const userId = decodedPayload.sub;
             if (userId) {
                 localStorage.setItem("user_id", userId);
@@ -40,12 +41,16 @@ function Login() {
             localStorage.setItem("user_info", JSON.stringify(userInfoResponse.data));
             const role = userInfoResponse.data.role;
             navigate(`/${role}`);
-        } catch (error) {
-            alert(error);
-        } finally {
+        } catch (error: any) {
             setLoading(false);
+            if (error.response && error.response.status === 401) {
+                toast.error("Invalid email or password");
+            } else {
+                toast.error("An unexpected error occurred");
+            }
         }
     };
+
     return (
         <>
             <div className="flex flex-col min-h-screen">
@@ -81,7 +86,7 @@ function Login() {
                                     />
                                 </div>
                                 <Button type="submit" className="w-full text-white" disabled={loading}>
-                                    {loading ? <Loader2  className="animate-spin" /> : "Login"}
+                                    {loading ? <Loader2 className="animate-spin" /> : "Login"}
                                 </Button>
                             </form>
 
