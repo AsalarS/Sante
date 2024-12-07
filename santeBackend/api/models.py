@@ -1,10 +1,9 @@
 # api/models.py
 
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.conf import settings
 import uuid
-from .managers import UserProfileManager  # Ensure you have managers.py with UserProfileManager
 
 
 # --- Field Choices ---
@@ -51,6 +50,27 @@ CARE_PLAN_TYPE_CHOICES = [
     ('Long-term', 'Long-term'),
 ]
 
+# User profile manager
+class UserProfileManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError("The Email field must be set")
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(email, password, **extra_fields)
 
 # --- Custom User Model ---
 
@@ -79,44 +99,34 @@ class UserProfile(AbstractUser):
 # --- Related Models ---
 
 class Patient(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='patient_profile'
-    )
-    medical_record_id = models.CharField(max_length=100, unique=True)
-    emergency_contact_name = models.CharField(max_length=100)
-    emergency_contact_phone = models.CharField(max_length=15)
-    blood_type = models.CharField(max_length=3, choices=BLOOD_TYPE_CHOICES)
-    family_history = models.TextField(null=True, blank=True)
-    CPR_number = models.CharField(max_length=8, unique=True, null=False)
-    place_of_birth = models.CharField(max_length=100)
-    religion = models.CharField(max_length=50, null=True, blank=True)
-    allergies = models.JSONField(null=True, blank=True)
-    past_surgeries = models.JSONField(null=True, blank=True)
-    chronic_conditions = models.TextField(null=True, blank=True)
+    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE, primary_key=True)  # Use `user` as the primary key
+    medical_record_id = models.CharField(max_length=100, unique=True, blank=True, null=True)
+    emergency_contact_name = models.CharField(max_length=255, null=True)
+    emergency_contact_phone = models.CharField(max_length=15, null=True)
+    blood_type = models.CharField(max_length=10, null=True)
+    family_history = models.TextField(null=True)
+    CPR_number = models.CharField(max_length=50, blank=True, null=True)
+    place_of_birth = models.CharField(max_length=255, blank=True, null=True)
+    religion = models.CharField(max_length=50, blank=True, null=True)
+    allergies = models.JSONField(default=dict, blank=True, null=True)
+    past_surgeries = models.JSONField(default=dict, blank=True, null=True)
+    chronic_conditions = models.TextField(blank=True, null=True)
 
-    def _str_(self):
-        return f"{self.user.first_name} {self.user.last_name} (Patient)"
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name}"
+
 
 
 class Employee(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='employee_profile'
-    )
-    specialization = models.CharField(max_length=100, null=True, blank=True)
-    license_number = models.CharField(max_length=100, unique=True)
-    available_days = models.JSONField(max_length=100)
-    shift_start = models.TimeField()
-    shift_end = models.TimeField()
-    office_number = models.CharField(max_length=10)
+    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE, primary_key=True)  # Use `user` as the primary key
+    specialization = models.CharField(max_length=255, null=True)
+    available_days = models.JSONField(default=list, null=True)
+    shift_start = models.TimeField(null=True)
+    shift_end = models.TimeField(null=True)
+    office_number = models.CharField(max_length=50, null=True)
 
-    def _str_(self):
-        return f"{self.user.first_name} {self.user.last_name} ({self.get_role_display()})"
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name} - {self.specialization}"
 
 
 class Appointment(models.Model):
