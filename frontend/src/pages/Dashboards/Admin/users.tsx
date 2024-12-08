@@ -20,9 +20,36 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Ellipsis, UserRoundPlus } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Ellipsis,
+  UserRoundPlus,
+} from "lucide-react";
 import api from "@/api";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import UserDialog from "@/components/userDetailsDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export type User = {
   id: number;
@@ -30,14 +57,17 @@ export type User = {
   first_name: string;
   last_name: string;
   role: string;
-  profile_image: string | null;
-  gender: string | null;
-  date_of_birth: string | null;
-  phone_number: string | null;
-  address: string | null;
+  profile_image: string | undefined;
+  gender: string | undefined;
+  date_of_birth: string | undefined;
+  phone_number: string | undefined;
+  address: string | undefined;
 };
 
-export const columns: ColumnDef<User>[] = [
+export const columns = (
+  setSelectedUser: (user: User | null) => void,
+  setDialogOpen: (open: boolean) => void
+): ColumnDef<User>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -135,18 +165,64 @@ export const columns: ColumnDef<User>[] = [
     id: "actions",
     cell: ({ row }) => {
       const user = row.original;
+      const [isAlertOpen, setIsAlertOpen] = useState(false);
+
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" onClick={() => console.log("View user:", user)}>
-              <Ellipsis className="text-foreground" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem>Edit</DropdownMenuItem>
-            <DropdownMenuItem className="text-red-500 focus:text-red-500">Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                onClick={() => console.log("View user:", user)}
+              >
+                <Ellipsis className="text-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedUser(user);
+                  setDialogOpen(true); // Open the dialog
+                }}
+              >
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-red-500 focus:text-red-500"
+                onClick={() => setIsAlertOpen(true)}
+              >
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Alert for deletion */}
+          <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+            <AlertDialogContent className="text-foreground">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the
+                  user account.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setIsAlertOpen(false)}>
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-red-600 hover:bg-red-500"
+                  onClick={() => {
+                    console.log("User deleted:", row.original); // Perform delete logic here
+                    setIsAlertOpen(false);
+                  }}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
       );
     },
   },
@@ -158,12 +234,20 @@ export function UserAdminPage() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
+  const [selectedUser, setSelectedUser] = useState<User | null>(null); // State for the selected user
+  const [dialogOpen, setDialogOpen] = useState(false); // State for user details dialog visibility
 
-  const fetchUsers = async () => {
+  const [currentPage, setCurrentPage] = useState(1); // Track current page
+  const [totalPages, setTotalPages] = useState(1); // Track total pages
+
+  const fetchUsers = async (page = 1) => {
     try {
-      const response = await api.get("/api/users/admin/");
+      const response = await api.get("/api/users/admin/", {
+        params: { page },
+      });
       if (response.status === 200) {
-        setUsers(response.data);
+        setUsers(response.data.results);
+        setTotalPages(Math.ceil(response.data.count / 10));
       } else {
         console.error("Failed to fetch users:", response.statusText);
       }
@@ -175,12 +259,12 @@ export function UserAdminPage() {
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    fetchUsers(currentPage);
+  }, [currentPage]);
 
   const table = useReactTable({
     data: users,
-    columns,
+    columns: columns(setSelectedUser, setDialogOpen),
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -195,6 +279,11 @@ export function UserAdminPage() {
   });
 
   const pageCount = table.getPageCount();
+
+  const handleSave = (updatedUser: User) => {
+    console.log("Saved user:", updatedUser);
+    // Add logic here to update the user via API or state management
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -225,9 +314,9 @@ export function UserAdminPage() {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -252,7 +341,10 @@ export function UserAdminPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-foreground">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-foreground"
+                >
                   No results.
                 </TableCell>
               </TableRow>
@@ -265,26 +357,24 @@ export function UserAdminPage() {
         <Button
           variant="ghost"
           className="light:text-gray-700 dark:text-gray-200"
-          onClick={() => table.setPageIndex(0)}
-          disabled={!table.getCanPreviousPage()}
+          onClick={() => setCurrentPage(1)} // Go to the first page
+          disabled={currentPage === 1}
         >
           <ChevronsLeft />
         </Button>
         <Button
           variant="ghost"
           className="light:text-gray-700 dark:text-gray-200"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
+          onClick={() => setCurrentPage(currentPage - 1)} // Go to the previous page
+          disabled={currentPage === 1}
         >
           <ChevronLeft />
         </Button>
-        {Array.from({ length: pageCount }, (_, i) => (
+        {Array.from({ length: totalPages }, (_, i) => (
           <Button
             key={i}
-            variant={
-              table.getState().pagination.pageIndex === i ? "default" : "ghost"
-            }
-            onClick={() => table.setPageIndex(i)}
+            variant={currentPage === i + 1 ? "default" : "ghost"}
+            onClick={() => setCurrentPage(i + 1)} // Go to the selected page
             className="text-white"
           >
             {i + 1}
@@ -293,20 +383,28 @@ export function UserAdminPage() {
         <Button
           variant="ghost"
           className="light:text-gray-700 dark:text-gray-200"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
+          onClick={() => setCurrentPage(currentPage + 1)} // Go to the next page
+          disabled={currentPage === totalPages}
         >
           <ChevronRight />
         </Button>
         <Button
           variant="ghost"
           className="light:text-gray-700 dark:text-gray-200"
-          onClick={() => table.setPageIndex(pageCount - 1)}
-          disabled={!table.getCanNextPage()}
+          onClick={() => setCurrentPage(totalPages)} // Go to the last page
+          disabled={currentPage === totalPages}
         >
           <ChevronsRight />
         </Button>
       </div>
+      {dialogOpen && selectedUser && (
+        <UserDialog
+          user={selectedUser}
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          onSave={handleSave}
+        />
+      )}
     </div>
   );
 }

@@ -197,6 +197,12 @@ class RegisterPatientSerializer(serializers.ModelSerializer):
 
         return user
 
+# APPOINTMENT SERIALIZER
+
+class AppointmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Appointment
+        fields = "__all__"
 
 # LOGS SERIALIZER
 
