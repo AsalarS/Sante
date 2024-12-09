@@ -78,15 +78,20 @@ class TestingRegisterView(APIView):
         try:
             data = request.data
             logger.debug("Received registration data: %s", data)
+            
             # Basic validation
             required_fields = ["first_name", "last_name", "email", "password", "role"]
             if not all(field in data for field in required_fields):
-                raise ValueError("Missing required fields")
+                return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Check if email already exists
+            if UserProfile.objects.filter(email=data["email"]).exists():
+                return Response({"error": "Email already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Create user
             user_serializer = UserSerializer(data=request.data)
             if not user_serializer.is_valid():
-                raise ValueError(f"User creation failed: {user_serializer.errors}")
+                return Response({"error": f"User creation failed: {user_serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
 
             user = user_serializer.save()
 
@@ -95,22 +100,19 @@ class TestingRegisterView(APIView):
                 if data["role"] == "patient":
                     patient_serializer = PatientSerializer(data=request.data)
                     if not patient_serializer.is_valid():
-                        raise ValueError(
-                            f"Patient creation failed: {patient_serializer.errors}"
-                        )
-                        # Pass the actual user instance when saving
+                        user.delete()
+                        return Response({"error": f"Patient creation failed: {patient_serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
                     patient = patient_serializer.save(user=user)
 
                 elif data["role"] in ["doctor", "nurse", "receptionist", "admin"]:
                     employee_serializer = EmployeeSerializer(data=request.data)
                     if not employee_serializer.is_valid():
-                        raise ValueError(
-                            f"Employee creation failed: {employee_serializer.errors}"
-                        )
-                    # Pass the actual user instance when saving
+                        user.delete()
+                        return Response({"error": f"Employee creation failed: {employee_serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
                     employee = employee_serializer.save(user=user)
                 else:
-                    raise ValueError("Invalid role")
+                    user.delete()
+                    return Response({"error": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as inner_exception:
                 # Delete the user if Patient or Employee creation fails
                 logger.error(
@@ -126,12 +128,9 @@ class TestingRegisterView(APIView):
                 {"message": "User created successfully!"},
                 status=status.HTTP_201_CREATED,
             )
-
         except Exception as e:
-            logger.error("Error registering user: %s", str(e))
-            return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            logger.error("Error during registration: %s", str(e))
+            return Response({"error": "An error occurred during registration"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # --------------- List Views ----------------

@@ -208,12 +208,12 @@ export const columns = (
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel onClick={() => setIsAlertOpen(false)}>
-                  Cancel
+                  Cancel        xz
                 </AlertDialogCancel>
                 <AlertDialogAction
                   className="bg-red-600 hover:bg-red-500"
                   onClick={() => {
-                    console.log("User deleted:", row.original); // Perform delete logic here
+                    console.log("User deleted:", row.original);    
                     setIsAlertOpen(false);
                   }}
                 >

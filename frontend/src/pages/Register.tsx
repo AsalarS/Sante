@@ -12,6 +12,8 @@ import PhoneInput from '@/components/ui/phoneInput';
 import { DatePicker } from '@/components/ui/datePicker';
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { isEmail } from "@/utility/validators";
 
 const Register = () => {
     const [email, setEmail] = useState("");
@@ -24,10 +26,25 @@ const Register = () => {
     const [role, setRole] = useState("");
     const [gender, setGender] = useState("Other");
     const [loading, setLoading] = useState(false);
+    const [emailError, setEmailError] = useState<string | null>(null);
+
     const navigate = useNavigate();
+
+    const handleEmailChange = (value: string) => {
+        setEmail(value);
+        const error = isEmail(value);
+        setEmailError(error);
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        // Check email validation before submitting
+        if (emailError) {
+            toast.error("Please fix errors before submitting.");
+            return;
+        }
+
         setLoading(true);
         const trimmedPayload = {
             first_name: first_name.trim(),
@@ -46,7 +63,11 @@ const Register = () => {
             navigate("/login");
         } catch (error) {
             console.error("Error response:", (error as any).response);
-            alert(error);
+            if (error instanceof Error && (error as any).response) {
+                toast.error("Error " + (error as any).response.status + ": " + (error as any).response.data.error);
+            } else {
+                toast.error("An unexpected error occurred.");
+            }
         } finally {
             setLoading(false);
         }
@@ -72,9 +93,10 @@ const Register = () => {
                                         type="text"
                                         placeholder="Email"
                                         value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
+                                        onChange={(e) => handleEmailChange(e.target.value)}
                                         required
                                     />
+                                    {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
                                 </div>
                                 {/* PASSWORD */}
                                 <div className="grid gap-2">
@@ -178,7 +200,7 @@ const Register = () => {
                                 </div>
                                 {/* SUBMIT BUTTON */}
                                 <Button type="submit" className="w-full col-span-1 md:col-span-2 text-white" disabled={loading}>
-                                    {loading ? <Loader2  className="animate-spin" /> : "Register"}
+                                    {loading ? <Loader2 className="animate-spin" /> : "Register"}
                                 </Button>
                             </form>
 

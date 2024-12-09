@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { jwtDecode, JwtPayload } from "jwt-decode";
 import { Loader2 } from 'lucide-react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
+import { PasswordInput } from '@/components/ui/password-input';
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -76,9 +77,8 @@ function Login() {
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="password">Password</Label>
-                                    <Input
+                                    <PasswordInput
                                         id="password"
-                                        type="password"
                                         placeholder="Password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}

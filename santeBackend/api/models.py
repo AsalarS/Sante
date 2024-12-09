@@ -111,6 +111,7 @@ class Patient(models.Model):
     allergies = models.JSONField(default=dict, blank=True, null=True)
     past_surgeries = models.JSONField(default=dict, blank=True, null=True)
     chronic_conditions = models.TextField(blank=True, null=True)
+    patient_notes = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}"
@@ -217,12 +218,6 @@ class Prescription(models.Model):
     appointment = models.ForeignKey(
         Appointment,
         on_delete=models.CASCADE,
-        related_name='prescriptions'
-    )
-    doctor = models.ForeignKey(
-        Employee,
-        on_delete=models.CASCADE,
-        limit_choices_to={'role': 'doctor'},
         related_name='prescriptions'
     )
     medication_name = models.CharField(max_length=100)
