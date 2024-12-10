@@ -50,6 +50,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 export type User = {
   id: number;
@@ -208,12 +209,12 @@ export const columns = (
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel onClick={() => setIsAlertOpen(false)}>
-                  Cancel        xz
+                  Cancel xz
                 </AlertDialogCancel>
                 <AlertDialogAction
                   className="bg-red-600 hover:bg-red-500"
                   onClick={() => {
-                    console.log("User deleted:", row.original);    
+                    console.log("User deleted:", row.original);
                     setIsAlertOpen(false);
                   }}
                 >
@@ -242,10 +243,12 @@ export function UserAdminPage() {
 
   const fetchUsers = async (page = 1) => {
     try {
-      const response = await api.get("/api/users/admin/", {
+      const response = await api.get("/api/admin/users/", {
         params: { page },
       });
       if (response.status === 200) {
+        console.log("Fetched users:", response.data);
+
         setUsers(response.data.results);
         setTotalPages(Math.ceil(response.data.count / 10));
       } else {
@@ -261,6 +264,24 @@ export function UserAdminPage() {
   useEffect(() => {
     fetchUsers(currentPage);
   }, [currentPage]);
+
+  const handleSaveUser = async (updatedUser: User) => {
+    try {
+      
+      const response = await api.patch(`/api/admin/users/${updatedUser.id}/`, updatedUser);
+      if (response.status === 200) {
+        setUsers((prevUsers) =>
+          prevUsers.map((user) => (user.id === updatedUser.id ? updatedUser : user))
+        );
+        setDialogOpen(false);
+        toast.success("User updated successfully!");
+      } else {
+        console.error("Failed to update user:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Failed to update user:", error);
+    }
+  };
 
   const table = useReactTable({
     data: users,
@@ -279,11 +300,6 @@ export function UserAdminPage() {
   });
 
   const pageCount = table.getPageCount();
-
-  const handleSave = (updatedUser: User) => {
-    console.log("Saved user:", updatedUser);
-    // Add logic here to update the user via API or state management
-  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -402,7 +418,7 @@ export function UserAdminPage() {
           user={selectedUser}
           open={dialogOpen}
           onClose={() => setDialogOpen(false)}
-          onSave={handleSave}
+          onSave={handleSaveUser}
         />
       )}
     </div>

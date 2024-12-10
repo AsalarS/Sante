@@ -32,6 +32,19 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
+    
+    def update(self, instance, validated_data):
+        # Extract user data if present
+        user_data = validated_data.pop('user', {})
+        
+        # Update user first if data exists
+        if user_data:
+            user_serializer = UserSerializer(instance.user, data=user_data, partial=True)
+            if user_serializer.is_valid():
+                user_serializer.save()
+        
+        # Then update patient instance
+        return super().update(instance, validated_data)
 
 
 # EMPLOYEE SERIALIZERS

@@ -113,7 +113,7 @@ class Patient(models.Model):
     chronic_conditions = models.TextField(blank=True, null=True)
     patient_notes = models.TextField(blank=True, null=True)
 
-    def __str__(self):
+def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}"
 
 

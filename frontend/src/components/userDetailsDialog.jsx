@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -26,29 +26,14 @@ const availableDaysOptions = [
 ];
 
 const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
-  const [formData, setFormData] = useState({
-    ...user,
-    employee: {
-      ...user?.employee,
-      available_days: user?.employee?.available_days || [],
-    },
-    patient: {
-      ...user?.patient,
-    },
-  });
+  const [formData, setFormData] = useState(user || {});
+
+  useEffect(() => {
+    setFormData(user || {});
+  }, [user]);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleNestedChange = (field, subField, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: {
-        ...(prev[field] || {}),
-        [subField]: value,
-      },
-    }));
   };
 
   const handleSave = () => {
@@ -118,6 +103,7 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
                   onChange={(e) => handleChange("role", e.target.value)}
                   className="p-2 border rounded-md bg-background w-full"
                 >
+                  <option value="">Select Role</option>
                   <option value="doctor">Doctor</option>
                   <option value="admin">Admin</option>
                   <option value="nurse">Nurse</option>
@@ -187,24 +173,21 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
               <div>
                 <Label>Available Days</Label>
                 <SelectTagInput
-                  value={formData.employee.available_days || []}
+                  value={formData.available_days || []}
                   onChange={(value) =>
-                    handleNestedChange("employee", "available_days", value)
+                    handleChange("available_days", value)
                   }
                   options={availableDaysOptions}
+                  disabled={!editable}
                 />
               </div>
               <div>
                 <Label>Specialization</Label>
                 <Input
-                  value={formData.employee?.specialization || ""}
+                  value={formData.specialization || ""}
                   onChange={(e) =>
                     editable &&
-                    handleNestedChange(
-                      "employee",
-                      "specialization",
-                      e.target.value
-                    )
+                    handleChange("specialization", e.target.value)
                   }
                   readOnly={!editable}
                 />
@@ -214,14 +197,10 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
                   <Label>Shift Start</Label>
                   <Input
                     type="time"
-                    value={formData.employee?.shift_start || ""}
+                    value={formData.shift_start || ""}
                     onChange={(e) =>
                       editable &&
-                      handleNestedChange(
-                        "employee",
-                        "shift_start",
-                        e.target.value
-                      )
+                      handleChange("shift_start", e.target.value)
                     }
                     readOnly={!editable}
                   />
@@ -230,14 +209,10 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
                   <Label>Shift End</Label>
                   <Input
                     type="time"
-                    value={formData.employee?.shift_end || ""}
+                    value={formData.shift_end || ""}
                     onChange={(e) =>
                       editable &&
-                      handleNestedChange(
-                        "employee",
-                        "shift_end",
-                        e.target.value
-                      )
+                      handleChange("shift_end", e.target.value)
                     }
                     readOnly={!editable}
                   />
@@ -246,14 +221,10 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
               <div>
                 <Label>Office Number</Label>
                 <Input
-                  value={formData.employee?.office_number || ""}
+                  value={formData.office_number || ""}
                   onChange={(e) =>
                     editable &&
-                    handleNestedChange(
-                      "employee",
-                      "office_number",
-                      e.target.value
-                    )
+                    handleChange("office_number", e.target.value)
                   }
                   readOnly={!editable}
                 />
@@ -267,29 +238,20 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
               <div>
                 <Label>Place of Birth</Label>
                 <Input
-                  value={formData.patient?.place_of_birth || ""}
+                  value={formData.place_of_birth || ""}
                   onChange={(e) =>
-                    editable &&
-                    handleNestedChange(
-                      "patient",
-                      "place_of_birth",
-                      e.target.value
-                    )
+                    editable && handleChange("place_of_birth", e.target.value)
                   }
                   readOnly={!editable}
                 />
               </div>
               <div>
-                <Label>Medical Medcal Record ID</Label>
+                <Label>Medical Record ID</Label>
                 <Input
-                  value={formData.patient?.medical_history || ""}
+                  value={formData.medical_record_id || ""}
                   onChange={(e) =>
                     editable &&
-                    handleNestedChange(
-                      "patient",
-                      "medical_history",
-                      e.target.value
-                    )
+                    handleChange("medical_record_id", e.target.value)
                   }
                   readOnly={!editable}
                 />
@@ -297,10 +259,9 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
               <div>
                 <Label>Allergies</Label>
                 <InputTags
-                  value={formData.patient?.allergies || []}
+                  value={formData.allergies || []}
                   onChange={(newAllergies) =>
-                    editable &&
-                    handleNestedChange("patient", "allergies", newAllergies)
+                    editable && handleChange("allergies", newAllergies)
                   }
                   readOnly={!editable}
                 />
@@ -308,10 +269,10 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
               <div>
                 <Label>Emergency Contact Name</Label>
                 <Input
-                  value={formData.patient?.emergency_contact_name || ""}
+                  value={formData.emergency_contact_name || ""}
                   onChange={(e) =>
                     editable &&
-                    handleNestedChange("patient", "allergies", e.target.value)
+                    handleChange("emergency_contact_name", e.target.value)
                   }
                   readOnly={!editable}
                 />
@@ -319,26 +280,22 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
               <div>
                 <Label>Emergency Contact Phone</Label>
                 <PhoneInput
-                  value={formData.patient?.emergency_contact_phone || ""}
+                  value={formData.emergency_contact_phone || ""}
                   onChange={(e) =>
                     editable &&
-                    handleNestedChange(
-                      "patient",
-                      "emergency_contact_phone",
-                      e.target.value
-                    )
+                    handleChange("emergency_contact_phone", e.target.value)
                   }
                   readOnly={!editable}
                 />
               </div>
               <div>
-                <Label>CPR</Label>
+                <Label>CPR Number</Label>
                 <Input
-                  value={formData.patient?.CPR || ""}
+                  value={formData.CPR_number || ""}
                   onChange={(e) => {
                     const value = e.target.value;
                     if (/^\d*$/.test(value) && value.length <= 9) {
-                      editable && handleNestedChange("patient", "CPR", value);
+                      editable && handleChange("CPR_number", value);
                     }
                   }}
                   readOnly={!editable}
@@ -347,10 +304,9 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
               <div>
                 <Label>Religion</Label>
                 <Input
-                  value={formData.patient?.religion || ""}
+                  value={formData.religion || ""}
                   onChange={(e) =>
-                    editable &&
-                    handleNestedChange("patient", "religion", e.target.value)
+                    editable && handleChange("religion", e.target.value)
                   }
                   readOnly={!editable}
                 />
@@ -358,14 +314,9 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
               <div>
                 <Label>Past Surgeries</Label>
                 <Input
-                  value={formData.patient?.past_surgeries || ""}
+                  value={formData.past_surgeries || ""}
                   onChange={(e) =>
-                    editable &&
-                    handleNestedChange(
-                      "patient",
-                      "past_surgeries",
-                      e.target.value
-                    )
+                    editable && handleChange("past_surgeries", e.target.value)
                   }
                   readOnly={!editable}
                 />
@@ -373,30 +324,20 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
               <div>
                 <Label>Chronic Conditions</Label>
                 <Input
-                  value={formData.patient?.chronic_conditions || ""}
+                  value={formData.chronic_conditions || ""}
                   onChange={(e) =>
                     editable &&
-                    handleNestedChange(
-                      "patient",
-                      "chronic_conditions",
-                      e.target.value
-                    )
+                    handleChange("chronic_conditions", e.target.value)
                   }
                   readOnly={!editable}
                 />
               </div>
-
               <div>
                 <Label>Family History</Label>
                 <Input
-                  value={formData.patient?.family_history || ""}
+                  value={formData.family_history || ""}
                   onChange={(e) =>
-                    editable &&
-                    handleNestedChange(
-                      "patient",
-                      "family_history",
-                      e.target.value
-                    )
+                    editable && handleChange("family_history", e.target.value)
                   }
                   readOnly={!editable}
                 />
@@ -405,14 +346,8 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
                 <Label>Blood Type</Label>
                 {editable ? (
                   <select
-                    value={formData.patient?.blood_type || ""}
-                    onChange={(e) =>
-                      handleNestedChange(
-                        "patient",
-                        "blood_type",
-                        e.target.value
-                      )
-                    }
+                    value={formData.blood_type || ""}
+                    onChange={(e) => handleChange("blood_type", e.target.value)}
                     className="p-2 border rounded-md bg-background w-full"
                   >
                     <option value="">None</option>
@@ -426,21 +361,16 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
                     <option value="O-">O-</option>
                   </select>
                 ) : (
-                  <Input value={formData.patient?.blood_type || "-"} readOnly />
+                  <Input value={formData.blood_type || "-"} readOnly />
                 )}
               </div>
               <div className="md:col-span-3">
                 <Label>Patient Notes</Label>
                 <Textarea
                   className="resize-none"
-                  value={formData.patient?.patient_notes || ""}
+                  value={formData.patient_notes || ""}
                   onChange={(e) =>
-                    editable &&
-                    handleNestedChange(
-                      "patient",
-                      "patient_notes",
-                      e.target.value
-                    )
+                    editable && handleChange("patient_notes", e.target.value)
                   }
                   readOnly={!editable}
                 />
@@ -449,7 +379,7 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
           )}
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
           {editable && <Button onClick={handleSave}>Save</Button>}
