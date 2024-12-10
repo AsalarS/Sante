@@ -8,33 +8,57 @@ import { cn } from "@/lib/utils";
 import { type InputProps } from "./input";
 
 type InputTagsProps = Omit<InputProps, "value" | "onChange"> & {
-  value: string[];
-  onChange: React.Dispatch<React.SetStateAction<string[]>>;
+  value: Record<string, string>; // Object with key-value pairs
+  onChange: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  useKeyAsValue?: boolean; // Boolean to control key-value behavior
+};
+
+const formatDate = () => {
+  const date = new Date();
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(date);
 };
 
 const InputTags = React.forwardRef<HTMLInputElement, InputTagsProps>(
-  ({ className, value, onChange, ...props }, ref) => {
-    const [pendingDataPoint, setPendingDataPoint] = React.useState("");
+  ({ className, value, onChange, useKeyAsValue, ...props }, ref) => {
+    const [pendingKey, setPendingKey] = React.useState("");
 
     const addPendingDataPoint = () => {
-      const trimmedTag = pendingDataPoint.trim();
-      if (trimmedTag && !value.includes(trimmedTag)) {
-        onChange([...value, trimmedTag]);
+      const trimmedKey = pendingKey.trim();
+      if (trimmedKey && !(trimmedKey in value)) {
+        const newValue = useKeyAsValue 
+          ? trimmedKey 
+          : formatDate();
+    
+        const updatedValue = { ...value, [trimmedKey]: newValue };
+        
+        onChange(updatedValue);
+        console.log("Updated value: " + JSON.stringify(updatedValue));
+        setPendingKey(""); // Clear the input after adding
       }
-      setPendingDataPoint("");
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter" || e.key === ",") {
+      if (e.key === "Enter") {
         e.preventDefault();
         addPendingDataPoint();
       } else if (
         e.key === "Backspace" &&
-        pendingDataPoint.length === 0 &&
-        value.length > 0
+        pendingKey.length === 0 &&
+        Object.keys(value).length > 0
       ) {
         e.preventDefault();
-        onChange(value.slice(0, -1));
+        const lastKey = Object.keys(value)[Object.keys(value).length - 1];
+        const updatedValue = { ...value };
+        delete updatedValue[lastKey];
+        onChange(updatedValue);
       }
     };
 
@@ -46,15 +70,17 @@ const InputTags = React.forwardRef<HTMLInputElement, InputTagsProps>(
             "max-h-24"
           )}
         >
-          {value.map((item) => (
-            <Badge key={item} variant="secondary">
-              {item}
+          {Object.keys(value).map((key) => (
+            <Badge key={key} variant="secondary">
+              {key}
               <Button
                 variant="ghost"
                 size="icon"
                 className="ml-2 h-3 w-3"
                 onClick={() => {
-                  onChange(value.filter((i) => i !== item));
+                  const updatedValue = { ...value };
+                  delete updatedValue[key];
+                  onChange(updatedValue);
                 }}
               >
                 <XIcon className="w-3" />
@@ -63,8 +89,8 @@ const InputTags = React.forwardRef<HTMLInputElement, InputTagsProps>(
           ))}
           <input
             className="flex-1 outline-none bg-background placeholder:text-muted-foreground text-foreground"
-            value={pendingDataPoint}
-            onChange={(e) => setPendingDataPoint(e.target.value)}
+            value={pendingKey}
+            onChange={(e) => setPendingKey(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={addPendingDataPoint}
             {...props}

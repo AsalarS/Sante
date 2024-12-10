@@ -18,13 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 from api.views.ViewsGeneral import * 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from api.views.ViewsUsers import RegisterPatientView, RegisterEmployeeView, TestingRegisterView, UserInfoView
+from api.views.ViewsUsers import RegisterUserView, TestingRegisterView, UserInfoView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/user/register/", TestingRegisterView.as_view(), name="register"), #register any user for testing
-    path("api/user/register/patient", RegisterPatientView.as_view(), name="registerPatient"), #register patient
-    path("api/user/register/employee", RegisterEmployeeView.as_view(), name="registerEmployee"), #register employee
+    path("api/user/register/admin", RegisterUserView.as_view(), name="registerUser"), #register any user for admin
     path("api/token/", TokenObtainPairView.as_view(), name="get_token"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="refresh"),  #login refresh, keeps the user logged in
     path("api-auth/", include("rest_framework.urls")), #login url

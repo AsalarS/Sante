@@ -259,10 +259,11 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
               <div>
                 <Label>Allergies</Label>
                 <InputTags
-                  value={formData.allergies || []}
+                  value={formData.allergies || {}}
                   onChange={(newAllergies) =>
                     editable && handleChange("allergies", newAllergies)
                   }
+                  useKeyasValue={false}
                   readOnly={!editable}
                 />
               </div>
@@ -313,11 +314,12 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
               </div>
               <div>
                 <Label>Past Surgeries</Label>
-                <Input
-                  value={formData.past_surgeries || ""}
-                  onChange={(e) =>
-                    editable && handleChange("past_surgeries", e.target.value)
+                <InputTags
+                  value={formData.past_surgeries || {}}
+                  onChange={(value) =>
+                    editable && handleChange("past_surgeries", value)
                   }
+                  useKeyAsValue={false}
                   readOnly={!editable}
                 />
               </div>

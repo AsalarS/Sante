@@ -20,53 +20,77 @@ logger = logging.getLogger(__name__)
 
 
 # ----------------- Registration Views -----------------
-class RegisterPatientView(APIView):
+
+
+class RegisterUserView(APIView):
     permission_classes = [AllowAny]
-    authentication_classes = []
 
     def post(self, request):
-        serializer = RegisterPatientSerializer(data=request.data)
+        # Extract role from request data
+        role = request.data.get("role", None)
 
-        if serializer.is_valid():
-            user = serializer.save()
+        # Handle Patient Registration
+        if role == "patient":
+            serializer = RegisterPatientSerializer(data=request.data)
+            if serializer.is_valid():
+                user = serializer.save()
+                return Response(
+                    {
+                        "user": {
+                            "email": user.email,
+                            "first_name": user.first_name,
+                            "last_name": user.last_name,
+                            "role": "patient",
+                        }
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            # Return success response with user data
+        # Handle Employee Registration
+        elif role in ["doctor", "nurse", "receptionist", "admin"]:
+            serializer = RegisterEmployeeSerializer(data=request.data)
+            if serializer.is_valid():
+                user = serializer.save()
+                return Response(
+                    {
+                        "user": {
+                            "email": user.email,
+                            "first_name": user.first_name,
+                            "last_name": user.last_name,
+                            "role": role,
+                        }
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Handle General User Registration (when no role is specified)
+        elif role is None:
+            serializer = UserSerializer(data=request.data)
+            if serializer.is_valid():
+                user = serializer.save()
+                return Response(
+                    {
+                        "user": {
+                            "email": user.email,
+                            "first_name": user.first_name,
+                            "last_name": user.last_name,
+                            "role": "user",
+                        }
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Invalid role specified
+        else:
             return Response(
                 {
-                    "user": {
-                        "email": user.email,
-                        "first_name": user.first_name,
-                        "last_name": user.last_name,
-                    }
+                    "error": f"Invalid role: {role}. Allowed roles are 'patient', 'admin', 'receptionist', 'nurse', 'doctor', or leave blank for general user."
                 },
-                status=status.HTTP_201_CREATED,
+                status=status.HTTP_400_BAD_REQUEST,
             )
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class RegisterEmployeeView(APIView):
-    # permission_classes = [AllowAny] //TODO: change this to app admin only
-
-    def post(self, request):
-        serializer = RegisterEmployeeSerializer(data=request.data)
-
-        if serializer.is_valid():
-            user = serializer.save()
-
-            # Return success response with user data
-            return Response(
-                {
-                    "user": {
-                        "email": user.email,
-                        "first_name": user.first_name,
-                        "last_name": user.last_name,
-                    }
-                },
-                status=status.HTTP_201_CREATED,
-            )
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TestingRegisterView(APIView):
@@ -176,7 +200,6 @@ def get_users(request):  # List users
 def get_users_admin(request):
     if not request.user.is_authenticated:
         return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
-
     if request.user.role != "admin":
         return Response(
             {"error": "Forbidden: Only admins can access this resource."},
@@ -255,18 +278,16 @@ def get_users_admin(request):
 
 @api_view(["PATCH"])
 def update_user_admin(request, user_id):
+    patient_fields = []
     # 1. Authentication Check
     if not request.user.is_authenticated:
-        return Response(
-            {"error": "Unauthorized"},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+        return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 2. Authorization Check
     if request.user.role != "admin":
         return Response(
             {"error": "Forbidden: Only admins can access this resource."},
-            status=status.HTTP_403_FORBIDDEN
+            status=status.HTTP_403_FORBIDDEN,
         )
 
     # 3. Fetch the UserProfile instance
@@ -321,42 +342,57 @@ def update_user_admin(request, user_id):
         try:
             patient = Patient.objects.get(user=user)
             patient_fields = [
-                "medical_record_id", "emergency_contact_name", 
-                "emergency_contact_phone", "blood_type", 
-                "family_history", "CPR_number", "place_of_birth", 
-                "religion", "allergies", "past_surgeries", 
-                "chronic_conditions", "patient_notes"
+                "medical_record_id",
+                "emergency_contact_name",
+                "emergency_contact_phone",
+                "blood_type",
+                "family_history",
+                "CPR_number",
+                "place_of_birth",
+                "religion",
+                "allergies",
+                "past_surgeries",
+                "chronic_conditions",
+                "patient_notes",
             ]
-            
+
             for field in patient_fields:
                 if field in request.data:
                     setattr(patient, field, request.data[field])
             patient.save()
         except Patient.DoesNotExist:
             # Optionally create a new Patient instance if it doesn't exist
-            Patient.objects.create(user=user, **{k: v for k, v in request.data.items() if k in patient_fields})
+            Patient.objects.create(
+                user=user,
+                **{k: v for k, v in request.data.items() if k in patient_fields},
+            )
 
     elif user.role != "patient":
         try:
             employee = Employee.objects.get(user=user)
             employee_fields = [
-                "specialization", "available_days", 
-                "shift_start", "shift_end", "office_number"
+                "specialization",
+                "available_days",
+                "shift_start",
+                "shift_end",
+                "office_number",
             ]
-            
+
             for field in employee_fields:
                 if field in request.data:
                     setattr(employee, field, request.data[field])
             employee.save()
         except Employee.DoesNotExist:
             # Optionally create a new Employee instance if it doesn't exist
-            Employee.objects.create(user=user, **{k: v for k, v in request.data.items() if k in employee_fields})
+            Employee.objects.create(
+                user=user,
+                **{k: v for k, v in request.data.items() if k in employee_fields},
+            )
 
     return Response(
         {"message": "User information updated successfully!", "user": response_data},
-        status=status.HTTP_200_OK
+        status=status.HTTP_200_OK,
     )
-
 
 
 # ----------------- User Management Views -----------------
@@ -403,243 +439,3 @@ class UserInfoView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-# @api_view(["GET"])
-# def get_users_adminz(request):
-#     if not request.user.is_authenticated:
-#         return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
-
-#     if request.user.role != "admin":
-#         return Response(
-#             {"error": "Forbidden: Only admins can access this resource."},
-#             status=status.HTTP_403_FORBIDDEN,
-#         )
-
-#     # Pagination settings
-#     page_size = 10
-
-#     # Fetch all user fields for all users
-#     users = UserProfile.objects.all()
-
-#     # Prepare response data with additional data based on user role
-#     user_data = []
-#     for user in users:
-#         user_info = {
-#             "id": user.id,
-#             "email": user.email,
-#             "first_name": user.first_name,
-#             "last_name": user.last_name,
-#             "role": user.role,
-#             "profile_image": user.profile_image,
-#             "gender": user.gender,
-#             "date_of_birth": user.date_of_birth,
-#             "phone_number": user.phone_number,
-#             "address": user.address,
-#         }
-
-#         # Add patient-specific data if the role is patient
-#         if user.role == "patient":
-#             try:
-#                 patient = Patient.objects.get(user=user)
-#                 user_info.update(
-#                     {
-#                         "medical_record_id": patient.medical_record_id,
-#                         "emergency_contact_name": patient.emergency_contact_name,
-#                         "emergency_contact_phone": patient.emergency_contact_phone,
-#                         "blood_type": patient.blood_type,
-#                         "family_history": patient.family_history,
-#                         "CPR_number": patient.CPR_number,
-#                         "place_of_birth": patient.place_of_birth,
-#                         "religion": patient.religion,
-#                         "allergies": patient.allergies,
-#                         "past_surgeries": patient.past_surgeries,
-#                         "chronic_conditions": patient.chronic_conditions,
-#                         "patient_notes": patient.patient_notes,
-#                     }
-#                 )
-#             except Patient.DoesNotExist:
-#                 user_info["patient_data"] = "No patient data available."
-#         # Add employee-specific data if the role is employee
-#         else:
-#             try:
-#                 employee = Employee.objects.get(user=user)
-#                 user_info.update(
-#                     {
-#                         "specialization": employee.specialization,
-#                         "available_days": employee.available_days,
-#                         "shift_start": employee.shift_start,
-#                         "shift_end": employee.shift_end,
-#                         "office_number": employee.office_number,
-#                     }
-#                 )
-#             except Employee.DoesNotExist:
-#                 user_info["employee_data"] = "No employee data available."
-
-#         user_data.append(user_info)
-
-#     # Apply pagination
-#     paginator = PageNumberPagination()
-#     paginator.page_size = page_size
-#     result_page = paginator.paginate_queryset(user_data, request)
-
-#     return paginator.get_paginated_response(result_page)
-
-
-# class UserAdminView(APIView):
-#     def get(self, request):
-#         # Check authentication and permissions
-#         if not request.user.is_authenticated:
-#             return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
-
-#         if request.user.role != "admin":
-#             return Response(
-#                 {"error": "Forbidden: Only admins can access this resource."},
-#                 status=status.HTTP_403_FORBIDDEN,
-#             )
-
-#         page_size = 10
-
-#         # Fetch all user fields with related objects
-#         users = UserProfile.objects.select_related('patient', 'employee').prefetch_related('patient__allergies', 'employee__specialization')
-
-#         user_data = []
-#         for user in users:
-#             user_info = {
-#                 "id": user.id,
-#                 "email": user.email,
-#                 "first_name": user.first_name,
-#                 "last_name": user.last_name,
-#                 "role": user.role,
-#                 "profile_image": user.profile_image,
-#                 "gender": user.gender,
-#                 "date_of_birth": user.date_of_birth,
-#                 "phone_number": user.phone_number,
-#                 "address": user.address,
-#             }
-
-#             if user.role == "patient":
-#                 try:
-#                     patient = user.patient
-#                     user_info.update({
-#                         "medical_record_id": patient.medical_record_id,
-#                         "emergency_contact_name": patient.emergency_contact_name,
-#                         "emergency_contact_phone": patient.emergency_contact_phone,
-#                         "blood_type": patient.blood_type,
-#                         "family_history": patient.family_history,
-#                         "CPR_number": patient.CPR_number,
-#                         "place_of_birth": patient.place_of_birth,
-#                         "religion": patient.religion,
-#                         "allergies": patient.allergies,
-#                         "past_surgeries": patient.past_surgeries,
-#                         "chronic_conditions": patient.chronic_conditions,
-#                         "patient_notes": patient.patient_notes,
-#                     })
-#                 except UserProfile.patient.RelatedObjectDoesNotExist:
-#                     user_info["patient_data"] = "No patient data available."
-
-#             elif user.role == "employee":
-#                 try:
-#                     employee = user.employee
-#                     user_info.update({
-#                         "specialization": employee.specialization,
-#                         "available_days": employee.available_days,
-#                         "shift_start": employee.shift_start,
-#                         "shift_end": employee.shift_end,
-#                         "office_number": employee.office_number,
-#                     })
-#                 except UserProfile.employee.RelatedObjectDoesNotExist:
-#                     user_info["employee_data"] = "No employee data available."
-
-#             user_data.append(user_info)
-
-#         paginator = PageNumberPagination()
-#         paginator.page_size = page_size
-#         result_page = paginator.paginate_queryset(user_data, request)
-
-#         return paginator.get_paginated_response(result_page)
-
-
-#     def patch(self, request, user_id):
-#         # Check if the user is authenticated
-#         if not request.user.is_authenticated:
-#             return Response(
-#                 {"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED
-#             )
-
-#         # Fetch the user by ID
-#         try:
-#             user = UserProfile.objects.get(id=user_id)
-#         except UserProfile.DoesNotExist:
-#             return Response(
-#                 {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
-#             )
-
-#         # Check if the requesting user is an admin or the user being updated
-#         if request.user.role != "admin" and request.user.id != user.id:
-#             return Response(
-#                 {
-#                     "error": "Forbidden: You can only update your own data or user data as an admin."
-#                 },
-#                 status=status.HTTP_403_FORBIDDEN,
-#             )
-
-#         # Serialize the user data for update
-#         user_serializer = UserSerializer(user, data=request.data, partial=True)
-
-#         if user_serializer.is_valid():
-#             user_serializer.save()
-
-#             # If the user is a patient, handle updating patient data
-#             if user.role == "patient":
-#                 try:
-#                     patient = Patient.objects.get(user=user)
-#                     patient_serializer = PatientSerializer(
-#                         patient, data=request.data.get("patient", {}), partial=True
-#                     )
-
-#                     if patient_serializer.is_valid():
-#                         patient_serializer.save()
-#                     else:
-#                         return Response(
-#                             patient_serializer.errors,
-#                             status=status.HTTP_400_BAD_REQUEST,
-#                         )
-#                 except Patient.DoesNotExist:
-#                     return Response(
-#                         {"error": "Patient data not found."},
-#                         status=status.HTTP_404_NOT_FOUND,
-#                     )
-
-#             # If the user is an employee, handle updating employee data
-#             elif user.role == "employee":
-#                 try:
-#                     employee = Employee.objects.get(user=user)
-#                     employee_serializer = EmployeeSerializer(
-#                         employee, data=request.data.get("employee", {}), partial=True
-#                     )
-
-#                     if employee_serializer.is_valid():
-#                         employee_serializer.save()
-#                     else:
-#                         return Response(
-#                             employee_serializer.errors,
-#                             status=status.HTTP_400_BAD_REQUEST,
-#                         )
-#                 except Employee.DoesNotExist:
-#                     return Response(
-#                         {"error": "Employee data not found."},
-#                         status=status.HTTP_404_NOT_FOUND,
-#                     )
-
-#             # Return success response
-#             return Response(user_serializer.data, status=status.HTTP_200_OK)
-#         else:
-#             return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

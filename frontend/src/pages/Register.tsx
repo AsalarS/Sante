@@ -165,7 +165,7 @@ const Register = () => {
                                     <RadioGroup
                                         value={gender}
                                         onValueChange={setGender}
-                                        className="flex">
+                                        className="flex mt-2">
                                         <div className="flex items-center space-x-2">
                                             <RadioGroupItem value="Male" id="male" />
                                             <Label htmlFor="male">Male</Label>

@@ -10,7 +10,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -51,6 +50,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import AddUserDialog from "@/components/add-user-dialog";
+import { ChatBubbleAvatar } from "@/components/ui/chat/chat-bubble";
 
 export type User = {
   id: number;
@@ -70,23 +71,21 @@ export const columns = (
   setDialogOpen: (open: boolean) => void
 ): ColumnDef<User>[] => [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
+    id: "profile_image",
+    header: '',
+    accessorKey: 'profile_image',
+
     cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
+      <div className="flex items-right">
+        <ChatBubbleAvatar
+          className="text-foreground bg-muted"
+          src={row.original.profile_image}
+          fallback={
+            row.original.first_name.charAt(0).toUpperCase() +
+            row.original.last_name.charAt(0).toUpperCase()
+          }
+        />
+      </div>
     ),
     enableSorting: false,
     enableHiding: false,
@@ -267,11 +266,15 @@ export function UserAdminPage() {
 
   const handleSaveUser = async (updatedUser: User) => {
     try {
-      
-      const response = await api.patch(`/api/admin/users/${updatedUser.id}/`, updatedUser);
+      const response = await api.patch(
+        `/api/admin/users/${updatedUser.id}/`,
+        updatedUser
+      );
       if (response.status === 200) {
         setUsers((prevUsers) =>
-          prevUsers.map((user) => (user.id === updatedUser.id ? updatedUser : user))
+          prevUsers.map((user) =>
+            user.id === updatedUser.id ? updatedUser : user
+          )
         );
         setDialogOpen(false);
         toast.success("User updated successfully!");
@@ -280,6 +283,26 @@ export function UserAdminPage() {
       }
     } catch (error) {
       console.error("Failed to update user:", error);
+    }
+  };
+
+  const handleRegisterUser = async (registerData: User) => {
+    try {
+      const response = await api.post(`api/user/register/admin`, registerData);
+      console.log("Response:", response);
+
+      if (response.status === 200 || response.status === 201) {
+        setDialogOpen(false);
+        toast.success("User added successfully!");
+      } else {
+        toast.error("Failed to add user: " + response.statusText);
+      }
+    } catch (error: any) {
+      if (error.response.status === 400) {
+        toast.error("Missing or incorrect input: " + error.message);
+      } else {
+        toast.error("Failed to add user: " + error);
+      }
     }
   };
 
@@ -316,9 +339,20 @@ export function UserAdminPage() {
           }
           className="max-w-sm"
         />
-        <Button className="ml-auto">
+        <Button
+          onClick={() => {
+            setDialogOpen(true);
+            setSelectedUser(null);
+          }}
+          className="ml-auto"
+        >
           <UserRoundPlus className="text-white" />
         </Button>
+        <AddUserDialog
+          open={dialogOpen && !selectedUser}
+          onClose={() => setDialogOpen(false)}
+          onSave={handleRegisterUser}
+        />
       </div>
       <div className="rounded-md border">
         <Table>
@@ -416,7 +450,7 @@ export function UserAdminPage() {
       {dialogOpen && selectedUser && (
         <UserDialog
           user={selectedUser}
-          open={dialogOpen}
+          open={dialogOpen && selectedUser}
           onClose={() => setDialogOpen(false)}
           onSave={handleSaveUser}
         />

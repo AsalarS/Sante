@@ -139,7 +139,7 @@ class RegisterPatientSerializer(serializers.ModelSerializer):
     emergency_contact_phone = serializers.CharField(required=False, allow_null=True)
     blood_type = serializers.CharField(required=False, allow_null=True)
     family_history = serializers.CharField(required=False, allow_null=True)
-    CPR_number = serializers.CharField(required=False, allow_null=True)
+    CPR_number = serializers.CharField(required=False, allow_null=False)
     place_of_birth = serializers.CharField(required=False, allow_null=True)
     religion = serializers.CharField(required=False, allow_null=True)
     allergies = serializers.JSONField(required=False, default=dict)

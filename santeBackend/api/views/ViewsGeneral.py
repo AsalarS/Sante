@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 # Create your views here.
 
-
 @api_view(["GET"])
 def get_logs_admin(request):
     if not request.user.is_authenticated:
