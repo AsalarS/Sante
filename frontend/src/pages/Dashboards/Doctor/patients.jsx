@@ -1,29 +1,67 @@
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from 'react-router-dom';
+import { Loader2 } from "lucide-react";
+import api from "@/api";
 import PatientList from "@/components/patientList";
-import { useState } from "react";
 import PatientProfile from "./patientProfile";
 
 function PatientsPage() {
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { patientId } = useParams(); 
+  const navigate = useNavigate();
 
-    const [selectedConversation, setSelectedConversation] = useState(null);
-    const conversations = [
-        { id: 1, name: 'John Doe', current: 'in-patient', avatar: '/path/to/doctor-avatar.png' },
-        { id: 2, name: 'Jane Doe', current: 'out-patient', avatar: '/path/to/pharmacy-avatar.png' },
-    ];
+  const handlePatientSelect = (patientId) => {
+    navigate(`/doctor/patients/${patientId}`);
+  };
+  
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const response = await api.get('/api/users/');
+        if (response.status === 200) {
+          const users = response.data;
+          const patientUsers = users.filter(user => user.role === 'patient');
+          setPatients(patientUsers);
+        } else {
+          console.error('Failed to fetch users:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchPatients();
+  }, []);
 
+  if (loading) {
     return (
-        <>
-            <div className="flex overflow-y-auto">
-                <PatientList
-                    conversations={conversations}
-                    onSelectConversation={(id) => setSelectedConversation(id)}
-                />
-                <div className="grow">
-                    <PatientProfile />
-                </div>
-            </div>
-        </>
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin text-primary w-10 h-10" />
+      </div>
     );
+  }
+
+  return (
+    <div className="flex overflow-y-auto">
+      <PatientList 
+        patients={patients} 
+        selectedPatientId={patientId ? parseInt(patientId) : null} 
+        handlePatientSelect={handlePatientSelect}
+      />
+      <div className="grow">
+        {patientId ? (
+          <PatientProfile patientId={parseInt(patientId)} />
+        ) : (
+          <div className="flex justify-center items-center h-full text-muted-foreground text-xl">
+            Select a patient to view details
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
-export default PatientsPage
+export default PatientsPage;

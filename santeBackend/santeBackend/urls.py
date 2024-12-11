@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from api.views.ViewsGeneral import * 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from api.views.ViewsUsers import RegisterUserView, TestingRegisterView, UserInfoView
+from api.views.ViewsUsers import RegisterUserView, TestingRegisterView, UserInfoView, SpecificUserInfoView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,6 +28,7 @@ urlpatterns = [
     path("api/token/refresh/", TokenRefreshView.as_view(), name="refresh"),  #login refresh, keeps the user logged in
     path("api-auth/", include("rest_framework.urls")), #login url
     path("api/", include("api.urls")),
-    path('api/user-info/', UserInfoView.as_view(), name='user_info'),
+    path('api/user-info/', UserInfoView.as_view(), name='user_info'), #to show current logged in user info
+    path('api/user-info/<int:user_id>/', SpecificUserInfoView.as_view(), name='user_info_specific'), #to show a users info
 ]
  

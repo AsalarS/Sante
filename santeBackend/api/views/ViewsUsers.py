@@ -439,3 +439,46 @@ class UserInfoView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class SpecificUserInfoView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, user_id):
+        """
+        Retrieve comprehensive user details including role-specific information.
+        
+        Args:
+            request: The HTTP request object
+            user_id: The ID of the user to retrieve
+        
+        Returns:
+            Response with user data and role-specific details
+        """
+        # Retrieve the user
+        user = get_object_or_404(UserProfile, id=user_id)
+        
+        # Serialize base user information
+        user_serializer = UserSerializer(user)
+        user_data = user_serializer.data
+        
+        # Extend user data based on role
+        try:
+            if user.role == 'patient':
+                # Retrieve patient-specific information
+                patient = Patient.objects.get(user=user)
+                patient_serializer = PatientSerializer(patient)
+                user_data.update(patient_serializer.data)
+            elif user.role in ['doctor', 'nurse', 'admin', 'staff']:
+                # Retrieve employee-specific information
+                employee = Employee.objects.get(user=user)
+                employee_serializer = EmployeeSerializer(employee)
+                user_data.update(employee_serializer.data)
+        except (Patient.DoesNotExist, Employee.DoesNotExist):
+            # Handle cases where role-specific model doesn't exist
+            return Response({
+                'error': 'Detailed profile not found for this user',
+                'user': user_data
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response(user_data)
+
