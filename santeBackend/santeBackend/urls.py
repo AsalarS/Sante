@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from api.views.ViewsGeneral import * 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from api.views.ViewsUsers import RegisterUserView, TestingRegisterView, UserInfoView, SpecificUserInfoView
+from api.views.ViewsUsers import RegisterUserView, TestingRegisterView, UserInfoView, SpecificUserInfoView, get_patients
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,5 +30,6 @@ urlpatterns = [
     path("api/", include("api.urls")),
     path('api/user-info/', UserInfoView.as_view(), name='user_info'), #to show current logged in user info
     path('api/user-info/<int:user_id>/', SpecificUserInfoView.as_view(), name='user_info_specific'), #to show a users info
+    path('api/users/patients/', get_patients, name='get_patients'),
 ]
  

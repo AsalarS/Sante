@@ -102,7 +102,8 @@ function App() {
           >
             <Route path="dashboard" element={<NurseHome />} />
             <Route index element={<Navigate to="dashboard" />} />
-            <Route path="patients" element={<NursePatientProfile />} />
+            <Route path="patients" element={<PatientsPage />} />
+            <Route path="patients/:patientId" element={<PatientsPage />} />
             <Route path="messages" element={<MessagesPage />} />
             {/* <Route path="settings" element={<SettingsPage />} /> */}
             <Route path="help" element={<HelpPage />} />
@@ -119,7 +120,8 @@ function App() {
           >
             <Route path="dashboard" element={<ReceptionistHome />} />
             <Route index element={<Navigate to="dashboard" />} />
-            <Route path="patients" element={<ReceptionistPatientProfile />} />
+            <Route path="patients" element={<PatientsPage />} />
+            <Route path="patients/:patientId" element={<PatientsPage />} />
             <Route path="appointments" element={<ReceptionistAppointment />} />
             <Route path="messages" element={<MessagesPage />} />
             {/* <Route path="settings" element={<SettingsPage />} /> */}

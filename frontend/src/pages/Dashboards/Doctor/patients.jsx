@@ -9,20 +9,20 @@ function PatientsPage() {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const { patientId } = useParams(); 
+  const userRole = localStorage.getItem('role');
   const navigate = useNavigate();
 
   const handlePatientSelect = (patientId) => {
-    navigate(`/doctor/patients/${patientId}`);
+    navigate(`/${userRole}/patients/${patientId}`);
   };
   
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await api.get('/api/users/');
+        const response = await api.get('/api/users/patients/');
         if (response.status === 200) {
           const users = response.data;
-          const patientUsers = users.filter(user => user.role === 'patient');
-          setPatients(patientUsers);
+          setPatients(users);
         } else {
           console.error('Failed to fetch users:', response.statusText);
         }

@@ -42,11 +42,14 @@ function PatientList({
               fallback={`${patient.first_name.charAt(0).toUpperCase()}${patient.last_name.charAt(0).toUpperCase()}`} 
             />
             <div>
-              <div className="font-semibold text-lg text-foreground line-clamp-1 break-all">
+              <div className="font-semibold text-lg text-foreground leading-8 line-clamp-1 break-all">
                 {patient.first_name} {patient.last_name}
               </div>
-              <div className="text-sm text-muted-foreground line-clamp-1 break-all">
+              <div className="text-sm text-muted-foreground line-clamp-1 break-all ">
                 {patient.email}
+              </div>
+              <div className="text-sm text-foreground/50 line-clamp-1 break-all">
+                {patient.CPR_number}
               </div>
             </div>
           </li>

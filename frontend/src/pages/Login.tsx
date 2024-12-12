@@ -41,6 +41,7 @@ function Login() {
             const userInfoResponse = await api.get("/api/user-info/");
             localStorage.setItem("user_info", JSON.stringify(userInfoResponse.data));
             const role = userInfoResponse.data.role;
+            localStorage.setItem("role", role);
             navigate(`/${role}`);
         } catch (error: any) {
             setLoading(false);

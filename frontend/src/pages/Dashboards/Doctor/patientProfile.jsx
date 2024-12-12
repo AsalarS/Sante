@@ -35,6 +35,8 @@ function PatientProfile({ patientId }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [patient, setPatient] = useState(null);
+  const userRole = localStorage.getItem("role");
+  
 
   useEffect(() => {
     const fetchPatients = async () => {
@@ -99,6 +101,92 @@ function PatientProfile({ patientId }) {
       appointmentTime: "03:30 PM",
     },
   ];
+  const carePlanData = [
+    {
+      id: 1,
+      title: "Plan A",
+      type: "Physical Therapy",
+      date: "2023-11-15",
+      doneBy: "Dr. Smith",
+      dateDone: "2023-11-20",
+      instructions: "Weekly sessions",
+    },
+    {
+      id: 2,
+      title: "Plan B",
+      type: "Dietary Guidance",
+      date: "2023-11-18",
+      doneBy: "Dr. Johnson",
+      dateDone: "2023-11-25",
+      instructions: "Low-carb diet plan",
+    },
+    {
+      id: 3,
+      title: "Plan C",
+      type: "Rehabilitation",
+      date: "2023-11-22",
+      doneBy: "Dr. Williams",
+      dateDone: "2023-11-30",
+      instructions: "Daily exercise routine",
+    },
+    {
+      id: 4,
+      title: "Plan D",
+      type: "Mental Health Support",
+      date: "2023-12-01",
+      doneBy: "Dr. Taylor",
+      dateDone: "2023-12-10",
+      instructions: "Weekly counseling",
+    },
+    {
+      id: 5,
+      title: "Plan E",
+      type: "Pain Management",
+      date: "2023-12-05",
+      doneBy: "Dr. Brown",
+      dateDone: "2023-12-12",
+      instructions:
+        "Medication and physical therapy Medication and physical therapy Medication and physical therapy Medication and physical therapy",
+    },
+  ];
+
+  const diagnosisData = [
+    {
+      id: 1,
+      diagnosis: "Diabetes Mellitus",
+      type: "Primary",
+      diagnosedBy: "Dr. Smith",
+      diagnosisDate: "2023-11-10",
+    },
+    {
+      id: 2,
+      diagnosis: "Hypertension",
+      type: "Secondary",
+      diagnosedBy: "Dr. Johnson",
+      diagnosisDate: "2023-11-15",
+    },
+    {
+      id: 3,
+      diagnosis: "Asthma",
+      type: "Primary",
+      diagnosedBy: "Dr. Williams",
+      diagnosisDate: "2023-11-20",
+    },
+    {
+      id: 4,
+      diagnosis: "Arthritis",
+      type: "Secondary",
+      diagnosedBy: "Dr. Taylor",
+      diagnosisDate: "2023-12-01",
+    },
+    {
+      id: 5,
+      diagnosis: "Migraine",
+      type: "Primary",
+      diagnosedBy: "Dr. Brown",
+      diagnosisDate: "2023-12-05",
+    },
+  ];
 
   const statusColors = {
     Scheduled: "bg-primary/20 text-primary font-semibold",
@@ -124,7 +212,7 @@ function PatientProfile({ patientId }) {
                   John Doe
                 </Label>
               </div>
-              <Button className="">Edit</Button>
+              {userRole === "doctor" && <Button>Edit</Button>}
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -184,16 +272,15 @@ function PatientProfile({ patientId }) {
             </CardContent>
           </Card>
           <Card className="bg-background p-4 rounded-lg flex-grow flex flex-col border-none">
-            <Tabs defaultValue="appointments">
-              <TabsList className="flex justify-center w-fit mx-auto mb-4">
+            <Tabs defaultValue={userRole != "nurse" ? "appointments" : "care_plans"}>
+              <TabsList className="w-full grid grid-cols-3 mb-4">
                 <TabsTrigger value="appointments">Appointments</TabsTrigger>
-                <TabsTrigger value="workups">Workups</TabsTrigger>
-                <TabsTrigger value="history">History</TabsTrigger>
-                <TabsTrigger value="information">Information</TabsTrigger>
+                <TabsTrigger value="care_plans">Care Plans</TabsTrigger>
+                <TabsTrigger value="diagnoses">Diagnoses</TabsTrigger>
+                {/* <TabsTrigger value="documents">Documents</TabsTrigger> */}
               </TabsList>
-              <TabsContent value="workups">
-                Make changes to your account here.
-              </TabsContent>
+
+              {/* Appointment Tab */}
               <TabsContent value="appointments">
                 {/* TODO: Make this scroll infinitly and have strict number of rows to scroll */}
                 <div className="overflow-y-auto max-h-[31rem] rounded-md">
@@ -270,68 +357,142 @@ function PatientProfile({ patientId }) {
                   </Table>
                 </div>
               </TabsContent>
+
+              {/* Care Plan Tab */}
+              <TabsContent value="care_plans">
+                <div className="overflow-y-auto max-h-[31rem] rounded-md">
+                  <Table className="w-full">
+                    <TableHeader>
+                      <TableRow className="border-border">
+                        <TableHead>Title</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Done By</TableHead>
+                        <TableHead>Date Done</TableHead>
+                        <TableHead>Instructions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {carePlanData.map((plan) => (
+                        <TableRow key={plan.id} className="border-border">
+                          <TableCell>{plan.title}</TableCell>
+                          <TableCell>{plan.type}</TableCell>
+                          <TableCell>{plan.date}</TableCell>
+                          <TableCell>{plan.doneBy}</TableCell>
+                          <TableCell>{plan.dateDone}</TableCell>
+                          <TableCell className="line-clamp-2 break-words max-w-44">
+                            {plan.instructions}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </TabsContent>
+
+              {/* Diagnoses Tab */}
+              <TabsContent value="diagnoses">
+                <div className="overflow-y-auto max-h-[31rem] rounded-md">
+                  <Table className="w-full">
+                    <TableHeader>
+                      <TableRow className="border-border">
+                        <TableHead>Diagnosis</TableHead>
+                        <TableHead className="text-center">Type</TableHead>
+                        <TableHead>Diagnosed By</TableHead>
+                        <TableHead>Diagnosis Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {diagnosisData.map((diagnosis) => (
+                        <TableRow key={diagnosis.id} className="border-border">
+                          <TableCell>{diagnosis.diagnosis}</TableCell>
+                          <TableCell>
+                            <div
+                              className={`px-2 py-1 text-sm text-center rounded-md ${
+                                {
+                                  Primary: "bg-primary/20 text-primary",
+                                  Secondary: "bg-chart-5/20 text-chart-5",
+                                }[diagnosis.type]
+                              }`}
+                            >
+                              {diagnosis.type}
+                            </div>
+                          </TableCell>
+                          <TableCell>{diagnosis.diagnosedBy}</TableCell>
+                          <TableCell>{diagnosis.diagnosisDate}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </TabsContent>
+              {/* <TabsContent value="documents">
+              
+              </TabsContent> */}
             </Tabs>
           </Card>
         </div>
 
         {/* Right Section (Sidebar) */}
-        <div className="flex flex-col space-y-4 min-w-2/12 overflow-y-auto">
-          {/* Patient Card */}
-          <div className="max-w-64">
-            <div className="p-4 bg-background rounded-lg shadow-md cursor-pointer">
-              <h3 className="font-medium text-foreground mb-2">
-                Patient Notes
-              </h3>
-              <Textarea
-                placeholder="Enter notes..."
-                className="w-full min-h-28 flex-grow bg-border resize-none text-foreground text-sm"
-                value={patient.patient_notes || ""}
+        {userRole === "doctor" && (
+          <div className="flex flex-col space-y-4 min-w-2/12 overflow-y-auto">
+            {/* Patient Card */}
+            <div className="max-w-64">
+              <div className="p-4 bg-background rounded-lg shadow-md cursor-pointer">
+                <h3 className="font-medium text-foreground mb-2">
+                  Patient Notes
+                </h3>
+                <Textarea
+                  placeholder="Enter notes..."
+                  className="w-full min-h-28 flex-grow bg-border resize-none text-foreground text-sm"
+                  value={patient.patient_notes || ""}
+                />
+              </div>
+            </div>
+            {/* Patient  Medical Information */}
+            <div className="max-w-64">
+              <CompactListBox
+                displayAsBadges={true}
+                title="Allergies"
+                data={patient.allergies || {}}
+                onClickIcon={() => console.log("Allergies icon clicked")}
+                onClickSelf={() => console.log("Allergies clicked")}
+                className="flex-grow"
               />
             </div>
+            <div className="max-w-64">
+              <CompactListBox
+                displayAsBadges={true}
+                title="Prescriptions"
+                data={["Medicine A", "23y", "23y", "Medicine B"]}
+                onClickIcon={() =>
+                  console.log("Current Medications icon clicked")
+                }
+                onClickSelf={() => console.log("Current Medications clicked")}
+                className="flex-grow"
+              />
+            </div>
+            <div className="max-w-64">
+              <CompactListBox
+                displayAsBadges={true}
+                title="Surgeries"
+                data={patient.past_surgeries || {}}
+                onClickIcon={() => console.log("Surgeries icon clicked")}
+                onClickSelf={() => console.log("Surgeries clicked")}
+                className="flex-grow"
+              />
+            </div>
+            <div className="max-w-64 p-4 bg-background rounded-lg shadow-md flex flex-col gap-4">
+              <Button className="w-full">Generate Documents</Button>
+              <Button
+                className="w-full"
+                onClick={() => navigate("/doctor/patients/appointment/1")}
+              >
+                New Appointment
+              </Button>
+            </div>
           </div>
-          {/* Patient  Medical Information */}
-          <div className="max-w-64">
-            <CompactListBox
-              displayAsBadges={true}
-              title="Allergies"
-              data={["Nuts", "23y", "23y", "Penicillin"]}
-              onClickIcon={() => console.log("Allergies icon clicked")}
-              onClickSelf={() => console.log("Allergies clicked")}
-              className="flex-grow"
-            />
-          </div>
-          <div className="max-w-64">
-            <CompactListBox
-              displayAsBadges={true}
-              title="Prescriptions"
-              data={["Medicine A", "23y", "23y", "Medicine B"]}
-              onClickIcon={() =>
-                console.log("Current Medications icon clicked")
-              }
-              onClickSelf={() => console.log("Current Medications clicked")}
-              className="flex-grow"
-            />
-          </div>
-          <div className="max-w-64">
-            <CompactListBox
-              displayAsBadges={true}
-              title="Surgeries"
-              data={["F", "23y", "23y", "O+"]}
-              onClickIcon={() => console.log("Surgeries icon clicked")}
-              onClickSelf={() => console.log("Surgeries clicked")}
-              className="flex-grow"
-            />
-          </div>
-          <div className="max-w-64 p-4 bg-background rounded-lg shadow-md flex flex-col gap-4">
-            <Button className="w-full">Generate Documents</Button>
-            <Button
-              className="w-full"
-              onClick={() => navigate("appointment/1")}
-            >
-              New Appointment
-            </Button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

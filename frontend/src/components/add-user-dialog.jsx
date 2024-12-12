@@ -42,7 +42,7 @@ const AddUserDialog = ({ open, onClose, onSave }) => {
 
   const [employeeData, setEmployeeData] = useState({
     specialization: "",
-    available_days: {},
+    available_days: [],
     shift_start: "",
     shift_end: "",
     office_number: "",

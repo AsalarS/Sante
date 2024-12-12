@@ -173,7 +173,6 @@ export const columns = (
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                onClick={() => console.log("View user:", user)}
               >
                 <Ellipsis className="text-foreground" />
               </Button>
@@ -240,13 +239,12 @@ export function UserAdminPage() {
   const [currentPage, setCurrentPage] = useState(1); // Track current page
   const [totalPages, setTotalPages] = useState(1); // Track total pages
 
-  const fetchUsers = async (page = 1) => {
+  const fetchUsers = async (page = 1) => { // Fetch all users from the API
     try {
       const response = await api.get("/api/admin/users/", {
         params: { page },
       });
       if (response.status === 200) {
-        console.log("Fetched users:", response.data);
 
         setUsers(response.data.results);
         setTotalPages(Math.ceil(response.data.count / 10));
@@ -264,8 +262,8 @@ export function UserAdminPage() {
     fetchUsers(currentPage);
   }, [currentPage]);
 
-  const handleSaveUser = async (updatedUser: User) => {
-    try {
+  const handleSaveUser = async (updatedUser: User) => { // Update user details
+    try {      
       const response = await api.patch(
         `/api/admin/users/${updatedUser.id}/`,
         updatedUser
@@ -286,10 +284,9 @@ export function UserAdminPage() {
     }
   };
 
-  const handleRegisterUser = async (registerData: User) => {
+  const handleRegisterUser = async (registerData: User) => { // Register a new user
     try {
       const response = await api.post(`api/user/register/admin`, registerData);
-      console.log("Response:", response);
 
       if (response.status === 200 || response.status === 201) {
         setDialogOpen(false);
