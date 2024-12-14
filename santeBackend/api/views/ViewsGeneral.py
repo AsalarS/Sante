@@ -14,6 +14,11 @@ from ..serializers import *
 import logging
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from django.db.models import Q, F
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -139,3 +144,64 @@ class AvailableDoctorsView(APIView):
         # Serialize and return data
         serializer = EmployeeSerializer(available_doctors, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    # ---------------------------- Search Views ----------------------------
+@api_view(["GET"])
+def search_patients(request):
+    """
+    Search for patients by first name, last name, and email in the UserProfile table.
+
+    Query Parameters:
+    - query: Search term (optional)
+    
+    Returns:
+    - JSON response with patient search results
+    """
+    # Extract and sanitize search query
+    query = request.GET.get('query', '').strip()
+
+    try:
+        # Start with a base queryset for patients only
+        patients_qs = UserProfile.objects.filter(role='patient')
+
+        if query:
+            search_query = Q()
+
+            # Search by first name or last name
+            name_parts = query.split()
+            if len(name_parts) > 1:
+                search_query |= Q(first_name__icontains=name_parts[0], last_name__icontains=name_parts[-1])
+            else:
+                search_query |= Q(first_name__icontains=query) | Q(last_name__icontains=query)
+
+            # Search by email
+            if '@' in query:  # Quick heuristic for email structure
+                try:
+                    validate_email(query)
+                    search_query |= Q(email__iexact=query)
+                except ValidationError:
+                    search_query |= Q(email__icontains=query)
+
+            # Apply the filter to the queryset
+            patients_qs = patients_qs.filter(search_query)
+
+        # Serialize results
+        patients = list(patients_qs.values(
+            'id',
+            'first_name',
+            'last_name',
+            'email'
+        ))
+
+        return JsonResponse({
+            'success': True,
+            'patients': patients,
+            'total_count': len(patients)
+        })
+
+    except Exception as e:
+        logger.error(f"Patient search error: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': 'An error occurred during the search.'
+        }, status=500)

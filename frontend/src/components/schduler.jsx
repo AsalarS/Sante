@@ -14,45 +14,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-
-// // Sample data for doctors and events
-// const doctorsData = [
-//   { id: "doc1", name: "Dr. Alice" },
-//   { id: "doc2", name: "Dr. Bob" },
-//   { id: "doc3", name: "Dr. Charlie" },
-//   { id: "doc3", name: "Dr. Charlie" },
-// ];
-
-// const initialEvents = [
-//   {
-//     id: "e1",
-//     doctorId: "doc1",
-//     title: "Consultation",
-//     start: "09:00",
-//     end: "10:30",
-//     patient: "John Doe",
-//   },
-//   {
-//     id: "e2",
-//     doctorId: "doc2",
-//     title: "Check-up",
-//     start: "11:00",
-//     end: "12:00",
-//     patient: "Jane Doe",
-//   },
-//   {
-//     id: "e3",
-//     doctorId: "doc1",
-//     title: "Follow-up",
-//     start: "13:00",
-//     end: "14:00",
-//     patient: "Jack Doe",
-//   },
-// ];
+import { Label } from "./ui/label";
+import { AppointmentDialog } from "./appointmentDialog";
 
 // Helper function to generate hours
 const generateHours = () => {
@@ -67,10 +33,24 @@ const generateHours = () => {
   return hours;
 };
 
-const Scheduler = ({ doctorsData, eventsData }) => {
+const Scheduler = ({ scheduleData }) => {
   const hours = generateHours();
-  const [doctors] = useState(doctorsData);
-  const [events, setEvents] = useState(eventsData);
+  const [doctors] = useState(
+    scheduleData != null ? scheduleData.map((item) => item.doctor) : []
+  );
+  const [events, setEvents] = useState(
+    scheduleData.flatMap((item) =>
+      item.slots
+        .filter((slot) => slot.appointment)
+        .map((slot) => ({
+          id: `${item.doctor.id}-${slot.time}`,
+          doctorId: item.doctor.id,
+          start: slot.time,
+          end: slot.time,
+          patient: slot.appointment.patient || "Unknown Patient",
+        }))
+    )
+  );
   const [highlighted, setHighlighted] = useState({ row: null, col: null });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogContent, setDialogContent] = useState("");
@@ -78,15 +58,14 @@ const Scheduler = ({ doctorsData, eventsData }) => {
   // Handle double-click on cell
   const handleCellDoubleClick = (event, doctorId, colIndex) => {
     const cellEvents = events.filter((event) => {
-      const [eventStartHour, eventStartMinute] = event.start
+      const [eventStartHour, eventStartMinute] = event.time
         .split(":")
         .map(Number);
-      const [eventEndHour, eventEndMinute] = event.end.split(":").map(Number);
 
       return (
         event.doctorId === doctorId &&
         eventStartHour * 60 + eventStartMinute <= (colIndex + 6) * 60 &&
-        eventEndHour * 60 + eventEndMinute > (colIndex + 6) * 60
+        eventStartHour * 60 + eventStartMinute > (colIndex + 6) * 60
       );
     });
 
@@ -105,7 +84,7 @@ const Scheduler = ({ doctorsData, eventsData }) => {
   // Helper to calculate event positioning
   const calculatePosition = (start, end) => {
     const [startHour, startMinute] = start.split(":").map(Number);
-    const [endHour, endMinute] = end.split(":").map(Number);
+    const [endHour, endMinute] = (end || start).split(":").map(Number);
 
     const totalMinutesStart = (startHour - 6) * 60 + startMinute;
     const totalMinutesEnd = (endHour - 6) * 60 + endMinute;
@@ -134,7 +113,7 @@ const Scheduler = ({ doctorsData, eventsData }) => {
               <th className="bg-background px-3 py-2"></th>
 
               {/* Doctor headers */}
-              {doctors.map((doctor, rowIndex) => (
+              {scheduleData.map((schedule, rowIndex) => (
                 <th
                   key={rowIndex}
                   className={`bg-btn-normal text-foreground px-3 py-2 text-sm text-center
@@ -142,7 +121,7 @@ const Scheduler = ({ doctorsData, eventsData }) => {
                               highlighted.row === rowIndex ? "bg-btn-hover" : ""
                             }`}
                 >
-                  {doctor.name}
+                  {schedule.doctor.name}
                 </th>
               ))}
             </tr>
@@ -164,46 +143,40 @@ const Scheduler = ({ doctorsData, eventsData }) => {
                 </td>
 
                 {/* event cells */}
-                {doctors.map((doctor, rowIndex) => (
+                {scheduleData.map((schedule, rowIndex) => (
                   <td
                     key={rowIndex}
                     className={`border border-border px-3 py-2 text-center text-sm cursor-pointer relative h-24`}
                     onMouseEnter={() => handleCellHover(rowIndex, colIndex)}
                     onMouseLeave={handleCellLeave}
                     onDoubleClick={(event) =>
-                      handleCellDoubleClick(event, doctor.id, colIndex)
+                      handleCellDoubleClick(event, schedule.doctor.id, colIndex)
                     }
                   >
                     {/* Event rendering for each hour */}
-                    {events
+                    {schedule.slots
                       .filter((event) => {
-                        const [eventStartHour, eventStartMinute] = event.start
-                          .split(":")
-                          .map(Number);
-                        const [eventEndHour, eventEndMinute] = event.end
+                        const [eventStartHour, eventStartMinute] = event.time
                           .split(":")
                           .map(Number);
 
                         return (
-                          event.doctorId === doctor.id &&
                           eventStartHour * 60 + eventStartMinute <=
                             (colIndex + 6) * 60 &&
-                          eventEndHour * 60 + eventEndMinute >
+                          eventStartHour * 60 + eventStartMinute >
                             (colIndex + 6) * 60
                         );
                       })
                       .map((event) => {
                         const { top, height } = calculatePosition(
-                          event.start,
-                          event.end
+                          event.time,
+                          event.time + 30
                         );
                         return (
                           <HoverCard key={event.id}>
                             <HoverCardTrigger>
                               <div className="bg-chart-5/50 border-l-8 border-chart-5 text-white p-1 rounded cursor-pointer h-full flex flex-col text-left">
-                                <span className="text-sm">
-                                  {event.start + " - " + event.end}
-                                </span>
+                                <span className="text-sm">{event.time}</span>
                                 <span className="text-xl font-semibold">
                                   {event.patient}
                                 </span>
@@ -213,7 +186,7 @@ const Scheduler = ({ doctorsData, eventsData }) => {
                               <div className="flex text-left space-x-4">
                                 <Avatar>
                                   <AvatarImage src="https://github.com/vercel.png" />
-                                  <AvatarFallback>VC</AvatarFallback>
+                                  <AvatarFallback>{event.patient.name}</AvatarFallback>
                                 </Avatar>
                                 <div className="space-y-1">
                                   <h4 className="text-lg font-bold">
@@ -223,7 +196,7 @@ const Scheduler = ({ doctorsData, eventsData }) => {
                                   <div className="flex items-center pt-2">
                                     <CalendarDays className="mr-2 h-4 w-4 opacity-70" />{" "}
                                     <span className="text-xs text-muted-foreground">
-                                      {event.start + " - " + event.end}
+                                      {event.time}
                                     </span>
                                   </div>
                                 </div>
@@ -240,35 +213,7 @@ const Scheduler = ({ doctorsData, eventsData }) => {
         </table>
       </div>
       {/* Dialog Component */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="text-foreground">
-          <DialogHeader>
-            <div className="content-center mb-4 font-bold">
-              <span>View Appointment</span>
-            <Badge className="text-white ml-2">Scheduled</Badge>
-            </div>
-
-          </DialogHeader>
-          <Label>Patient</Label>
-          <Input placeholder="Patient" />
-          <Label>Doctor</Label>
-          <Input placeholder="Doctor" className="mb-0" />
-          <p className="text-sm text-muted text-right static">Room: 501</p>
-          <div className="flex flex-row justify-around mt-0">
-            <div>
-              <Label>Date</Label>
-              <Input placeholder="Date" />
-            </div>
-            <div>
-              <Label>Time</Label>
-              <Input placeholder="Time" />
-            </div>
-          </div>
-          <DialogFooter className="mt-4">
-            <Button type="submit">Save changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AppointmentDialog dialogOpen={dialogOpen} setDialogOpen={setDialogOpen} />
     </>
   );
 };

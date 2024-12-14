@@ -8,7 +8,6 @@ import ProtectedRoute from "./components/ProtectedRoute"
 import PatientsPage from "./pages/Dashboards/Doctor/patients"
 import NotificationsPage from "./pages/Dashboards/Doctor/notifications"
 import MessagesPage from "./pages/Dashboards/messages"
-// import SettingsPage from "./pages/Dashboards/settings"
 import ProfilePage from "./pages/Dashboards/profile"
 import HelpPage from "./pages/Dashboards/help"
 import Landing from "./pages/Landing"
@@ -23,12 +22,7 @@ import "./styles/Index.css";
 import ErrorPage from "./pages/errorPage"
 import { UserAdminPage } from "./pages/Dashboards/Admin/users"
 import { LogAdminPage } from "./pages/Dashboards/Admin/logs"
-import Patient2 from "./pages/Dashboards/Doctor/patientProfile"
 import AppointmentPage from "./components/appointmentPage"
-import PatientProfile from "./pages/Dashboards/Doctor/patientProfile"
-import NursePatientProfile from "./pages/Dashboards/Nurse/NursePatientProfile"
-import ReceptionistPatientProfile from "./pages/Dashboards/Receptionist/receptionistPatientsPage"
-import Scheduler from "./components/schduler"
 import { ReceptionistAppointment } from "./pages/Dashboards/Receptionist/receptionistAppointment"
 import { Toaster } from "sonner"
 
@@ -70,7 +64,6 @@ function App() {
             <Route path="patients/appointment/:patientID" element={<AppointmentPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="messages" element={<MessagesPage />} />
-            {/* <Route path="settings" element={<SettingsPage />} /> */}
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
@@ -87,7 +80,6 @@ function App() {
             <Route index element={<Navigate to="dashboard" />} />
             <Route path="labs" element={<LabsPage />} />
             <Route path="messages" element={<MessagesPage />} />
-            {/* <Route path="settings" element={<SettingsPage />} /> */}
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
@@ -105,7 +97,6 @@ function App() {
             <Route path="patients" element={<PatientsPage />} />
             <Route path="patients/:patientId" element={<PatientsPage />} />
             <Route path="messages" element={<MessagesPage />} />
-            {/* <Route path="settings" element={<SettingsPage />} /> */}
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
@@ -124,7 +115,6 @@ function App() {
             <Route path="patients/:patientId" element={<PatientsPage />} />
             <Route path="appointments" element={<ReceptionistAppointment />} />
             <Route path="messages" element={<MessagesPage />} />
-            {/* <Route path="settings" element={<SettingsPage />} /> */}
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
@@ -144,7 +134,6 @@ function App() {
             <Route path="chat" element={<AdminHome />} />
             <Route path="logs" element={<LogAdminPage />} />
             <Route path="messages" element={<MessagesPage />} />
-            {/* <Route path="settings" element={<SettingsPage />} /> */}
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>

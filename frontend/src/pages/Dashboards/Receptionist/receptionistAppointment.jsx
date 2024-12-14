@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/datePicker";
 import { Input } from "@/components/ui/input";
-import Scheduler from "@/components/schduler";
 import {
   Select,
   SelectContent,
@@ -11,61 +10,45 @@ import {
 } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import api from "@/api";
+import Scheduler from "@/components/schduler";
 
 export function ReceptionistAppointment() {
-  const [doctors, setDoctors] = useState([]);
-  const [appointments, setAppointments] = useState([]);
+  const [schedule, setSchedule] = useState();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [appointmentDate, setAppointmentDate] = useState("");
+  const [appointmentDate, setAppointmentDate] = useState(new Date().toISOString().split("T")[0]);
 
-    const handleDateChange = (event) => setAppointmentDate(event.target.value);
+  const handleDateChange = (date) => setAppointmentDate(date);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchSchedule = async () => {
       if (!appointmentDate) return;
 
       setLoading(true);
       setError(null);
 
       try {
-        // Perform both requests in parallel
-        const [doctorsResponse, appointmentsResponse] = await Promise.all([
-          api.post("/api/available-doctors/", {
-            appointment_date: appointmentDate,
-          }),
-          api.post("/api/appointments-by-date/", {
-            appointment_date: appointmentDate,
-          }),
-        ]);
+        const response = await api.get("/api/schedule/", {
+          params: { date: appointmentDate },
+        });
 
-        // Set data from responses
-        if (doctorsResponse.status === 200) {
-          setDoctors(doctorsResponse.data);
-          console.log("doctorsResponse.data", doctorsResponse.data);
-          
+        if (response.status === 200) {
+          setSchedule(response.data.schedule);
+          console.log("Schedule data:", response.data.schedule);
         } else {
-          console.error("Failed to fetch doctors:", doctorsResponse.statusText);
-        }
-
-        if (appointmentsResponse.status === 200) {
-          setAppointments(appointmentsResponse.data);
-        } else {
-          console.error(
-            "Failed to fetch appointments:",
-            appointmentsResponse.statusText
-          );
+          console.error("Failed to fetch schedule:", response.statusText);
         }
       } catch (err) {
-        setError("Failed to fetch data. Please try again.");
-        console.error("Error fetching data:", err);
+        setError("Failed to fetch schedule. Please try again.");
+        console.error("Error fetching schedule:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, [appointmentDate]); // Trigger whenever appointmentDate changes
+    fetchSchedule();
+  }, [appointmentDate]); 
+
   return (
     <>
       <div className="flex flex-col p-4 gap-6 max-w-full">
@@ -84,15 +67,24 @@ export function ReceptionistAppointment() {
                 <SelectItem value="dep2">dep2</SelectItem>
               </SelectContent>
             </Select>
-            <DatePicker className="h-12" initialValue={appointmentDate} onDateChange={(date) => setAppointmentDate(date)}/>
-            <Button className="mt-1">Today</Button>
+            <DatePicker
+              className="h-12"
+              initialValue={appointmentDate}
+              onDateChange={handleDateChange}
+            />
+            <Button
+              className="mt-1"
+              onClick={() => setAppointmentDate(new Date().toISOString().split("T")[0])}
+            >
+              Today
+            </Button>
             <Button className="mt-1">Book Appointment</Button>
           </div>
         </div>
 
         {/* Apply overflow-x-auto here to make the table scrollable */}
         <div className="overflow-x-auto max-w-full">
-          {/* <Scheduler /> */}
+          <Scheduler scheduleData={schedule ? schedule : []} />
         </div>
       </div>
     </>
