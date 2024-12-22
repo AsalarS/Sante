@@ -6,18 +6,6 @@ import {
 } from "@/components/ui/hover-card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { CalendarDays } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "./ui/dialog";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
-import { Label } from "./ui/label";
 import { AppointmentDialog } from "./appointmentDialog";
 
 // Helper function to generate hours
@@ -33,7 +21,7 @@ const generateHours = () => {
   return hours;
 };
 
-const Scheduler = ({ scheduleData }) => {
+const Scheduler = ({ scheduleData, date }) => {
   const hours = generateHours();
   const [doctors] = useState(
     scheduleData != null ? scheduleData.map((item) => item.doctor) : []
@@ -54,30 +42,35 @@ const Scheduler = ({ scheduleData }) => {
   const [highlighted, setHighlighted] = useState({ row: null, col: null });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogContent, setDialogContent] = useState("");
+  const [selectedCellData, setSelectedCellData] = useState(null);
 
   // Handle double-click on cell
   const handleCellDoubleClick = (event, doctorId, colIndex) => {
-    const cellEvents = events.filter((event) => {
-      const [eventStartHour, eventStartMinute] = event.time
-        .split(":")
-        .map(Number);
+    const doctorEntry = scheduleData.find(
+      (item) => item.doctor.id === doctorId
+    );
 
-      return (
-        event.doctorId === doctorId &&
-        eventStartHour * 60 + eventStartMinute <= (colIndex + 6) * 60 &&
-        eventStartHour * 60 + eventStartMinute > (colIndex + 6) * 60
-      );
-    });
-
-    if (cellEvents.length > 0) {
-      setDialogContent("Edit existing event");
-      console.log("Edit existing event");
-    } else {
-      setDialogContent("Create Event ");
-      console.log("Create Event");
+    if (!doctorEntry) {
+      console.error("Doctor not found for ID:", doctorId);
+      return;
     }
 
-    // Open dialog
+    const doctor = doctorEntry.doctor; // Extract doctor details
+    const clickedHour = hours[colIndex]; // Get the hour using colIndex
+
+    if (!clickedHour) {
+      console.error("Clicked hour is undefined for column index:", colIndex);
+      return;
+    }
+
+    setSelectedCellData({
+      doctorName: doctor.name,
+      doctorId: doctor.id,
+      office: doctor.office_number,
+      time: clickedHour,
+      date: date,
+    });
+
     setDialogOpen(true);
   };
 
@@ -186,7 +179,9 @@ const Scheduler = ({ scheduleData }) => {
                               <div className="flex text-left space-x-4">
                                 <Avatar>
                                   <AvatarImage src="https://github.com/vercel.png" />
-                                  <AvatarFallback>{event.patient.name}</AvatarFallback>
+                                  <AvatarFallback>
+                                    {event.patient.name}
+                                  </AvatarFallback>
                                 </Avatar>
                                 <div className="space-y-1">
                                   <h4 className="text-lg font-bold">
@@ -213,7 +208,11 @@ const Scheduler = ({ scheduleData }) => {
         </table>
       </div>
       {/* Dialog Component */}
-      <AppointmentDialog dialogOpen={dialogOpen} setDialogOpen={setDialogOpen} />
+      <AppointmentDialog
+        dialogOpen={dialogOpen}
+        setDialogOpen={setDialogOpen}
+        appointment={selectedCellData}
+      />
     </>
   );
 };

@@ -28,8 +28,5 @@ urlpatterns = [
     path("api/token/refresh/", TokenRefreshView.as_view(), name="refresh"),  #login refresh, keeps the user logged in
     path("api-auth/", include("rest_framework.urls")), #login url
     path("api/", include("api.urls")),
-    path('api/user-info/', UserInfoView.as_view(), name='user_info'), #to show current logged in user info
-    path('api/user-info/<int:user_id>/', SpecificUserInfoView.as_view(), name='user_info_specific'), #to show a users info
-    path('api/users/patients/', get_patients, name='get_patients'),
 ]
  

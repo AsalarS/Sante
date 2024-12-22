@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Check, ChevronsUpDown, Search, X } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -15,16 +15,109 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import api from "@/api";
+import { date } from "zod";
+import { toast } from "sonner";
 
-export function AppointmentDialog({ dialogOpen, setDialogOpen, appointment }) {
+export function AppointmentDialog({
+  dialogOpen,
+  setDialogOpen,
+  appointment,
+  editable = true,
+}) {
+  const [dialogData, setDialogData] = useState(appointment || {});
+  const isExistingAppointment = dialogData != null;
+
   const [patientSearch, setPatientSearch] = useState("");
   const [filteredPatients, setFilteredPatients] = useState([]);
-  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [selectedPatient, setSelectedPatient] = useState();
+  // const [selectedDoctor, setSelectedDoctor] = useState(null);
+  // const [appointmentDate, setAppointmentDate] = useState(
+  //   appointment?.date || ""
+  // );
+  // const [appointmentTime, setAppointmentTime] = useState(
+  //   appointment?.time ? convertTo24Hour(appointment?.time) : ""
+  // );
   const [isSearchListVisible, setIsSearchListVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const inputRef = useRef(null);
   const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (appointment) {
+      setDialogData({
+        ...appointment,
+        time: appointment.time ? convertTo24Hour(appointment.time) : "",
+      });
+    } else {
+      setDialogData({});
+    }
+  }, [appointment]);
+
+  const handleChange = (field, value) => {
+    setDialogData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  //Handle save appointment
+  const handleSave = async () => {
+    // Validate required fields
+    if (!selectedPatient) {
+      toast.error("Please select a patient");
+      return;
+    }
+
+    if (!dialogData.doctorId) {
+      toast.error("Please select a doctor");
+      return;
+    }
+
+    if (!dialogData.date) {
+      toast.error("Please select an appointment date");
+      return;
+    }
+
+    if (!dialogData.time) {
+      toast.error("Please select an appointment time");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Prepare appointment data
+      const 
+      payload = {
+        patient_id: selectedPatient.id,
+        doctor_id: dialogData.doctorId,
+        appointment_date: dialogData.date,
+        appointment_time: dialogData.time,
+      };
+
+      console.log("Appointment data:", payload);
+
+      // Send PATCH request to create appointment
+      const response = await api.patch(
+        "/api/appointments/add/", payload);
+
+      if (response.status === 200) {
+        // Close the dialog on successful creation
+        setDialogOpen(false);
+        toast.success("Appointment created successfully ", response.data);
+      } else {
+        // Handle unsuccessful response
+        toast.error(response.data.message || "Failed to create appointment");
+      }
+    } catch (err) {
+      console.error("Appointment creation error:", err);
+      toast.error(
+        err.response?.data?.message ||
+          "An error occurred while creating the appointment"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+    setDialogOpen(false);
+  };
 
   // Debounced search handler with API call
   const handleSearch = debounce(async (searchTerm) => {
@@ -35,7 +128,6 @@ export function AppointmentDialog({ dialogOpen, setDialogOpen, appointment }) {
     }
 
     setIsLoading(true);
-    setError(null);
 
     try {
       const response = await api.get("/api/search/patients/", {
@@ -72,13 +164,16 @@ export function AppointmentDialog({ dialogOpen, setDialogOpen, appointment }) {
 
   // Hide the patient list when clicking outside the input
   useEffect(() => {
-    const handleClickOutside = (event) => {  
+    const handleClickOutside = (event) => {
       // Check if the click is outside the container
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
         setIsSearchListVisible(false);
       }
     };
-  
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -86,7 +181,7 @@ export function AppointmentDialog({ dialogOpen, setDialogOpen, appointment }) {
   }, []);
 
   // Select patient handler
-  const handlePatientSelect = (patient) => {    
+  const handlePatientSelect = (patient) => {
     // Set the selected patient
     setSelectedPatient(patient);
     // Auto-fill the input with the patient's full name
@@ -106,8 +201,13 @@ export function AppointmentDialog({ dialogOpen, setDialogOpen, appointment }) {
       <DialogContent className="text-foreground">
         <DialogHeader>
           <div className="content-center mb-4 font-bold flex flex-row items-center">
-            <DialogTitle>{appointment ? "View" : "Add"} Appointment</DialogTitle>
-            <Badge className="text-white ml-2">{appointment ? appointment.status : "New" }</Badge>
+            <DialogTitle>
+              {isExistingAppointment ? "Edit Appointment" : "Add Appointment"}
+            </DialogTitle>
+            {/* TODO: Change logic vvvvvvv */}
+            <Badge className="text-white ml-2">
+              {dialogData?.status ? dialogData?.status : "New"}
+            </Badge>
           </div>
         </DialogHeader>
 
@@ -145,7 +245,7 @@ export function AppointmentDialog({ dialogOpen, setDialogOpen, appointment }) {
           )}
 
           {error && (
-            <div className="absolute z-10 mt-1 w-full bg-red-50/50 border border-red-200/50 rounded-md shadow-lg p-4 text-red-600">
+            <div className="absolute z-10 mt-1 w-full bg-red-50 border border-red-200 rounded-md shadow-lg p-4 text-red-600">
               {error}
             </div>
           )}
@@ -155,7 +255,10 @@ export function AppointmentDialog({ dialogOpen, setDialogOpen, appointment }) {
             !error &&
             isSearchListVisible &&
             filteredPatients.length > 0 && (
-              <ul className="absolute z-10 mt-1 w-full bg-background border border-border rounded-md shadow-lg max-h-60 overflow-auto text-foreground" ref={containerRef}>
+              <ul
+                className="absolute z-10 mt-1 w-full bg-background border border-border rounded-md shadow-lg max-h-60 overflow-auto text-foreground"
+                ref={containerRef}
+              >
                 {filteredPatients.map((patient) => (
                   <li
                     key={patient.id}
@@ -163,10 +266,13 @@ export function AppointmentDialog({ dialogOpen, setDialogOpen, appointment }) {
                     onClick={() => handlePatientSelect(patient)}
                   >
                     <div>
-                      <div className="font-medium">
+                      <div className="font-bold">
                         {patient.first_name} {patient.last_name}
                       </div>
-                      <div className="text-sm">{patient.email}</div>
+                      <div className="text-sm text-foreground/50">
+                        {patient.email}{" "}
+                        {patient.CPR_number ? "- " + patient.CPR_number : ""}
+                      </div>
                     </div>
                   </li>
                 ))}
@@ -186,24 +292,67 @@ export function AppointmentDialog({ dialogOpen, setDialogOpen, appointment }) {
 
         {/* Rest of the form remains the same */}
         <Label>Doctor</Label>
-        <Input placeholder="Doctor" className="mb-0" />
-        <p className="text-sm text-muted text-right static">Room: 501</p>
+        <Input
+          placeholder="Doctor"
+          className="mb-0"
+          value={dialogData.doctorName || ""}
+          onChange={(e) =>
+            editable && handleChange("doctorName", e.target.value)
+          }
+          readOnly={!editable}
+        />
+        <p className="text-sm text-muted text-right static">
+          {dialogData?.office || ""}
+        </p>
 
         <div className="flex flex-row justify-around mt-0">
           <div>
             <Label>Date</Label>
-            <Input type="date"/>
+            <Input
+              type="date"
+              value={dialogData.date || ""}
+              onChange={(e) => editable && handleChange("date", e.target.value)}
+              readOnly={!editable}
+            />
           </div>
           <div>
             <Label>Time</Label>
-            <Input type="time"/>
+            <Input
+              type="time"
+              value={dialogData.time || ""}
+              onChange={(e) => editable && handleChange("time", e.target.value)}
+              readOnly={!editable}
+            />
           </div>
         </div>
 
         <DialogFooter className="mt-4">
-          <Button type="submit">Save changes</Button>
+          <Button type="submit" onClick={handleSave}>
+            {isLoading ? <Loader2 className="text-white animate-spin"/> : "Save"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
+}
+
+function convertTo24Hour(time) {
+  // Check if time is already in 24-hour format
+  if (time.includes(":") && !time.includes(" ")) {
+    return time;
+  }
+
+  const [timePart, modifier] = time.split(" ");
+  let [hours, minutes] = timePart.split(":").map(Number);
+
+  if (modifier === "PM" && hours !== 12) {
+    hours += 12; // Convert PM hours (except 12 PM)
+  } else if (modifier === "AM" && hours === 12) {
+    hours = 0; // Convert 12 AM to 00
+  }
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+    2,
+    "0"
+  )}`;
 }

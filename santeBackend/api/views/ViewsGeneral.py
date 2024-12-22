@@ -146,59 +146,71 @@ class AvailableDoctorsView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     # ---------------------------- Search Views ----------------------------
+
 @api_view(["GET"])
 def search_patients(request):
     """
-    Search for patients by first name, last name, and email in the UserProfile table.
-
+    Search for patients by first name, last name, email, and CPR number across UserProfile and Patient tables.
     Query Parameters:
     - query: Search term (optional)
-    
     Returns:
     - JSON response with patient search results
     """
     # Extract and sanitize search query
     query = request.GET.get('query', '').strip()
-
     try:
         # Start with a base queryset for patients only
         patients_qs = UserProfile.objects.filter(role='patient')
-
+        
         if query:
             search_query = Q()
-
+            
             # Search by first name or last name
             name_parts = query.split()
             if len(name_parts) > 1:
                 search_query |= Q(first_name__icontains=name_parts[0], last_name__icontains=name_parts[-1])
             else:
                 search_query |= Q(first_name__icontains=query) | Q(last_name__icontains=query)
-
-            # Search by email
-            if '@' in query:  # Quick heuristic for email structure
-                try:
-                    validate_email(query)
-                    search_query |= Q(email__iexact=query)
-                except ValidationError:
-                    search_query |= Q(email__icontains=query)
-
+            
+            # Comprehensive email search
+            search_query |= (
+                Q(email__icontains=query) |  # Partial email match
+                Q(email__startswith=query) |  # Starts with the search term
+                Q(email__iexact=query)  # Exact match
+            )
+            
+            # Search by CPR number
+            search_query |= Q(patient__CPR_number__icontains=query)
+            
             # Apply the filter to the queryset
             patients_qs = patients_qs.filter(search_query)
-
-        # Serialize results
-        patients = list(patients_qs.values(
+        
+        # Serialize results with related Patient information
+        patients = patients_qs.select_related('patient').values(
             'id',
-            'first_name',
-            'last_name',
-            'email'
-        ))
-
+            'first_name', 
+            'last_name', 
+            'email',
+            'patient__CPR_number'
+        )
+        
+        # Convert to list and format the results
+        patients_list = [
+            {
+                'id': patient['id'],
+                'first_name': patient['first_name'],
+                'last_name': patient['last_name'],
+                'email': patient['email'],
+                'CPR_number': patient['patient__CPR_number']
+            } for patient in patients
+        ]
+        
         return JsonResponse({
             'success': True,
-            'patients': patients,
-            'total_count': len(patients)
+            'patients': patients_list,
+            'total_count': len(patients_list)
         })
-
+    
     except Exception as e:
         logger.error(f"Patient search error: {str(e)}")
         return JsonResponse({

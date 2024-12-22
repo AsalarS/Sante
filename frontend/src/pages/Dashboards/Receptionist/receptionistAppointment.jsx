@@ -34,7 +34,6 @@ export function ReceptionistAppointment() {
 
         if (response.status === 200) {
           setSchedule(response.data.schedule);
-          console.log("Schedule data:", response.data.schedule);
         } else {
           console.error("Failed to fetch schedule:", response.statusText);
         }
@@ -84,7 +83,7 @@ export function ReceptionistAppointment() {
 
         {/* Apply overflow-x-auto here to make the table scrollable */}
         <div className="overflow-x-auto max-w-full">
-          <Scheduler scheduleData={schedule ? schedule : []} />
+          <Scheduler scheduleData={schedule ? schedule : []} date={appointmentDate}/>
         </div>
       </div>
     </>
