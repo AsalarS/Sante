@@ -63,12 +63,36 @@ const Scheduler = ({ scheduleData, date }) => {
       return;
     }
 
+    const convertTo24HourFormat = (time) => { //Convert the time to 24 hour format to filter the time slots
+      const [hour, minutePart] = time.split(":");
+      const [minute, period] = minutePart.split(" ");
+      let hour24 = parseInt(hour, 10);
+      if (period === "PM" && hour24 !== 12) {
+      hour24 += 12;
+      } else if (period === "AM" && hour24 === 12) {
+      hour24 = 0;
+      }
+      return `${hour24.toString().padStart(2, "0")}:${minute}`;
+    };
+
+    const clickedHour24 = convertTo24HourFormat(clickedHour);
+    const slot = doctorEntry.slots.find((slot) => slot.time === clickedHour24);
+    
+    const status = slot ? slot.status : "";  
+
     setSelectedCellData({
+      app_id: slot.appointment.id,
       doctorName: doctor.name,
       doctorId: doctor.id,
       office: doctor.office_number,
       time: clickedHour,
       date: date,
+      status: status,
+      patient_id : slot.appointment?.patient_id,
+      patient_first_name :slot.appointment?.patient_first_name,
+      patient_last_name :slot.appointment?.patient_last_name,
+      patient_email :slot.appointment?.patient_email,
+      patient_cpr :slot.appointment?.patient_cpr,
     });
 
     setDialogOpen(true);
@@ -160,10 +184,13 @@ const Scheduler = ({ scheduleData, date }) => {
                       return (
                         <HoverCard key={event.id}>
                           <HoverCardTrigger>
-                            <div className="bg-chart-5/50 border-l-8 border-chart-5 text-white p-1 rounded cursor-pointer h-full flex flex-col text-left">
-                              <span className="text-sm">{event.time}</span>
+                            <div className="bg-chart-5/50 border-l-8 border-chart-5 text-white p-1 rounded cursor-pointer h-full flex flex-col text-left pl-2">
+                              <span className="text-sm">{event.time} - <span className="font-semibold">{event.status}</span></span>
                               <span className="text-xl font-semibold">
-                                {event.appointment.patient_name}
+                                {event.appointment.patient_first_name} {event.appointment.patient_last_name}
+                              </span>
+                              <span className="font-semibold text-foreground/50 leading-3">
+                                {event.appointment.patient_cpr}
                               </span>
                             </div>
                           </HoverCardTrigger>

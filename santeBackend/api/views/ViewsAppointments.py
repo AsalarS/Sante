@@ -66,11 +66,14 @@ def get_schedule(request):
             'slots': [
                 {
                     'time': hour.strftime('%H:%M'),
-                    'status': 'Booked' if hour in booked_slots else 'Available',
+                    'status': booked_slots[hour].status if hour in booked_slots else 'Available',
                     'appointment': {
                         'id': booked_slots[hour].id,
                         'patient_id' : booked_slots[hour].patient.user.id,
-                        'patient_name': f"{booked_slots[hour].patient.user.first_name} {booked_slots[hour].patient.user.last_name}",
+                        'patient_first_name': booked_slots[hour].patient.user.first_name,
+                        'patient_last_name': booked_slots[hour].patient.user.last_name,
+                        'patient_cpr' : booked_slots[hour].patient.CPR_number,
+                        'patient_email' : booked_slots[hour].patient.user.email,
                         'status': booked_slots[hour].status,
                     } if hour in booked_slots else None,
                 }
@@ -98,16 +101,13 @@ def add_appointment(request):
         doctor_id = request.data.get('doctor_id')
         appointment_date = request.data.get('appointment_date')
         appointment_time = request.data.get('appointment_time')
-
-        # Log the incoming request (useful for auditing)
-        log_activity(request, "Attempted to add/update an appointment", f"Patient ID: {patient_id}, Doctor ID: {doctor_id}, Date: {appointment_date}, Time: {appointment_time}")
+        appointment_id = request.data.get('appointment_id') 
         
         # Print the received data (for debugging purposes)
-        print(f"Received data: patient_id={patient_id}, doctor_id={doctor_id}, appointment_date={appointment_date}, appointment_time={appointment_time}")
+        print(f"Received data: patient_id={patient_id}, doctor_id={doctor_id}, appointment_date={appointment_date}, appointment_time={appointment_time}, appointment_id={appointment_id}")
         
         # Validate required fields
         if not all([patient_id, doctor_id, appointment_date, appointment_time]):
-            log_activity(request, "Appointment validation failed", "Missing required fields")
             return Response({
                 'success': False, 
                 'message': 'Patient ID, Doctor ID, Date, and Time are required'
@@ -127,27 +127,37 @@ def add_appointment(request):
                 'message': 'Invalid date or time format. Use YYYY-MM-DD and HH:MM'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Check for conflicting appointments
+        # Check for conflicting appointments, excluding the current appointment if updating
         existing_appointment = Appointment.objects.filter(
             doctor=doctor, 
             appointment_date=parsed_date, 
             appointment_time=parsed_time
-        ).first()
+        ).exclude(id=appointment_id).first()
         
+        print(f"Appointment ID: {appointment_id}, Doctor: {doctor_id}, Date: {appointment_date}, Time: {appointment_time}")
+        print(f"Existing appointment check: {existing_appointment}")
+
         if existing_appointment:
             return Response({
                 'success': False, 
                 'message': 'An appointment already exists at this time'
             }, status=status.HTTP_409_CONFLICT)
         
-        # Create new appointment with 'Scheduled' status
-        appointment = Appointment.objects.create(
-            patient=patient,
-            doctor=doctor,
-            appointment_date=parsed_date,
-            appointment_time=parsed_time,
-            status='Scheduled',
-        )
+        # Create or update appointment
+        if appointment_id:
+            appointment = get_object_or_404(Appointment, pk=appointment_id)
+            appointment.patient = patient
+            appointment.doctor = doctor
+            appointment.appointment_date = parsed_date
+            appointment.appointment_time = parsed_time
+        else:
+            appointment = Appointment.objects.create(
+                patient=patient,
+                doctor=doctor,
+                appointment_date=parsed_date,
+                appointment_time=parsed_time,
+                status='Scheduled',
+            )
         
         # Update optional fields if provided
         optional_fields = [
@@ -157,7 +167,8 @@ def add_appointment(request):
             'blood_pressure', 
             'temperature', 
             'o2_sat', 
-            'resp_rate'
+            'resp_rate',
+            'status'
         ]
         
         for field in optional_fields:
@@ -167,13 +178,13 @@ def add_appointment(request):
         appointment.save()
 
         # Log successful appointment creation
-        log_activity(request, "Appointment created successfully", f"Appointment ID: {appointment.id}")
+        log_activity(request, "Appointment created/updated successfully", f"Appointment ID: {appointment.id}")
         
         return Response({
             'success': True, 
-            'message': 'Appointment created successfully',
+            'message': 'Appointment updated successfully',
             'appointment_id': str(appointment.id)
-        }, status=status.HTTP_201_CREATED)
+        }, status=status.HTTP_200_OK)
     
     except Exception as e:
         logger.error(f"Appointment creation error: {str(e)}")

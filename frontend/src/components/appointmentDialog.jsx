@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import api from "@/api";
 import { date } from "zod";
 import { toast } from "sonner";
@@ -25,7 +26,7 @@ export function AppointmentDialog({
   editable = true,
 }) {
   const [dialogData, setDialogData] = useState(appointment || {});
-  const isExistingAppointment = dialogData != null;
+  const isExistingAppointment = dialogData.status != "Available";
 
   const [patientSearch, setPatientSearch] = useState("");
   const [filteredPatients, setFilteredPatients] = useState([]);
@@ -49,10 +50,32 @@ export function AppointmentDialog({
         ...appointment,
         time: appointment.time ? convertTo24Hour(appointment.time) : "",
       });
+      
+      if (appointment.status !== "Available") {
+        setSelectedPatient({
+          id: appointment.patient_id || "",
+          first_name: appointment.patient_first_name || "",
+          last_name: appointment.patient_last_name || "",
+          email: appointment.patient_email || "",
+          CPR_number: appointment.patient_cpr || "",
+        });
+        setPatientSearch(`${appointment.patient_first_name} ${appointment.patient_last_name}`);
+      }
     } else {
       setDialogData({});
     }
   }, [appointment]);
+
+  
+  // Clear Data when opening the dialog
+  useEffect(() => { 
+    if (!dialogOpen) {
+      setDialogData({});
+      setPatientSearch("");
+      setSelectedPatient();
+    }
+  }, [!dialogOpen]);
+
 
   const handleChange = (field, value) => {
     setDialogData((prev) => ({ ...prev, [field]: value }));
@@ -85,24 +108,24 @@ export function AppointmentDialog({
 
     try {
       // Prepare appointment data
-      const 
-      payload = {
+      const payload = {
         patient_id: selectedPatient.id,
         doctor_id: dialogData.doctorId,
         appointment_date: dialogData.date,
         appointment_time: dialogData.time,
+        status: dialogData.status,
+        appointment_id: dialogData.app_id,
       };
 
-      console.log("Appointment data:", payload);
-
+      console.log("payload", dialogData);
+      
       // Send PATCH request to create appointment
-      const response = await api.patch(
-        "/api/appointments/add/", payload);
+      const response = await api.patch("/api/appointments/add/", payload);
 
       if (response.status === 200) {
         // Close the dialog on successful creation
         setDialogOpen(false);
-        toast.success("Appointment created successfully ", response.data);
+        toast.success("Appointment updated  successfully ", response.data);
       } else {
         // Handle unsuccessful response
         toast.error(response.data.message || "Failed to create appointment");
@@ -111,7 +134,7 @@ export function AppointmentDialog({
       console.error("Appointment creation error:", err);
       toast.error(
         err.response?.data?.message ||
-          "An error occurred while creating the appointment"
+        "An error occurred while creating the appointment"
       );
     } finally {
       setIsLoading(false);
@@ -219,7 +242,7 @@ export function AppointmentDialog({
               <Input
                 ref={inputRef}
                 placeholder="Search patients"
-                value={patientSearch}
+                value={selectedPatient ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : patientSearch}
                 onChange={(e) => setPatientSearch(e.target.value)}
                 onFocus={() => patientSearch && setIsSearchListVisible(true)}
                 className="pr-10"
@@ -253,6 +276,7 @@ export function AppointmentDialog({
           {/* Custom Search List */}
           {!isLoading &&
             !error &&
+            !selectedPatient &&
             isSearchListVisible &&
             filteredPatients.length > 0 && (
               <ul
@@ -326,9 +350,36 @@ export function AppointmentDialog({
           </div>
         </div>
 
+        {dialogData.status != "Available" &&
+          <RadioGroup 
+            value={dialogData.status || ""} 
+            className="flex flex-row justify-between px-2 mt-6"
+            onValueChange={(value) => {
+              handleChange("status", value)
+            }}
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Scheduled" id="Scheduled" />
+              <Label htmlFor="Scheduled">Scheduled</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Completed" id="Completed" />
+              <Label htmlFor="Completed">Completed</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Cancelled" id="Cancelled" />
+              <Label htmlFor="r3">Cancelled</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="No Show" id="noshow" />
+              <Label htmlFor="noshow">No Show</Label>
+            </div>
+          </RadioGroup>
+        }
+
         <DialogFooter className="mt-4">
           <Button type="submit" onClick={handleSave}>
-            {isLoading ? <Loader2 className="text-white animate-spin"/> : "Save"}
+            {isLoading ? <Loader2 className="text-white animate-spin" /> : "Save"}
           </Button>
         </DialogFooter>
       </DialogContent>

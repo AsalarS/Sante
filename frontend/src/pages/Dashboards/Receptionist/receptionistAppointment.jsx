@@ -83,7 +83,6 @@ export function ReceptionistAppointment() {
 
         {/* Apply overflow-x-auto here to make the table scrollable */}
         <div className="overflow-x-auto max-w-full">
-          {console.log("schedule", schedule)}
           <Scheduler scheduleData={schedule ? schedule : []} date={appointmentDate}/>
         </div>
       </div>
