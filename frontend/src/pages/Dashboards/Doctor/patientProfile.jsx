@@ -212,7 +212,7 @@ function PatientProfile({ patientId }) {
                   John Doe
                 </Label>
               </div>
-              {userRole === "doctor" && <Button>Edit</Button>}
+              {(userRole === "doctor" || userRole === "receptionist") && <Button>Edit</Button>}
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">

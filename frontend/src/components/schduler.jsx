@@ -110,9 +110,8 @@ const Scheduler = ({ scheduleData, date }) => {
                 <th
                   key={rowIndex}
                   className={`bg-btn-normal text-foreground px-3 py-2 text-sm text-center
-                            ${
-                              highlighted.row === rowIndex ? "bg-btn-hover" : ""
-                            }`}
+                            ${highlighted.row === rowIndex ? "bg-btn-hover" : ""
+                    }`}
                 >
                   {schedule.doctor.name}
                 </th>
@@ -126,9 +125,8 @@ const Scheduler = ({ scheduleData, date }) => {
                 {/* Hour Row Header */}
                 <td
                   className={`bg-background px-3 py-2 text-sm text-foreground cursor-pointer w-32 text-center
-                            ${
-                              highlighted.col === colIndex ? "bg-btn-hover" : ""
-                            }`}
+                            ${highlighted.col === colIndex ? "bg-btn-hover" : ""
+                    }`}
                   onMouseEnter={() => handleCellHover(null, colIndex)}
                   onMouseLeave={handleCellLeave}
                 >
@@ -147,59 +145,53 @@ const Scheduler = ({ scheduleData, date }) => {
                     }
                   >
                     {/* Event rendering for each hour */}
-                    {schedule.slots
-                      .filter((event) => {
-                        const [eventStartHour, eventStartMinute] = event.time
-                          .split(":")
-                          .map(Number);
-
-                        return (
-                          eventStartHour * 60 + eventStartMinute <=
-                            (colIndex + 6) * 60 &&
-                          eventStartHour * 60 + eventStartMinute >
-                            (colIndex + 6) * 60
-                        );
-                      })
-                      .map((event) => {
-                        const { top, height } = calculatePosition(
-                          event.time,
-                          event.time + 30
-                        );
-                        return (
-                          <HoverCard key={event.id}>
-                            <HoverCardTrigger>
-                              <div className="bg-chart-5/50 border-l-8 border-chart-5 text-white p-1 rounded cursor-pointer h-full flex flex-col text-left">
-                                <span className="text-sm">{event.time}</span>
-                                <span className="text-xl font-semibold">
+                    {schedule.slots.filter((event) => {
+                      const eventTimeIndex =
+                        (parseInt(event.time.split(":")[0]) - 6) * 2 +
+                        (parseInt(event.time.split(":")[1]) / 30);
+                      return eventTimeIndex === colIndex;
+                    })
+                    .filter((slot) => slot.status !== "Available" && slot.appointment)
+                    .map((event) => {
+                      const { top, height } = calculatePosition(
+                        event.time,
+                        event.time + 30
+                      );
+                      return (
+                        <HoverCard key={event.id}>
+                          <HoverCardTrigger>
+                            <div className="bg-chart-5/50 border-l-8 border-chart-5 text-white p-1 rounded cursor-pointer h-full flex flex-col text-left">
+                              <span className="text-sm">{event.time}</span>
+                              <span className="text-xl font-semibold">
+                                {event.appointment.patient_name}
+                              </span>
+                            </div>
+                          </HoverCardTrigger>
+                          {/* <HoverCardContent>
+                            <div className="flex text-left space-x-4">
+                              <Avatar>
+                                <AvatarImage src="https://github.com/vercel.png" />
+                                <AvatarFallback>
+                                  {event.patient.name}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="space-y-1">
+                                <h4 className="text-lg font-bold">
                                   {event.patient}
-                                </span>
-                              </div>
-                            </HoverCardTrigger>
-                            <HoverCardContent>
-                              <div className="flex text-left space-x-4">
-                                <Avatar>
-                                  <AvatarImage src="https://github.com/vercel.png" />
-                                  <AvatarFallback>
-                                    {event.patient.name}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="space-y-1">
-                                  <h4 className="text-lg font-bold">
-                                    {event.patient}
-                                  </h4>
-                                  <p className="text-sm">{event.patient}</p>
-                                  <div className="flex items-center pt-2">
-                                    <CalendarDays className="mr-2 h-4 w-4 opacity-70" />{" "}
-                                    <span className="text-xs text-muted-foreground">
-                                      {event.time}
-                                    </span>
-                                  </div>
+                                </h4>
+                                <p className="text-sm">{event.patient}</p>
+                                <div className="flex items-center pt-2">
+                                  <CalendarDays className="mr-2 h-4 w-4 opacity-70" />{" "}
+                                  <span className="text-xs text-muted-foreground">
+                                    {event.time}
+                                  </span>
                                 </div>
                               </div>
-                            </HoverCardContent>
-                          </HoverCard>
-                        );
-                      })}
+                            </div>
+                          </HoverCardContent> */}
+                        </HoverCard>
+                      );
+                    })}
                   </td>
                 ))}
               </tr>

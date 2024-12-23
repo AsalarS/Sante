@@ -122,8 +122,8 @@ class Employee(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE, primary_key=True)  # Use `user` as the primary key
     specialization = models.CharField(max_length=255, null=True)
     available_days = models.JSONField(default=list, null=True)
-    shift_start = models.TimeField(null=True)
-    shift_end = models.TimeField(null=True)
+    shift_start = models.TimeField(null=True, blank=True)
+    shift_end = models.TimeField(null=True, blank=True)
     office_number = models.CharField(max_length=50, null=True)
 
     def __str__(self):
@@ -140,7 +140,7 @@ class Appointment(models.Model):
     doctor = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
-        limit_choices_to={'role': 'doctor'},
+        limit_choices_to={'user__role': 'doctor'},
         related_name='doctor_appointments'
     )
     appointment_date = models.DateField()

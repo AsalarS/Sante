@@ -221,6 +221,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
 
 class LogSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
     class Meta:
         model = Log
         fields = "__all__"

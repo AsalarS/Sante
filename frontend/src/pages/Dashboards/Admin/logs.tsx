@@ -22,11 +22,18 @@ import {
 import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter } from "lucide-react";
 import api from "@/api";
 
+export type User = {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+};
+
 export type Log = {
   id: number;
-  user: string; // Assuming this is a username or string representation
+  user: User;
   action: string;
-  timestamp: string; // ISO format string
+  timestamp: string;
   ip_address: string;
   description: string;
 };
@@ -35,7 +42,14 @@ export const columns: ColumnDef<Log>[] = [
   {
     accessorKey: "user",
     header: "User",
-    cell: ({ row }) => <div>{row.getValue<string>("user") || "-"}</div>,
+    cell: ({ row }) => {
+      const user = row.getValue<User>("user");
+      return (
+        <div>
+          {user ? `${user.first_name} ${user.last_name} (${user.email})` : "-"}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "action",

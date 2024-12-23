@@ -14,7 +14,8 @@ from ..serializers import *
 import logging
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from django.db.models import Q, F
+from django.db.models import Q, F, Value
+from django.db.models.functions import Concat
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.core.validators import validate_email
@@ -35,9 +36,7 @@ def get_logs_admin(request):
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    logs = Log.objects.all().values(
-        "id", "user", "action", "timestamp", "ip_address", "description"
-    )
+    logs = Log.objects.select_related('user').all()
     serializedData = LogSerializer(logs, many=True)
     return JsonResponse(serializedData.data, safe=False)
 

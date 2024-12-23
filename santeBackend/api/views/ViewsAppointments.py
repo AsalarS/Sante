@@ -8,6 +8,7 @@ import logging
 from django.utils import timezone
 from rest_framework import status
 from django.shortcuts import get_object_or_404
+from ..utilities import log_activity
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,8 @@ def get_schedule(request):
                     'status': 'Booked' if hour in booked_slots else 'Available',
                     'appointment': {
                         'id': booked_slots[hour].id,
-                        'patient_name': f"{booked_slots[hour].patient.first_name} {booked_slots[hour].patient.last_name}",
+                        'patient_id' : booked_slots[hour].patient.user.id,
+                        'patient_name': f"{booked_slots[hour].patient.user.first_name} {booked_slots[hour].patient.user.last_name}",
                         'status': booked_slots[hour].status,
                     } if hour in booked_slots else None,
                 }
@@ -97,11 +99,15 @@ def add_appointment(request):
         appointment_date = request.data.get('appointment_date')
         appointment_time = request.data.get('appointment_time')
 
-        # Print the received data
+        # Log the incoming request (useful for auditing)
+        log_activity(request, "Attempted to add/update an appointment", f"Patient ID: {patient_id}, Doctor ID: {doctor_id}, Date: {appointment_date}, Time: {appointment_time}")
+        
+        # Print the received data (for debugging purposes)
         print(f"Received data: patient_id={patient_id}, doctor_id={doctor_id}, appointment_date={appointment_date}, appointment_time={appointment_time}")
         
         # Validate required fields
         if not all([patient_id, doctor_id, appointment_date, appointment_time]):
+            log_activity(request, "Appointment validation failed", "Missing required fields")
             return Response({
                 'success': False, 
                 'message': 'Patient ID, Doctor ID, Date, and Time are required'
@@ -140,7 +146,7 @@ def add_appointment(request):
             doctor=doctor,
             appointment_date=parsed_date,
             appointment_time=parsed_time,
-            status='Scheduled'  # Explicitly set to 'Scheduled' as per your choices
+            status='Scheduled',
         )
         
         # Update optional fields if provided
@@ -159,6 +165,9 @@ def add_appointment(request):
                 setattr(appointment, field, request.data.get(field))
         
         appointment.save()
+
+        # Log successful appointment creation
+        log_activity(request, "Appointment created successfully", f"Appointment ID: {appointment.id}")
         
         return Response({
             'success': True, 
