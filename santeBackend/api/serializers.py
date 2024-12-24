@@ -85,23 +85,21 @@ class RegisterEmployeeSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        role = validated_data["role"]
+        role = validated_data.get("role")
 
         # Ensure role is valid for an employee
         if role not in ["doctor", "nurse", "receptionist", "admin"]:
             raise serializers.ValidationError(
-                {
-                    "role": "Role must be one of 'doctor', 'nurse', 'receptionist', 'admin'."
-                }
+                {"role": "Role must be one of 'doctor', 'nurse', 'receptionist', 'admin'."}
             )
 
-        # Create user profile
+        # Create user with the create_user method
         user = UserProfile.objects.create_user(
             email=validated_data["email"],
             first_name=validated_data["first_name"],
             last_name=validated_data["last_name"],
-            password=make_password(validated_data["password"]),
-            gender=validated_data.get("gender", "Other"),
+            password=validated_data["password"],
+            gender=validated_data.get("gender"),
             date_of_birth=validated_data.get("date_of_birth"),
             phone_number=validated_data.get("phone_number"),
             address=validated_data.get("address"),
@@ -139,7 +137,7 @@ class RegisterPatientSerializer(serializers.ModelSerializer):
     emergency_contact_phone = serializers.CharField(required=False, allow_null=True)
     blood_type = serializers.CharField(required=False, allow_null=True)
     family_history = serializers.CharField(required=False, allow_null=True)
-    CPR_number = serializers.CharField(required=False, allow_null=False)
+    CPR_number = serializers.CharField(required=True)
     place_of_birth = serializers.CharField(required=False, allow_null=True)
     religion = serializers.CharField(required=False, allow_null=True)
     allergies = serializers.JSONField(required=False, default=dict)
@@ -172,19 +170,19 @@ class RegisterPatientSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        role = validated_data["role"]
+        role = validated_data.get("role")
 
         # Ensure role is valid for a patient
         if role != "patient":
             raise serializers.ValidationError({"role": "Role must be 'patient'."})
 
-        # Create user profile
+        # Create user with the create_user method
         user = UserProfile.objects.create_user(
             email=validated_data["email"],
             first_name=validated_data["first_name"],
             last_name=validated_data["last_name"],
-            password=make_password(validated_data["password"]),
-            gender=validated_data.get("gender", "Other"),
+            password=validated_data["password"],
+            gender=validated_data.get("gender"),
             date_of_birth=validated_data.get("date_of_birth"),
             phone_number=validated_data.get("phone_number"),
             address=validated_data.get("address"),
@@ -199,7 +197,7 @@ class RegisterPatientSerializer(serializers.ModelSerializer):
             "emergency_contact_phone": validated_data.get("emergency_contact_phone"),
             "blood_type": validated_data.get("blood_type"),
             "family_history": validated_data.get("family_history"),
-            "CPR_number": validated_data.get("CPR_number"),
+            "CPR_number": validated_data["CPR_number"],
             "place_of_birth": validated_data.get("place_of_birth"),
             "religion": validated_data.get("religion"),
             "allergies": validated_data.get("allergies", {}),
@@ -232,7 +230,6 @@ class LogSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = User
 #         fields = ['email', 'first_name', 'last_name']
-
 #     def update(self, instance, validated_data):
 #         # Update the instance with new data
 #         instance.email = validated_data.get('email', instance.email)

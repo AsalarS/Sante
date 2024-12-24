@@ -81,18 +81,18 @@ const Scheduler = ({ scheduleData, date }) => {
     const status = slot ? slot.status : "";  
 
     setSelectedCellData({
-      app_id: slot.appointment.id,
+      app_id: slot?.appointment.id,
       doctorName: doctor.name,
       doctorId: doctor.id,
       office: doctor.office_number,
       time: clickedHour,
       date: date,
       status: status,
-      patient_id : slot.appointment?.patient_id,
-      patient_first_name :slot.appointment?.patient_first_name,
-      patient_last_name :slot.appointment?.patient_last_name,
-      patient_email :slot.appointment?.patient_email,
-      patient_cpr :slot.appointment?.patient_cpr,
+      patient_id : slot?.appointment?.patient_id,
+      patient_first_name :slot?.appointment?.patient_first_name,
+      patient_last_name :slot?.appointment?.patient_last_name,
+      patient_email :slot?.appointment?.patient_email,
+      patient_cpr :slot?.appointment?.patient_cpr,
     });
 
     setDialogOpen(true);
@@ -226,6 +226,7 @@ const Scheduler = ({ scheduleData, date }) => {
           </tbody>
         </table>
       </div>
+      {/* TODO: Update the scheduler when dialog closes */}
       {/* Dialog Component */}
       <AppointmentDialog
         dialogOpen={dialogOpen}
