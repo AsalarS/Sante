@@ -49,7 +49,7 @@ function App() {
           <Route path="*" element={<ErrorPage />} />
 
           <Route
-            path="/Doctor/"
+            path="/Doctor"
             element={
               <ProtectedRoute allowedRoles={['doctor']}>
                 <Dashboard />
@@ -60,8 +60,8 @@ function App() {
             <Route index element={<Navigate to="dashboard" />} />
             <Route path="patients" element={<PatientsPage />} />
             <Route path="patients/:patientId" element={<PatientsPage />} />
+            <Route path="patients/appointment/:id" element={<AppointmentPage />} />
             <Route path="patients/appointment" element={<AppointmentPage />} />
-            <Route path="patients/appointment/:patientID" element={<AppointmentPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="help" element={<HelpPage />} />

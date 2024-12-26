@@ -1,8 +1,7 @@
 from rest_framework import serializers
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
-from .models import *
+from .models import UserProfile, Patient, Employee, Appointment, Chat, ChatMessage, Log, Prescription, Diagnosis, CarePlan
 
 User = get_user_model()
 
@@ -217,7 +216,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
 # LOGS SERIALIZER
 
-
 class LogSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     class Meta:
@@ -225,25 +223,27 @@ class LogSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-# # Serializer to handle input and update logic
-# class UserProfileSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ['email', 'first_name', 'last_name']
-#     def update(self, instance, validated_data):
-#         # Update the instance with new data
-#         instance.email = validated_data.get('email', instance.email)
-#         instance.first_name = validated_data.get('first_name', instance.first_name)
-#         instance.last_name = validated_data.get('last_name', instance.last_name)
+class ChatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Chat
+        fields = '__all__'
 
-#         # Save changes to the database
-#         instance.save()
-#         return instance
+class ChatMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatMessage
+        fields = '__all__'
 
-#     def create(self, validated_data):
-#         password = validated_data.pop('password', None)
-#         user = UserProfile(**validated_data)
-#         if password:
-#             user.set_password(password)  # Hash the password
-#         user.save()
-#         return user
+class PrescriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Prescription
+        fields = '__all__'
+
+class DiagnosisSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Diagnosis
+        fields = '__all__'
+
+class CarePlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CarePlan
+        fields = '__all__'

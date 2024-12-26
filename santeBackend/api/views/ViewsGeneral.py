@@ -216,3 +216,83 @@ def search_patients(request):
             'success': False,
             'message': 'An error occurred during the search.'
         }, status=500)
+        
+# Care Plan Views
+
+class CarePlansByUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_id):
+        user = request.user
+
+        # Check if the logged-in user has the appropriate role
+        if user.role not in ['receptionist', 'admin', 'nurse', 'doctor']:
+            return Response({"error": "You do not have permission to view these care plans."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            patient = Patient.objects.get(user__id=user_id)
+        except Patient.DoesNotExist:
+            return Response({"error": "Patient not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        care_plans = CarePlan.objects.filter(appointment__patient=patient)
+        serializer = CarePlanSerializer(care_plans, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class CarePlanByAppointmentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, appointment_id):
+        user = request.user
+
+        # Check if the logged-in user has the appropriate role
+        if user.role not in ['receptionist', 'admin', 'nurse', 'doctor']:
+            return Response({"error": "You do not have permission to view these care plans."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+        except Appointment.DoesNotExist:
+            return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        care_plans = CarePlan.objects.filter(appointment=appointment)
+        serializer = CarePlanSerializer(care_plans, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+# Diagnoses Views
+class DiagnosesByUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_id):
+        user = request.user
+
+        # Check if the logged-in user has the appropriate role
+        if user.role not in ['receptionist', 'admin', 'nurse', 'doctor']:
+            return Response({"error": "You do not have permission to view these diagnoses."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            patient = Patient.objects.get(user__id=user_id)
+        except Patient.DoesNotExist:
+            return Response({"error": "Patient not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        diagnoses = Diagnosis.objects.filter(appointment__patient=patient)
+        serializer = DiagnosisSerializer(diagnoses, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class DiagnosisByAppointmentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, appointment_id):
+        user = request.user
+
+        # Check if the logged-in user has the appropriate role
+        if user.role not in ['receptionist', 'admin', 'nurse', 'doctor']:
+            return Response({"error": "You do not have permission to view these diagnoses."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+        except Appointment.DoesNotExist:
+            return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        diagnoses = Diagnosis.objects.filter(appointment=appointment)
+        serializer = DiagnosisSerializer(diagnoses, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -10,10 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { SelectTagInput } from "./ui/select-input-tags";
-import { Textarea } from "./ui/textarea";
-import PhoneInput from "./ui/phoneInput";
-import { InputTags } from "./ui/input-tags";
+import { SelectTagInput } from "../ui/select-input-tags";
+import { Textarea } from "../ui/textarea";
+import PhoneInput from "../ui/phoneInput";
+import { InputTags } from "../ui/input-tags";
 
 const availableDaysOptions = [
   { label: "Monday", value: "Monday" },

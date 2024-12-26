@@ -10,12 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import PhoneInput from "./ui/phoneInput";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-import { SelectTagInput } from "./ui/select-input-tags";
-import { Textarea } from "./ui/textarea";
-import { InputTags } from "./ui/input-tags";
-import { PasswordInput } from "./ui/password-input";
+import PhoneInput from "../ui/phoneInput";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { SelectTagInput } from "../ui/select-input-tags";
+import { Textarea } from "../ui/textarea";
+import { InputTags } from "../ui/input-tags";
+import { PasswordInput } from "../ui/password-input";
 
 const availableDaysOptions = [
   { label: "Monday", value: "Monday" },

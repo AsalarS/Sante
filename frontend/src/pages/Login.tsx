@@ -86,6 +86,9 @@ function Login() {
                                         required
                                     />
                                 </div>
+                                {/* <div className="text-center text-sm">
+                                    <Link to="/register/" className="underline">Forgot password?</Link>
+                                </div> */}
                                 <Button type="submit" className="w-full text-white" disabled={loading}>
                                     {loading ? <Loader2 className="animate-spin" /> : "Login"}
                                 </Button>

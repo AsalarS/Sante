@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from datetime import datetime, time, timedelta
 from django.db.models import Q
-from ..models import Employee, Appointment, Patient
+from ..models import Employee, Appointment, Patient, UserProfile
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import logging
@@ -9,6 +9,11 @@ from django.utils import timezone
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from ..utilities import log_activity
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from ..serializers import AppointmentSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -192,3 +197,63 @@ def add_appointment(request):
             'success': False, 
             'message': 'An error occurred while creating the appointment'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Get all the patients data
+
+# Appointment from appointment id
+class AppointmentDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, appointment_id):
+        user = request.user
+
+        # Check if the logged-in user has the appropriate role
+        if user.role not in ['doctor', 'admin', 'nurse']:
+            return Response({"error": "You do not have permission to view this appointment."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+        except Appointment.DoesNotExist:
+            return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = AppointmentSerializer(appointment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request, appointment_id):
+        user = request.user
+
+        # Check if the logged-in user has the appropriate role
+        if user.role not in ['doctor', 'admin', 'nurse']:
+            return Response({"error": "You do not have permission to edit this appointment."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+        except Appointment.DoesNotExist:
+            return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = AppointmentSerializer(appointment, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PatientAppointmentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, patient_id):
+        user = request.user
+
+        # Check if the logged-in user is the patient or has a role of receptionist, doctor, or nurse
+        if user.role not in ['patient', 'receptionist', 'doctor', 'nurse'] and user.id != patient_id:
+            return Response({"error": "You do not have permission to view these appointments."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            patient = Patient.objects.get(user__id=patient_id)
+        except Patient.DoesNotExist:
+            return Response({"error": "Patient not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        appointments = Appointment.objects.filter(patient=patient)
+        serializer = AppointmentSerializer(appointments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    

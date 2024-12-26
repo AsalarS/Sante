@@ -35,16 +35,18 @@ function PatientProfile({ patientId }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [patient, setPatient] = useState(null);
+  const [appointments, setAppointments] = useState(null)
+  const [carePlans, setCarePlans] = useState(null);
+  const [diagnoses, setDiagnoses] = useState(null);
   const userRole = localStorage.getItem("role");
   
 
   useEffect(() => {
-    const fetchPatients = async () => {
+    const fetchPatientData = async () => {
       try {
         const response = await api.get(`/api/user-info/${patientId}/`);
         if (response.status === 200) {
           const patient = response.data;
-          console.log("Patients:", patient);
 
           setPatient(patient);
         } else {
@@ -56,8 +58,62 @@ function PatientProfile({ patientId }) {
         setLoading(false);
       }
     };
+    const fetchAppointments = async () => {
+      try {
+        const response = await api.get(`/api/patient/appointments/${patientId}/`);
+        if (response.status === 200) {
+          const appointmentData = response.data;
+          
+          setAppointments(appointmentData); 
+        } else {
+          console.error("Failed to fetch appointments:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Failed to fetch appointments:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    fetchPatients();
+    const fetchCarePlans = async () => {
+      try {
+        const response = await api.get(`/api/appointments/careplans/user/${patientId}/`);
+        if (response.status === 200) {
+          const carePlanData = response.data;
+
+          setCarePlans(carePlanData); 
+        } else {
+          console.error("Failed to fetch care plans:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Failed to fetch care plans:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchDiagnoses = async () => {
+      try {
+        const response = await api.get(`/api/diagnoses/user/${patientId}/`);
+        if (response.status === 200) {
+          const diagnosesData = response.data;
+
+          setDiagnoses(diagnosesData); 
+        } else {
+          console.error("Failed to fetch diagnoses:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Failed to fetch diagnoses:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    // Fetch data
+    fetchDiagnoses();
+    fetchAppointments();
+    fetchCarePlans();
+    fetchPatientData();
   }, [patientId]);
 
   if (loading) {
@@ -68,6 +124,13 @@ function PatientProfile({ patientId }) {
     );
   }
 
+  const handleCopyId = (id) => {
+    navigator.clipboard.writeText(id).then(() => {
+    }).catch(err => {
+      console.error("Failed to copy: ", err);
+    });
+  };
+
   const calculateAge = (dateOfBirth) => {
     const dob = new Date(dateOfBirth);
     const ageDifMs = Date.now() - dob.getTime();
@@ -75,123 +138,11 @@ function PatientProfile({ patientId }) {
     return Math.abs(ageDate.getUTCFullYear() - 1970);
   };
 
-  const appointmentData = [
-    {
-      id: 1,
-      doctorName: "Dr. Smith",
-      appointmentDate: "2023-11-28",
-      status: "Scheduled",
-      flowUpRequired: true,
-      appointmentTime: "10:00 AM",
-    },
-    {
-      id: 2,
-      doctorName: "Dr. Johnson",
-      appointmentDate: "2023-11-29",
-      status: "Completed",
-      flowUpRequired: false,
-      appointmentTime: "02:00 PM",
-    },
-    {
-      id: 3,
-      doctorName: "Dr. Williams",
-      appointmentDate: "2023-11-30",
-      status: "Canceled",
-      flowUpRequired: true,
-      appointmentTime: "03:30 PM",
-    },
-  ];
-  const carePlanData = [
-    {
-      id: 1,
-      title: "Plan A",
-      type: "Physical Therapy",
-      date: "2023-11-15",
-      doneBy: "Dr. Smith",
-      dateDone: "2023-11-20",
-      instructions: "Weekly sessions",
-    },
-    {
-      id: 2,
-      title: "Plan B",
-      type: "Dietary Guidance",
-      date: "2023-11-18",
-      doneBy: "Dr. Johnson",
-      dateDone: "2023-11-25",
-      instructions: "Low-carb diet plan",
-    },
-    {
-      id: 3,
-      title: "Plan C",
-      type: "Rehabilitation",
-      date: "2023-11-22",
-      doneBy: "Dr. Williams",
-      dateDone: "2023-11-30",
-      instructions: "Daily exercise routine",
-    },
-    {
-      id: 4,
-      title: "Plan D",
-      type: "Mental Health Support",
-      date: "2023-12-01",
-      doneBy: "Dr. Taylor",
-      dateDone: "2023-12-10",
-      instructions: "Weekly counseling",
-    },
-    {
-      id: 5,
-      title: "Plan E",
-      type: "Pain Management",
-      date: "2023-12-05",
-      doneBy: "Dr. Brown",
-      dateDone: "2023-12-12",
-      instructions:
-        "Medication and physical therapy Medication and physical therapy Medication and physical therapy Medication and physical therapy",
-    },
-  ];
-
-  const diagnosisData = [
-    {
-      id: 1,
-      diagnosis: "Diabetes Mellitus",
-      type: "Primary",
-      diagnosedBy: "Dr. Smith",
-      diagnosisDate: "2023-11-10",
-    },
-    {
-      id: 2,
-      diagnosis: "Hypertension",
-      type: "Secondary",
-      diagnosedBy: "Dr. Johnson",
-      diagnosisDate: "2023-11-15",
-    },
-    {
-      id: 3,
-      diagnosis: "Asthma",
-      type: "Primary",
-      diagnosedBy: "Dr. Williams",
-      diagnosisDate: "2023-11-20",
-    },
-    {
-      id: 4,
-      diagnosis: "Arthritis",
-      type: "Secondary",
-      diagnosedBy: "Dr. Taylor",
-      diagnosisDate: "2023-12-01",
-    },
-    {
-      id: 5,
-      diagnosis: "Migraine",
-      type: "Primary",
-      diagnosedBy: "Dr. Brown",
-      diagnosisDate: "2023-12-05",
-    },
-  ];
-
   const statusColors = {
     Scheduled: "bg-primary/20 text-primary font-semibold",
     Completed: "bg-green-400/20 text-green-400 font-semibold",
     Canceled: "bg-red-400/20 text-red-400 font-semibold",
+    "No Show": "bg-orange-400/20 text-orange-400 font-semibold",
   };
 
   return (
@@ -205,11 +156,11 @@ function PatientProfile({ patientId }) {
                 <Avatar className="size-12 mr-2">
                   <AvatarImage src="link" alt="Profile Image" />
                   <AvatarFallback className="bg-muted text-foreground">
-                    PA
+                    {`${patient?.first_name.charAt(0).toUpperCase()}${patient?.last_name.charAt(0).toUpperCase()}`}
                   </AvatarFallback>
                 </Avatar>
                 <Label className="text-2xl font-semibold text-foreground line-clamp-1 break-all">
-                  John Doe
+                  {patient?.first_name} {patient?.last_name}
                 </Label>
               </div>
               {(userRole === "doctor" || userRole === "receptionist") && <Button>Edit</Button>}
@@ -218,55 +169,55 @@ function PatientProfile({ patientId }) {
               <div className="grid grid-cols-3 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div>
                   <label className="block text-gray-500 text-sm">Address</label>
-                  <span>{patient.address || "None"}</span>
+                  <span>{patient?.address || "None"}</span>
                 </div>
                 <div>
                   <label className="block text-gray-500 text-sm">Age</label>
-                  <span>{calculateAge(patient.date_of_birth) || "None"}</span>
+                  <span>{calculateAge(patient?.date_of_birth) || "None"}</span>
                 </div>
                 <div>
                   <label className="block text-gray-500 text-sm">
                     Date of Birth
                   </label>
-                  <span>{patient.date_of_birth || "None"}</span>
+                  <span>{patient?.date_of_birth || "None"}</span>
                 </div>
                 <div>
                   <label className="block text-gray-500 text-sm">
                     Blood Type
                   </label>
-                  <span>{patient.blood_type || "None"}</span>
+                  <span>{patient?.blood_type || "None"}</span>
                 </div>
                 <div>
                   <label className="block text-gray-500 text-sm">CPR</label>
-                  <span>{patient.CPR_number || "None"}</span>
+                  <span>{patient?.CPR_number || "None"}</span>
                 </div>
                 <div>
                   <label className="block text-gray-500 text-sm">
                     Emergency Contact Name
                   </label>
-                  <span>{patient.emergency_contact_name || "None"}</span>
+                  <span>{patient?.emergency_contact_name || "None"}</span>
                 </div>
                 <div>
                   <label className="block text-gray-500 text-sm">
                     Emergency Contact Number
                   </label>
-                  <span>{patient.emergency_contact_phone || "None"}</span>
+                  <span>{patient?.emergency_contact_phone || "None"}</span>
                 </div>
                 <div>
                   <label className="block text-gray-500 text-sm">Gender</label>
-                  <span>{patient.gender || "None"}</span>
+                  <span>{patient?.gender || "None"}</span>
                 </div>
                 <div>
                   <label className="block text-gray-500 text-sm">
                     Place of Birth
                   </label>
-                  <span>{patient.place_of_birth || "None"}</span>
+                  <span>{patient?.place_of_birth || "None"}</span>
                 </div>
                 <div>
                   <label className="block text-gray-500 text-sm">
                     Religion
                   </label>
-                  <span>{patient.religion || "None"}</span>
+                  <span>{patient?.religion || "None"}</span>
                 </div>
               </div>
             </CardContent>
@@ -308,14 +259,14 @@ function PatientProfile({ patientId }) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {appointmentData.map((appointment) => (
+                      {appointments?.map((appointment) => (
                         <TableRow
                           key={appointment.id}
                           className="border-border"
                         >
-                          <TableCell>{appointment.doctorName}</TableCell>
-                          <TableCell>{appointment.appointmentDate}</TableCell>
-                          <TableCell>{appointment.appointmentTime}</TableCell>
+                          <TableCell>{appointment.doctor}</TableCell>
+                          <TableCell>{appointment.appointment_date}</TableCell>
+                          <TableCell>{appointment.appointment_time}</TableCell>
                           <TableCell>
                             <div
                               className={`px-2 py-1 text-sm  text-center rounded-md ${
@@ -341,12 +292,13 @@ function PatientProfile({ patientId }) {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
-                                <DropdownMenuItem className="flex flex-row justify-between">
+                                <DropdownMenuItem className="flex flex-row justify-between" onClick={() => handleCopyId(appointment.id)}>
                                   Copy ID <Copy />
                                 </DropdownMenuItem>
+                                {userRole.toLowerCase() === "doctor" && appointment.status === "Scheduled" && <DropdownMenuItem>Open</DropdownMenuItem>}
                                 <DropdownMenuItem>Edit</DropdownMenuItem>
                                 <DropdownMenuItem className="text-red-500 focus:text-red-500">
-                                  Delete
+                                  Cancel
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -373,7 +325,7 @@ function PatientProfile({ patientId }) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {carePlanData.map((plan) => (
+                      {carePlans?.map((plan) => (
                         <TableRow key={plan.id} className="border-border">
                           <TableCell>{plan.title}</TableCell>
                           <TableCell>{plan.type}</TableCell>
@@ -403,7 +355,7 @@ function PatientProfile({ patientId }) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {diagnosisData.map((diagnosis) => (
+                      {diagnoses?.map((diagnosis) => (
                         <TableRow key={diagnosis.id} className="border-border">
                           <TableCell>{diagnosis.diagnosis}</TableCell>
                           <TableCell>
@@ -445,7 +397,7 @@ function PatientProfile({ patientId }) {
                 <Textarea
                   placeholder="Enter notes..."
                   className="w-full min-h-28 flex-grow bg-border resize-none text-foreground text-sm"
-                  value={patient.patient_notes || ""}
+                  value={patient?.patient_notes || ""}
                 />
               </div>
             </div>
@@ -454,7 +406,7 @@ function PatientProfile({ patientId }) {
               <CompactListBox
                 displayAsBadges={true}
                 title="Allergies"
-                data={patient.allergies || {}}
+                data={patient?.allergies || {}}
                 onClickIcon={() => console.log("Allergies icon clicked")}
                 onClickSelf={() => console.log("Allergies clicked")}
                 className="flex-grow"
@@ -476,7 +428,7 @@ function PatientProfile({ patientId }) {
               <CompactListBox
                 displayAsBadges={true}
                 title="Surgeries"
-                data={patient.past_surgeries || {}}
+                data={patient?.past_surgeries || {}}
                 onClickIcon={() => console.log("Surgeries icon clicked")}
                 onClickSelf={() => console.log("Surgeries clicked")}
                 className="flex-grow"

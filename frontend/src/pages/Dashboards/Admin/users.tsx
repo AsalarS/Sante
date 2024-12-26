@@ -37,7 +37,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import UserDialog from "@/components/userDetailsDialog";
+import UserDialog from "@/components/Dialogs/userDetailsDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,7 +50,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import AddUserDialog from "@/components/add-user-dialog";
+import AddUserDialog from "@/components/Dialogs/add-user-dialog";
 import { ChatBubbleAvatar } from "@/components/ui/chat/chat-bubble";
 
 export type User = {

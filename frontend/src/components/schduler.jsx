@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/hover-card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { CalendarDays } from "lucide-react";
-import { AppointmentDialog } from "./appointmentDialog";
+import { AppointmentDialog } from "./Dialogs/appointmentDialog";
 
 // Helper function to generate hours
 const generateHours = () => {

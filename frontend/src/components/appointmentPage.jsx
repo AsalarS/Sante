@@ -3,14 +3,50 @@ import { Textarea } from "./ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Separator } from "./ui/separator";
-import { Heart, CircleGauge, Thermometer, Activity, Wind, PenLine, Plus, CornerDownRight, Ellipsis, ChevronLeft } from "lucide-react";
+import { Heart, CircleGauge, Thermometer, Activity, Wind, PenLine, Plus, CornerDownRight, Ellipsis, ChevronLeft, Loader2 } from "lucide-react";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Switch } from "./ui/switch";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import api from "@/api";
 
 function AppointmentPage() {
     const navigate = useNavigate();
+    const { id } = useParams();
+    const [appointment, setAppointment] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const fetchAppointments = async () => {
+        try {
+          const response = await api.get(`/api/appointment/${id}/`);
+          if (response.status === 200) {
+            console.log(response.data);
+            const appointmentData = response.data;
+            
+            setAppointment(appointmentData); 
+          } else {
+            console.error("Failed to fetch appointments:", response.statusText);
+          }
+        } catch (error) {
+          console.error("Failed to fetch appointments:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+    useEffect(() => {
+      fetchAppointments();
+    }, [id]);
+
+    if (loading) {
+      return (
+        <div className="flex justify-center items-center h-full">
+          <Loader2 className="animate-spin text-primary w-10 h-10" />
+        </div>
+      );
+    }
 
     return (
         <div className="bg-even-darker-background flex flex-col sm:flex-row p-6 gap-4 h-lvh ">
