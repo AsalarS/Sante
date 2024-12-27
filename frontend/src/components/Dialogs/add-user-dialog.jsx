@@ -86,9 +86,9 @@ const AddUserDialog = ({ open, onClose, onSave }) => {
           <TabsList className="w-full grid grid-cols-2">
             <TabsTrigger
               value="employee"
-              // onClick={() =>
-              //   setUserData((prev) => ({ ...prev, role: "employee" }))
-              // }
+            // onClick={() =>
+            //   setUserData((prev) => ({ ...prev, role: "employee" }))
+            // }
             >
               Employee
             </TabsTrigger>
@@ -411,6 +411,7 @@ const AddUserDialog = ({ open, onClose, onSave }) => {
               <div>
                 <Label>Family History</Label>
                 <Textarea
+                  className="resize-none"
                   value={patientData.family_history}
                   onChange={(e) =>
                     handleChange(setPatientData)(
@@ -420,9 +421,10 @@ const AddUserDialog = ({ open, onClose, onSave }) => {
                   }
                 />
               </div>
-              <div>
+              <div className="md:col-span-2">
                 <Label>Patient Notes</Label>
                 <Textarea
+                  className="resize-none"
                   value={patientData.patient_notes}
                   onChange={(e) =>
                     handleChange(setPatientData)(

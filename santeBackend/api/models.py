@@ -110,7 +110,7 @@ class Patient(models.Model):
     religion = models.CharField(max_length=50, blank=True, null=True)
     allergies = models.JSONField(default=dict, blank=True, null=True)
     past_surgeries = models.JSONField(default=dict, blank=True, null=True)
-    chronic_conditions = models.TextField(blank=True, null=True)
+    chronic_conditions = models.TextField(blank=True, null=True) #TODO: Change this to JSON field and update it in frontend
     patient_notes = models.TextField(blank=True, null=True)
 
 def __str__(self):

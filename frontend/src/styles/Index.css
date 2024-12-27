@@ -42,8 +42,8 @@ html {
         --dash-active: 228 99% 71%;
         --background-hover: 220 14% 96%;
         --gradient-1: 228 99% 91%;
-        --btn-normal: 235 10% 40%;
-        --btn-hover: 235 12% 30%; 
+        --btn-normal: 225 10% 85%; 
+        --btn-hover: 235 12% 92%;
     }
 
     .dark {

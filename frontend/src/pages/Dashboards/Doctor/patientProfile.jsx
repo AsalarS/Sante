@@ -30,16 +30,19 @@ import {
 import { Copy, Ellipsis, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "@/api";
+import { calculateAge } from "@/utility/generalUtility";
+import { format } from "date-fns";
+import PatientProfileDialog from "@/components/Dialogs/patientProfileDialog";
 
 function PatientProfile({ patientId }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [patient, setPatient] = useState(null);
-  const [appointments, setAppointments] = useState(null)
+  const [appointments, setAppointments] = useState(null);
   const [carePlans, setCarePlans] = useState(null);
   const [diagnoses, setDiagnoses] = useState(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const userRole = localStorage.getItem("role");
-  
 
   useEffect(() => {
     const fetchPatientData = async () => {
@@ -47,7 +50,6 @@ function PatientProfile({ patientId }) {
         const response = await api.get(`/api/user-info/${patientId}/`);
         if (response.status === 200) {
           const patient = response.data;
-
           setPatient(patient);
         } else {
           console.error("Failed to fetch users:", response.statusText);
@@ -63,8 +65,7 @@ function PatientProfile({ patientId }) {
         const response = await api.get(`/api/patient/appointments/${patientId}/`);
         if (response.status === 200) {
           const appointmentData = response.data;
-          
-          setAppointments(appointmentData); 
+          setAppointments(appointmentData);
         } else {
           console.error("Failed to fetch appointments:", response.statusText);
         }
@@ -77,11 +78,10 @@ function PatientProfile({ patientId }) {
 
     const fetchCarePlans = async () => {
       try {
-        const response = await api.get(`/api/appointments/careplans/user/${patientId}/`);
+        const response = await api.get(`/api/careplans/user/${patientId}/`);
         if (response.status === 200) {
           const carePlanData = response.data;
-
-          setCarePlans(carePlanData); 
+          setCarePlans(carePlanData);
         } else {
           console.error("Failed to fetch care plans:", response.statusText);
         }
@@ -97,8 +97,7 @@ function PatientProfile({ patientId }) {
         const response = await api.get(`/api/diagnoses/user/${patientId}/`);
         if (response.status === 200) {
           const diagnosesData = response.data;
-
-          setDiagnoses(diagnosesData); 
+          setDiagnoses(diagnosesData);
         } else {
           console.error("Failed to fetch diagnoses:", response.statusText);
         }
@@ -108,7 +107,7 @@ function PatientProfile({ patientId }) {
         setLoading(false);
       }
     };
-    
+
     // Fetch data
     fetchDiagnoses();
     fetchAppointments();
@@ -131,18 +130,15 @@ function PatientProfile({ patientId }) {
     });
   };
 
-  const calculateAge = (dateOfBirth) => {
-    const dob = new Date(dateOfBirth);
-    const ageDifMs = Date.now() - dob.getTime();
-    const ageDate = new Date(ageDifMs);
-    return Math.abs(ageDate.getUTCFullYear() - 1970);
-  };
-
   const statusColors = {
     Scheduled: "bg-primary/20 text-primary font-semibold",
     Completed: "bg-green-400/20 text-green-400 font-semibold",
     Canceled: "bg-red-400/20 text-red-400 font-semibold",
     "No Show": "bg-orange-400/20 text-orange-400 font-semibold",
+  };
+
+  const handleSave = (updatedPatient) => {
+    setPatient(updatedPatient);
   };
 
   return (
@@ -163,7 +159,9 @@ function PatientProfile({ patientId }) {
                   {patient?.first_name} {patient?.last_name}
                 </Label>
               </div>
-              {(userRole === "doctor" || userRole === "receptionist") && <Button>Edit</Button>}
+              {(userRole === "doctor" || userRole === "receptionist") && (
+                <Button onClick={() => setDialogOpen(true)}>Edit</Button>
+              )}
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -224,11 +222,11 @@ function PatientProfile({ patientId }) {
           </Card>
           <Card className="bg-background p-4 rounded-lg flex-grow flex flex-col border-none">
             <Tabs defaultValue={userRole != "nurse" ? "appointments" : "care_plans"}>
-              <TabsList className="w-full grid grid-cols-3 mb-4">
+              <TabsList className="w-full grid grid-cols-4 mb-4">
                 <TabsTrigger value="appointments">Appointments</TabsTrigger>
                 <TabsTrigger value="care_plans">Care Plans</TabsTrigger>
                 <TabsTrigger value="diagnoses">Diagnoses</TabsTrigger>
-                {/* <TabsTrigger value="documents">Documents</TabsTrigger> */}
+                <TabsTrigger value="Information">Information</TabsTrigger>
               </TabsList>
 
               {/* Appointment Tab */}
@@ -266,12 +264,11 @@ function PatientProfile({ patientId }) {
                         >
                           <TableCell>{appointment.doctor}</TableCell>
                           <TableCell>{appointment.appointment_date}</TableCell>
-                          <TableCell>{appointment.appointment_time}</TableCell>
+                          <TableCell>{format(new Date(`1970-01-01T${appointment.appointment_time}`), "HH:mm")}</TableCell>
                           <TableCell>
                             <div
-                              className={`px-2 py-1 text-sm  text-center rounded-md ${
-                                statusColors[appointment.status]
-                              }`}
+                              className={`px-2 py-1 text-sm  text-center rounded-md ${statusColors[appointment.status]
+                                }`}
                             >
                               {appointment.status}
                             </div>
@@ -295,7 +292,15 @@ function PatientProfile({ patientId }) {
                                 <DropdownMenuItem className="flex flex-row justify-between" onClick={() => handleCopyId(appointment.id)}>
                                   Copy ID <Copy />
                                 </DropdownMenuItem>
-                                {userRole.toLowerCase() === "doctor" && appointment.status === "Scheduled" && <DropdownMenuItem>Open</DropdownMenuItem>}
+                                {/* Open the appointment and pass user id */}
+                                {userRole.toLowerCase() === "doctor" && (appointment.status === "Scheduled" || appointment.status === "Completed") && (
+                                  <DropdownMenuItem onClick={() => navigate(`/doctor/patients/appointment/${appointment.id}`, {
+                                    state: { patientId: patient?.id }
+                                  })}>
+                                    Open
+                                  </DropdownMenuItem>
+                                )}
+
                                 <DropdownMenuItem>Edit</DropdownMenuItem>
                                 <DropdownMenuItem className="text-red-500 focus:text-red-500">
                                   Cancel
@@ -360,12 +365,11 @@ function PatientProfile({ patientId }) {
                           <TableCell>{diagnosis.diagnosis}</TableCell>
                           <TableCell>
                             <div
-                              className={`px-2 py-1 text-sm text-center rounded-md ${
-                                {
-                                  Primary: "bg-primary/20 text-primary",
-                                  Secondary: "bg-chart-5/20 text-chart-5",
-                                }[diagnosis.type]
-                              }`}
+                              className={`px-2 py-1 text-sm text-center rounded-md ${{
+                                Primary: "bg-primary/20 text-primary",
+                                Secondary: "bg-chart-5/20 text-chart-5",
+                              }[diagnosis.type]
+                                }`}
                             >
                               {diagnosis.type}
                             </div>
@@ -378,9 +382,35 @@ function PatientProfile({ patientId }) {
                   </Table>
                 </div>
               </TabsContent>
-              {/* <TabsContent value="documents">
-              
-              </TabsContent> */}
+              <TabsContent value="Information">
+                <div className="p-4 flex flex-col gap-4 grow h-full">
+                  <div className="">
+                    <h3 className="font-medium text-foreground mb-2 ">
+                      Patient Notes
+                    </h3>
+                    <Textarea
+                      placeholder="Enter notes..."
+                      className="w-full min-h-28 flex-grow bg-border resize-none text-foreground text-sm"
+                      value={patient?.patient_notes || ""}
+                      readOnly={userRole !== "doctor"}
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-foreground mb-2">
+                      Family History
+                    </h3>
+                    <Textarea
+                      placeholder="Enter notes..."
+                      className="w-full min-h-28 flex-grow bg-border resize-none text-foreground text-sm"
+                      value={patient?.family_history || ""}
+                      readOnly={userRole === "nurse"}
+                    />
+                  </div>
+                  <Button className="w-32 self-end mt-2">
+                    Update
+                  </Button>
+                </div>
+              </TabsContent>
             </Tabs>
           </Card>
         </div>
@@ -388,7 +418,7 @@ function PatientProfile({ patientId }) {
         {/* Right Section (Sidebar) */}
         {userRole === "doctor" && (
           <div className="flex flex-col space-y-4 min-w-2/12 overflow-y-auto">
-            {/* Patient Card */}
+            {/* Patient Card
             <div className="max-w-64">
               <div className="p-4 bg-background rounded-lg shadow-md cursor-pointer">
                 <h3 className="font-medium text-foreground mb-2">
@@ -396,11 +426,23 @@ function PatientProfile({ patientId }) {
                 </h3>
                 <Textarea
                   placeholder="Enter notes..."
-                  className="w-full min-h-28 flex-grow bg-border resize-none text-foreground text-sm"
+                  className="w-full max-h-28 flex-grow bg-border resize-none text-foreground text-sm"
                   value={patient?.patient_notes || ""}
                 />
               </div>
             </div>
+            <div className="max-w-64">
+              <div className="p-4 bg-background rounded-lg shadow-md cursor-pointer">
+                <h3 className="font-medium text-foreground mb-2">
+                  Family History
+                </h3>
+                <Textarea
+                  placeholder="Enter notes..."
+                  className="w-full min-h-28 flex-grow bg-border resize-none text-foreground text-sm"
+                  value={patient?.family_history || ""}
+                />
+              </div>
+            </div> */}
             {/* Patient  Medical Information */}
             <div className="max-w-64">
               <CompactListBox
@@ -434,11 +476,23 @@ function PatientProfile({ patientId }) {
                 className="flex-grow"
               />
             </div>
+            <div className="max-w-64">
+              <CompactListBox
+                displayAsBadges={true}
+                title="Chronic Conditions"
+                data={patient?.chronic_conditions || {}}
+                onClickIcon={() => console.log("Surgeries icon clicked")}
+                onClickSelf={() => console.log("Surgeries clicked")}
+                className="flex-grow"
+              />
+            </div>
             <div className="max-w-64 p-4 bg-background rounded-lg shadow-md flex flex-col gap-4">
               <Button className="w-full">Generate Documents</Button>
               <Button
                 className="w-full"
-                onClick={() => navigate("/doctor/patients/appointment/1")}
+                onClick={() => navigate("/doctor/patients/appointment/", {
+                  state: { patientId: patient?.id },
+                })}
               >
                 New Appointment
               </Button>
@@ -446,6 +500,12 @@ function PatientProfile({ patientId }) {
           </div>
         )}
       </div>
+      <PatientProfileDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        patientData={patient}
+        onSave={handleSave}
+      />
     </div>
   );
 }

@@ -15,8 +15,7 @@ function CompactListBox({
   const maxItemsToShow = 8;
   const displayData = Object.entries(data).slice(0, maxItemsToShow);
 
-  if (typeof data !== "object" || Array.isArray(data)) {
-    console.error("Invalid data type for CompactListBox");
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
     data = {};
   }
 
@@ -42,24 +41,21 @@ function CompactListBox({
           <>
             {displayAsBadges ? (
               <div className="flex flex-wrap items-center space-x-2 mb-2">
-                {displayData.map(([key, value], index) => (
-                  <>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Badge
-                            key={index}
-                            className="bg-chart-5 text-white hover:bg-chart-5/75 mb-2 max-w-20"
-                          >
-                            <span className="line-clamp-1 break-all">{key}</span>
-                          </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                          <p>{value}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </>
+                {displayData.map(([key, value]) => (
+                  <TooltipProvider key={key}>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Badge
+                          className="bg-chart-5 text-white hover:bg-chart-5/75 mb-2 max-w-20"
+                        >
+                          <span className="line-clamp-1 break-all">{key}</span>
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        <p>{value}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 ))}
 
                 <div className="bg-foreground/10 text-white hover:bg-foreground/25 mb-2 rounded-full">
@@ -67,12 +63,12 @@ function CompactListBox({
                 </div>
               </div>
             ) : (
-              displayData.map(([key, value], index) => (
-                <React.Fragment key={index}>
+              displayData.map(([key, value]) => (
+                <React.Fragment key={key}>
                   <div className="text-muted-foreground">
                     {key}: {value}
                   </div>
-                  {index < displayData.length - 1 && <Separator />}
+                  <Separator />
                 </React.Fragment>
               ))
             )}
