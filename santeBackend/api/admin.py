@@ -55,7 +55,7 @@ class DiagnosisAdmin(admin.ModelAdmin):
     search_fields = ('appointment__id', 'diagnosis_name')
 
 class CarePlanAdmin(admin.ModelAdmin):
-    list_display = ('id', 'appointment', 'care_plan_title', 'care_plan_type', 'date_of_issue', 'date_of_completion')
+    list_display = ('id', 'appointment', 'care_plan_title', 'care_plan_type', 'date_of_completion')
     search_fields = ('appointment__id', 'care_plan_title')
 
 admin.site.register(UserProfile, UserProfileAdmin)

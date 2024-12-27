@@ -45,7 +45,8 @@ export function AppointmentVitalsDialog({
         ...vitalsData,
         blood_pressure: `${systolic}/${diastolic}`,
       };
-      const response = await api.patch(`/api/appointment/${appointmentId}/vitals/`, updatedVitalsData);
+
+      const response = await api.patch(`/api/appointments/${appointmentId}/`, updatedVitalsData);
       if (response.status === 200) {
         toast.success("Vitals updated successfully");
         setDialogOpen(false);
@@ -73,7 +74,7 @@ export function AppointmentVitalsDialog({
           <Label className="mb-2">Heart Rate</Label>
           <NumberField
             value={vitalsData.heart_rate || 0}
-            onChange={(e) => handleChange("heart_rate", e.target.value)}
+            onChange={(value) => handleChange("heart_rate", value)}
             min={0}
             max={300}
             step={10}
@@ -86,7 +87,7 @@ export function AppointmentVitalsDialog({
           <div className="flex flex-row gap-4">
             <NumberField
               value={systolic}
-              onChange={(e) => setSystolic(e.target.value)}
+              onChange={(value) => setSystolic(value)}
               min={0}
               max={300}
               step={1}
@@ -97,7 +98,7 @@ export function AppointmentVitalsDialog({
             <span className="text-3xl select-none">/</span>
             <NumberField
               value={diastolic}
-              onChange={(e) => setDiastolic(e.target.value)}
+              onChange={(value) => setDiastolic(value)}
               min={0}
               max={300}
               step={1}
@@ -110,7 +111,7 @@ export function AppointmentVitalsDialog({
           <Label className="mt-6 mb-2">Temperature</Label>
           <NumberField
             value={vitalsData.temperature || 0}
-            onChange={(e) => handleChange("temperature", e.target.value)}
+            onChange={(value) => handleChange("temperature", value)}
             min={0}
             max={300}
             step={1}
@@ -122,7 +123,7 @@ export function AppointmentVitalsDialog({
         <Label className="mt-6 mb-2">O₂ Saturation</Label>
           <NumberField
             value={vitalsData.o2_sat || 0}
-            onChange={(e) => handleChange("o2_sat", e.target.value)}
+            onChange={(value) => handleChange("o2_sat", value)}
             min={0}
             max={100}
             step={1}
@@ -134,7 +135,7 @@ export function AppointmentVitalsDialog({
           <Label className="mt-6 mb-2">Respiratory Rate</Label>
           <NumberField
             value={vitalsData.resp_rate || 0}
-            onChange={(e) => handleChange("resp_rate", e.target.value)}
+            onChange={(value) => handleChange("resp_rate", value)}
             min={0}
             max={100}
             step={1}

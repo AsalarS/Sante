@@ -110,7 +110,7 @@ class Patient(models.Model):
     religion = models.CharField(max_length=50, blank=True, null=True)
     allergies = models.JSONField(default=dict, blank=True, null=True)
     past_surgeries = models.JSONField(default=dict, blank=True, null=True)
-    chronic_conditions = models.TextField(blank=True, null=True) #TODO: Change this to JSON field and update it in frontend
+    chronic_conditions = models.JSONField(default=dict, blank=True, null=True)
     patient_notes = models.TextField(blank=True, null=True)
 
 def __str__(self):
@@ -252,7 +252,6 @@ class CarePlan(models.Model):
     )
     care_plan_title = models.CharField(max_length=100)
     care_plan_type = models.CharField(max_length=50, choices=CARE_PLAN_TYPE_CHOICES)
-    date_of_issue = models.DateField()
     date_of_completion = models.DateField(null=True, blank=True)
     done_by = models.ForeignKey(
         Employee,

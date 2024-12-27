@@ -325,12 +325,12 @@ const UserDialog = ({ user, open, onClose, onSave, editable = true }) => {
               </div>
               <div>
                 <Label>Chronic Conditions</Label>
-                <Input
-                  value={formData.chronic_conditions || ""}
-                  onChange={(e) =>
-                    editable &&
-                    handleChange("chronic_conditions", e.target.value)
+                <InputTags
+                  value={formData.chronic_conditions || {}}
+                  onChange={(value) =>
+                    editable && handleChange("chronic_conditions", value)
                   }
+                  useKeyAsValue={false}
                   readOnly={!editable}
                 />
               </div>

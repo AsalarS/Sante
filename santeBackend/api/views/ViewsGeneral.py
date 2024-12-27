@@ -257,6 +257,41 @@ class CarePlanByAppointmentView(APIView):
         serializer = CarePlanSerializer(care_plans, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+    def patch(self, request, appointment_id):
+        user = request.user
+
+        # Check if the logged-in user has the appropriate role
+        if user.role not in ['receptionist', 'admin', 'nurse', 'doctor']:
+            return Response({"error": "You do not have permission to create or update care plans."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+        except Appointment.DoesNotExist:
+            return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Get the care plan ID from the request data (if exists)
+        care_plan_id = request.data.get('id', None)
+
+        if care_plan_id:
+            # If care_plan_id exists, try to find the existing care plan
+            try:
+                care_plan = CarePlan.objects.get(id=care_plan_id, appointment=appointment)
+            except CarePlan.DoesNotExist:
+                return Response({"error": "Care plan not found for this appointment."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Update the care plan
+            serializer = CarePlanSerializer(care_plan, data=request.data, partial=True)  # Partial=True allows partial updates
+        else:
+            # If no care_plan_id exists, create a new care plan
+            request.data['appointment'] = appointment.id  # Ensure the care plan is linked to the appointment
+            serializer = CarePlanSerializer(data=request.data)
+
+        # Validate and save the care plan
+        if serializer.is_valid():
+            care_plan = serializer.save()
+            return Response(CarePlanSerializer(care_plan).data, status=status.HTTP_200_OK if care_plan_id else status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 # Diagnoses Views
 class DiagnosesByUserView(APIView):
@@ -296,3 +331,39 @@ class DiagnosisByAppointmentView(APIView):
         diagnoses = Diagnosis.objects.filter(appointment=appointment)
         serializer = DiagnosisSerializer(diagnoses, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def patch(self, request, appointment_id):
+        user = request.user
+
+        # Check if the logged-in user has the appropriate role
+        if user.role not in ['receptionist', 'admin', 'nurse', 'doctor']:
+            return Response({"error": "You do not have permission to create or update diagnoses."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+        except Appointment.DoesNotExist:
+            return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Get the diagnosis ID from the request data (if exists)
+        diagnosis_id = request.data.get('id', None)
+
+        if diagnosis_id:
+            # If diagnosis_id exists, try to find the existing diagnosis
+            try:
+                diagnosis = Diagnosis.objects.get(id=diagnosis_id, appointment=appointment)
+            except Diagnosis.DoesNotExist:
+                return Response({"error": "Diagnosis not found for this appointment."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Update the diagnosis
+            serializer = DiagnosisSerializer(diagnosis, data=request.data, partial=True)  # Partial=True allows partial updates
+        else:
+            # If no diagnosis_id exists, create a new diagnosis
+            request.data['appointment'] = appointment.id  # Ensure the diagnosis is linked to the appointment
+            serializer = DiagnosisSerializer(data=request.data)
+
+        # Validate and save the diagnosis
+        if serializer.is_valid():
+            diagnosis = serializer.save()
+            return Response(DiagnosisSerializer(diagnosis).data, status=status.HTTP_200_OK if diagnosis_id else status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

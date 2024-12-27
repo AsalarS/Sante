@@ -15,46 +15,33 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import api from "@/api";
-import { toast } from "sonner";
 
 export function DiagnosisDialog({
   dialogOpen,
   setDialogOpen,
-  appointmentId,
-  diagnosisData: initialDiagnosisData,
+  diagnosisData,
+  onSave,
 }) {
-  const [diagnosisData, setDiagnosisData] = useState(initialDiagnosisData || {});
-  const [isLoading, setIsLoading] = useState(false);
-
+  const [diagnosis, setDiagnosis] = useState(diagnosisData || { diagnosis_name: "", diagnosis_type: "" });
+  
   useEffect(() => {
-    setDiagnosisData(initialDiagnosisData || {});
-  }, [initialDiagnosisData]);
+    setDiagnosis(diagnosisData || { diagnosis_name: "", diagnosis_type: "" });
+  }, [diagnosisData]);
 
   const handleChange = (field, value) => {
-    setDiagnosisData((prev) => ({ ...prev, [field]: value }));
+    setDiagnosis((prev) => ({ ...prev, [field]: value }));
   };
 
-//   TODO: make this work
-  const handleSave = async () => {
-    setIsLoading(true);
-    try {
-      const response = await api.patch(`/api/appointment/${appointmentId}/diagnosis/`, diagnosisData);
-      if (response.status === 200) {
-        toast.success("Diagnosis updated successfully");
-        setDialogOpen(false);
-      } else {
-        toast.error("Failed to update diagnosis");
-      }
-    } catch (error) {
-      console.error("Failed to update diagnosis:", error);
-      toast.error("An error occurred while updating the diagnosis");
-    } finally {
-      setIsLoading(false);
+  // Simple validation: Make sure both fields are filled before saving
+  const isValid = diagnosis.diagnosis_name && diagnosis.diagnosis_type;
+
+  const handleSave = () => {
+    if (isValid) {
+      onSave(diagnosis); // Pass the updated diagnosis back to the parent
+      setDialogOpen(false); // Close the dialog
     }
   };
 
@@ -71,17 +58,17 @@ export function DiagnosisDialog({
           <Label className="mb-2">Name</Label>
           <Input
             type="text"
-            value={diagnosisData.diagnosis_name || ""}
+            value={diagnosis.diagnosis_name || ""}
             onChange={(e) => handleChange("diagnosis_name", e.target.value)}
           />
 
           <Label className="mt-6 mb-2">Type</Label>
           <Select
-            value={diagnosisData.diagnosis_type || ""}
+            value={diagnosis.diagnosis_type || ""}
             onValueChange={(value) => handleChange("diagnosis_type", value)}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="" />
+              <SelectValue placeholder="Select diagnosis type" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -93,8 +80,12 @@ export function DiagnosisDialog({
         </div>
 
         <DialogFooter className="mt-4">
-          <Button type="submit" onClick={handleSave} disabled={isLoading}>
-            {isLoading ? <Loader2 className="text-white animate-spin" /> : "Save"}
+          <Button
+            type="submit"
+            onClick={handleSave}
+            disabled={!isValid}
+          >
+            Save
           </Button>
         </DialogFooter>
       </DialogContent>

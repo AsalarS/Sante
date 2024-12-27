@@ -58,8 +58,8 @@ const AddUserDialog = ({ open, onClose, onSave }) => {
     place_of_birth: "",
     religion: "",
     allergies: {},
-    past_surgeries: "",
-    chronic_conditions: "",
+    past_surgeries: {},
+    chronic_conditions: {},
     patient_notes: "",
   });
 
@@ -421,7 +421,17 @@ const AddUserDialog = ({ open, onClose, onSave }) => {
                   }
                 />
               </div>
-              <div className="md:col-span-2">
+              <div>
+                <Label>Chronic Conditions</Label>
+                <InputTags
+                  value={patientData.chronic_conditions || []}
+                  onChange={(value) =>
+                    handleChange(setPatientData)("chronic_conditions", value)
+                  }
+                  useKeyAsValue={false}
+                />
+              </div>
+              <div>
                 <Label>Patient Notes</Label>
                 <Textarea
                   className="resize-none"

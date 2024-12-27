@@ -18,42 +18,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import api from "@/api";
-import { toast } from "sonner";
+import { Textarea } from "../ui/textarea";
 
 export function CarePlanDialog({
   dialogOpen,
   setDialogOpen,
-  appointmentId,
-  carePlanData: initialCarePlanData,
-  editable = true,
+  carePlanData,
+  onSave,
+  editable,
+  isLoading,
 }) {
-  const [carePlanData, setCarePlanData] = useState(initialCarePlanData || {});
-  const [isLoading, setIsLoading] = useState(false);
+  const [carePlan, setCarePlan] = useState(carePlanData || { care_plan_title: "", care_plan_type: "", additional_instructions: "" });
 
   useEffect(() => {
-    setCarePlanData(initialCarePlanData || {});
-  }, [initialCarePlanData]);
+    setCarePlan(carePlanData || { care_plan_title: "", care_plan_type: "", additional_instructions: "" });
+  }, [carePlanData]);
 
   const handleChange = (field, value) => {
-    setCarePlanData((prev) => ({ ...prev, [field]: value }));
+    setCarePlan((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = async () => {
-    setIsLoading(true);
-    try {
-      const response = await api.patch(`/api/appointment/${appointmentId}/careplan/`, carePlanData);
-      if (response.status === 200) {
-        toast.success("Care Plan updated successfully");
-        setDialogOpen(false);
-      } else {
-        toast.error("Failed to update Care Plan");
-      }
-    } catch (error) {
-      console.error("Failed to update Care Plan:", error);
-      toast.error("An error occurred while updating the Care Plan");
-    } finally {
-      setIsLoading(false);
+  // Simple validation: Make sure required fields are filled before saving
+  const isValid = carePlan.care_plan_title && carePlan.care_plan_type;
+
+  const handleSave = () => {
+    if (isValid) {
+      onSave(carePlan); // Pass the updated care plan back to the parent
+      setDialogOpen(false); // Close the dialog
     }
   };
 
@@ -70,14 +61,14 @@ export function CarePlanDialog({
           <Label className="mb-2">Care Plan Title</Label>
           <Input
             type="text"
-            value={carePlanData.care_plan_title || ""}
+            value={carePlan.care_plan_title || ""}
             onChange={(e) => handleChange("care_plan_title", e.target.value)}
             readOnly={!editable}
           />
 
           <Label className="mt-6 mb-2">Care Plan Type</Label>
           <Select
-            value={carePlanData.care_plan_type || ""}
+            value={carePlan.care_plan_type || ""}
             onValueChange={(value) => handleChange("care_plan_type", value)}
             disabled={!editable}
           >
@@ -92,33 +83,25 @@ export function CarePlanDialog({
             </SelectContent>
           </Select>
 
-          <Label className="mt-6 mb-2">Date of Issue</Label>
-          <Input
-            type="date"
-            value={carePlanData.date_of_issue || ""}
-            onChange={(e) => handleChange("date_of_issue", e.target.value)}
-            readOnly={!editable}
-          />
-
-          <Label className="mt-6 mb-2">Date of Completion</Label>
-          <Input
-            type="date"
-            value={carePlanData.date_of_completion || ""}
-            onChange={(e) => handleChange("date_of_completion", e.target.value)}
-            readOnly={!editable}
-          />
-
           <Label className="mt-6 mb-2">Additional Instructions</Label>
-          <Input
-            type="text"
-            value={carePlanData.additional_instructions || ""}
+          <Textarea
+            className="resize-none text-sm"
+            value={carePlan.additional_instructions || ""}
             onChange={(e) => handleChange("additional_instructions", e.target.value)}
             readOnly={!editable}
           />
         </div>
 
+        {carePlan.date_of_completion && <div className="flex flex-row gap-4 text-foreground/50 items-center mx-auto">
+          <span className="text-foreground/80 text-sm font-semibold">Completed By :</span>
+            <span>{carePlan?.done_by}</span>
+            -
+            <span>{carePlan?.date_of_completion}</span>
+          </div> 
+        }
+
         <DialogFooter className="mt-4">
-          <Button type="submit" onClick={handleSave} disabled={isLoading}>
+          <Button type="submit" onClick={handleSave} disabled={!isValid || isLoading}>
             {isLoading ? <Loader2 className="text-white animate-spin" /> : "Save"}
           </Button>
         </DialogFooter>

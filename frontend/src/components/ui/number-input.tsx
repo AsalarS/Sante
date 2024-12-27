@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input"; // Replace with your shadcn Input import
 import { LucideMinus, LucidePlus } from "lucide-react"; // Import icons from Lucide
 
@@ -25,10 +25,12 @@ const NumberField: React.FC<NumberFieldProps> = ({
 }) => {
   const [internalValue, setInternalValue] = useState<number>(value);
 
-  const formatValue = (num: number): string => {
-    return `${prefix}${num}${suffix}`;
-  };
+  // Sync internalValue with prop value
+  useEffect(() => {
+    setInternalValue(value);
+  }, [value]);
 
+  const formatValue = (num: number): string => `${prefix}${num}${suffix}`;
   const parseValue = (formattedValue: string): number => {
     const strippedValue = formattedValue
       .replace(prefix, "")
@@ -64,7 +66,6 @@ const NumberField: React.FC<NumberFieldProps> = ({
 
   return (
     <div className="relative flex items-center">
-      {/* Minus Icon */}
       <span
         onClick={handleDecrement}
         className="absolute left-4 cursor-pointer text-foreground"
@@ -73,14 +74,12 @@ const NumberField: React.FC<NumberFieldProps> = ({
       >
         <LucideMinus size={16} />
       </span>
-      {/* Input Field */}
       <Input
         type="text"
         value={formatValue(internalValue)}
         onChange={handleInputChange}
         className="text-center pl-8 pr-8"
       />
-      {/* Plus Icon */}
       <span
         onClick={handleIncrement}
         className="absolute right-4 cursor-pointer text-foreground"

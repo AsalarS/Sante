@@ -17,24 +17,29 @@ import { Button } from "./ui/button";
 import { CarePlanDialog } from "./Dialogs/carePlanDialog";
 import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 function AppointmentPage() {
     const navigate = useNavigate();
     const { id } = useParams();
+    const location = useLocation();
+    const patientId = location.state?.patientId;
+
     const [appointment, setAppointment] = useState(null);
     const [patient, setPatient] = useState(null);
-    const [carePlans, setCarePlans] = useState(null);
-    const [diagnoses, setDiagnoses] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [carePlans, setCarePlans] = useState([]);
+    const [selectedCarePlan, setSelectedCarePlan] = useState(null);
+    const [diagnoses, setDiagnoses] = useState([]);
+    const [selectedDiagnosis, setSelectedDiagnosis] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [vitalsDialogOpen, setVitalsDialogOpen] = useState(false);
     const [diagnosisDialogOpen, setDiagnosisDialogOpen] = useState(false);
     const [carePlanDialogOpen, setCarePlanDialogOpen] = useState(false);
-    const location = useLocation();
-    const patientId = location.state?.patientId; // Get Id passed from patientProfile page
+    const [idCounter, setIdCounter] = useState(1);
 
     const fetchAppointments = async () => {
         try {
-            const response = await api.get(`/api/appointment/${id}/`);
+            const response = await api.get(`/api/appointments/${id}/`);
             if (response.status === 200) {
                 const appointmentData = response.data;
                 setAppointment(appointmentData);
@@ -66,15 +71,19 @@ function AppointmentPage() {
 
     const fetchCarePlans = async () => {
         try {
-            const response = await api.get(`/api/appointments/careplans/user/${patientId}/`);
+            const response = await api.get(`/api/appointments/careplans/${id}/`);
             if (response.status === 200) {
                 const carePlanData = response.data;
                 setCarePlans(carePlanData);
+            } else if (response.status === 404) {
+                console.warn("Care plans not found (404):", response.statusText);
             } else {
                 console.error("Failed to fetch care plans:", response.statusText);
             }
         } catch (error) {
-            console.error("Failed to fetch care plans:", error);
+            if (error.response && error.response.status !== 404) {
+                console.error("Failed to fetch care plans:", error);
+            }
         } finally {
             setLoading(false);
         }
@@ -82,26 +91,184 @@ function AppointmentPage() {
 
     const fetchDiagnoses = async () => {
         try {
-            const response = await api.get(`/api/diagnoses/user/${patientId}/`);
+            const response = await api.get(`/api/appointments/diagnoses/${id}/`);
             if (response.status === 200) {
                 const diagnosesData = response.data;
                 setDiagnoses(diagnosesData);
+            } else if (response.status === 404) {
+                console.warn("Diagnoses not found (404):", response.statusText);
             } else {
                 console.error("Failed to fetch diagnoses:", response.statusText);
             }
         } catch (error) {
-            console.error("Failed to fetch diagnoses:", error);
+            if (error.response && error.response.status !== 404) {
+                console.error("Failed to fetch diagnoses:", error);
+            }
         } finally {
             setLoading(false);
         }
     };
 
+    // Patient Data Fetch
     useEffect(() => {
-        fetchAppointments();
         fetchPatientData();
-        fetchCarePlans();
-        fetchDiagnoses();
     }, [id]);
+
+    // Vitals Data Refresh on dialog close
+    useEffect(() => {
+        if (!vitalsDialogOpen) {
+            fetchAppointments();
+        }
+    }, [id, vitalsDialogOpen]);
+
+    // Care Plan Data Refresh on dialog close
+    useEffect(() => {
+        if (!carePlanDialogOpen) {
+            fetchCarePlans();
+        }
+    }, [id, carePlanDialogOpen]);
+
+    // Disnogses Data Refresh on dialog close
+    useEffect(() => {
+        if (!diagnosisDialogOpen) {
+            fetchDiagnoses();
+        }
+    }, [id, diagnosisDialogOpen]);
+
+    const handleAppointmentChange = (field, value) => {
+        setAppointment((prev) => ({ ...prev, [field]: value }));
+    };
+
+    // Function to handle save a new diagnosis or update existing
+    const handleSaveDiagnosis = (diagnosis) => {
+        if (diagnosis.id) {
+            // Update existing diagnosis by matching `id`
+            setDiagnoses((prevDiagnoses) =>
+                prevDiagnoses.map((d) =>
+                    d.id === diagnosis.id ? diagnosis : d
+                )
+            );
+        } else {
+            // Add new diagnosis, and set a new id using the counter
+            const newDiagnosis = { ...diagnosis, id: idCounter };
+            setDiagnoses((prevDiagnoses) => [...prevDiagnoses, newDiagnosis]);
+            setIdCounter((prev) => prev + 1); // Increment the counter for the next ID
+        }
+    };
+
+    // Function to handle save a new care plan or update existing
+    const handleSaveCarePlan = (carePlan) => {
+        if (carePlan.id) {
+            // Update existing care plan by matching `id`
+            setCarePlans((prevCarePlans) =>
+                prevCarePlans.map((cp) =>
+                    cp.id === carePlan.id ? carePlan : cp
+                )
+            );
+        } else {
+            // Add new care plan, and set a new id using the counter
+            const newCarePlan = { ...carePlan, id: idCounter };
+            setCarePlans((prevCarePlans) => [...prevCarePlans, newCarePlan]);
+            setIdCounter((prev) => prev + 1); // Increment the counter for the next ID
+        }
+    };
+    // Function to handle adding a new care plan
+    const handleAddCarePlan = (newCarePlan) => {
+        setCarePlans((prevCarePlans) => [
+            ...prevCarePlans,
+            { ...newCarePlan, id: idCounter }, // Assign the next sequential ID
+        ]);
+        setIdCounter((prev) => prev + 1); // Increment the counter
+    };
+
+    // Callback functions to update state when new data is added
+    const handleAddDiagnosis = (newDiagnosis) => {
+        setDiagnoses((prevDiagnoses) => [
+            ...prevDiagnoses,
+            { ...newDiagnosis, id: idCounter }, // Assign the next sequential ID
+        ]);
+        setIdCounter((prev) => prev + 1); // Increment the counter
+    };
+
+    // Open the dialog and pass the selected diagnosis data
+    const handleEditDiagnosis = (diagnosis) => {
+        setSelectedDiagnosis(diagnosis);  // Set the selected diagnosis to pass to the dialog
+        setDiagnosisDialogOpen(true);
+    };
+
+    // Open the dialog and pass the selected diagnosis data
+    const handleEditCarePlan = (carePlan) => {
+        setSelectedCarePlan(carePlan);  // Set the selected diagnosis to pass to the dialog
+        setCarePlanDialogOpen(true);
+    };
+
+    const handleOpenDiagnsisDialog = () => {
+        setSelectedDiagnosis(null); // Clear selected diagnosis
+        setDiagnosisDialogOpen(true); // Open dialog
+    };
+
+    const handleDeleteDiagnosis = (indexToDelete) => {
+        if (indexToDelete !== undefined) {
+            setDiagnoses((prevDiagnoses) => {
+                return prevDiagnoses.filter((_, index) => index !== indexToDelete);
+            });
+        }
+    };
+
+    const handleDeleteCarePlan = (indexToDelete) => {
+        if (indexToDelete !== undefined) {
+            setCarePlans((prevCarePlans) => {
+                return prevCarePlans.filter((_, index) => index !== indexToDelete);
+            });
+        }
+    };
+
+    // Fetch appointment, care plans, and diagnoses when the component mounts
+
+    const saveAppointment = async () => {
+        setLoading(true);
+        try {
+            //Patch the appointment data
+            console.log("app data ", appointment);
+
+            const appointmentResponse = await api.patch(`/api/appointments/${id}/`, appointment);
+            if (appointmentResponse.status === 200) {
+                toast.success("Appointment updated successfully!");
+
+                //Create care plans if there are any
+                if (carePlans.length > 0) {
+                    const carePlanPromises = carePlans.map((plan) => {
+                        return api.patch(`/api/appointments/careplans/${id}/`, plan);
+                    });
+                    await Promise.all(carePlanPromises);
+                    toast.success("Care plans saved successfully!");
+                }
+
+                //Create diagnoses if there are any
+                if (diagnoses.length > 0) {
+                    const diagnosesPromises = diagnoses.map((diagnosis) => {
+                        return api.patch(`/api/appointments/diagnoses/${id}/`, diagnosis);
+                    });
+                    await Promise.all(diagnosesPromises);
+                    toast.success("Diagnoses saved successfully!");
+                }
+
+                // Step 4: Navigate to the previous page or /patients
+                if (window.history.length > 1) {
+                    navigate(-1);  // Go back to the previous page
+                } else {
+                    navigate("/patients");  // Go to /patients if no previous page
+                }
+            } else {
+                toast.error("Failed to save appointment.");
+            }
+        } catch (error) {
+            console.error("Error saving appointment:", error);
+            toast.error("An error occurred while saving.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -205,14 +372,14 @@ function AppointmentPage() {
                             <Button
                                 className="size-8"
                                 variant={"secondary"}
-                                onClick={() => setDiagnosisDialogOpen(true)}
+                                onClick={() => { setSelectedDiagnosis(null); setDiagnosisDialogOpen(true); }}
                             >
                                 <Plus size={20} />
                             </Button>
                         </div>
                         <div className="grid grid-cols-2 gap-4 overflow-y-auto max-h-32">
-                            {diagnoses?.map((diagnosis) => (
-                                <div key={diagnosis.id} className="bg-background-hover rounded-md p-4 flex flex-row justify-between w-">
+                            {diagnoses?.map((diagnosis, index) => (
+                                <div key={index} className="bg-background-hover rounded-md p-4 flex flex-row justify-between">
                                     <div className="self-center">
                                         <div className="flex flex-row mb-1 self-center">
                                             <span className="font-semibold line-clamp-1 break-all">{diagnosis.diagnosis_name}</span>
@@ -220,7 +387,29 @@ function AppointmentPage() {
                                             <Badge className="text-white ml-4">{diagnosis.diagnosis_type}</Badge>
                                         </div>
                                     </div>
-                                    <Button variant={"ghost"} className="self-center bg-neutral-200 dark:bg-slate-600 dark:hover:dark:bg-neutral-500/70 w-10 h-10 ml-2"><Ellipsis /></Button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                variant={"ghost"}
+                                                className="self-center w-10 h-10 ml-2"
+                                            >
+                                                <Ellipsis />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuItem
+                                                onClick={() => handleEditDiagnosis(diagnosis)}
+                                            >
+                                                Edit
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                className="text-red-500 focus:text-red-500"
+                                                onClick={() => handleDeleteDiagnosis(diagnosis, index)}
+                                            >
+                                                Delete
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
                             ))}
                         </div>
@@ -232,30 +421,50 @@ function AppointmentPage() {
                             <Button
                                 className="size-8"
                                 variant={"secondary"}
-                                onClick={() => setCarePlanDialogOpen(true)}
+                                onClick={() => { setSelectedCarePlan(null); setCarePlanDialogOpen(true); }}
                             >
                                 <Plus size={20} />
                             </Button>
                         </div>
                         {/* List of plans */}
-                        <div className="flex flex-col gap-4 overflow-y-auto max-h-60">
-                            {/* TODO: Add date */}
-                            {carePlans?.map((plan) => (
-                                <div key={plan.id} className="w-full bg-background-hover rounded-md p-4 flex flex-row justify-between mb-2">
+                        <div className="grid grid-cols-2 gap-4 overflow-y-auto max-h-60">
+                            {/* TODO: Add tooltip for instructions*/}
+                            {carePlans?.map((plan, index) => (
+                                <div key={index} className="bg-background-hover rounded-md p-4 flex flex-row justify-between mb-2">
                                     <div className="self-center">
                                         <div className="flex flex-row mb-1">
                                             <span className="font-semibold line-clamp-1 break-all">{plan.care_plan_title}</span>
                                             {/* Type of consult */}
                                             <Badge className="text-white ml-4">{plan.care_plan_type}</Badge>
                                         </div>
-                                        <div className="flex flex-row">
+                                        {plan.additional_instructions && <div className="flex flex-row">
                                             <CornerDownRight className="" size={16} />
                                             <span className="text-sm ml-2 line-clamp-1 break-all">{plan.additional_instructions}</span>
-                                        </div>
+                                        </div>}
                                     </div>
-                                    <Button variant={"ghost"} className="self-center bg-neutral-200 dark:bg-slate-600 dark:hover:dark:bg-neutral-500/70 w-10 h-10 ml-2">
-                                        <Ellipsis />
-                                    </Button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                variant={"ghost"}
+                                                className="self-center w-10 h-10 ml-2"
+                                            >
+                                                <Ellipsis />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuItem
+                                                onClick={() => handleEditCarePlan(plan)}
+                                            >
+                                                Edit
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                className="text-red-500 focus:text-red-500"
+                                                onClick={() => handleDeleteCarePlan(plan, index)}
+                                            >
+                                                Delete
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
                             ))}
                         </div>
@@ -267,6 +476,7 @@ function AppointmentPage() {
                             value={appointment?.notes || ""}
                             placeholder="Enter details..."
                             className="w-full flex-grow bg-muted dark:bg-border resize-none text-foreground"
+                            onChange={(e) => handleAppointmentChange("notes", e.target.value)}
                         />
                     </Card>
                 </div>
@@ -346,10 +556,20 @@ function AppointmentPage() {
                         <label>Follow up</label>
                         <Switch
                             checked={appointment?.follow_up_required ?? false}
-                        // onCheckedChange={field.onChange}
+                            onCheckedChange={(value) => handleAppointmentChange("follow_up_required", value)}
                         />
                     </div>
-                    <Button className="w-full">{appointment ? "Update" : "Complete"} Appointment</Button>
+                    <Button
+                        className="w-full"
+                        onClick={saveAppointment}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <Loader2 className="animate-spin text-white w-6 h-6" />
+                        ) : (
+                            (appointment ? "Update" : "Complete") + " Appointment"
+                        )}
+                    </Button>
                 </div>
             </div>
 
@@ -361,26 +581,30 @@ function AppointmentPage() {
                 dialogOpen={vitalsDialogOpen}
                 setDialogOpen={setVitalsDialogOpen}
                 appointmentId={id}
-                vitalsData={appointment?.vitals}
+                vitalsData={appointment}
                 editable={true}
             />
 
             {/* Diagnosis Dialog */}
             <DiagnosisDialog
+                key={diagnosisDialogOpen ? 'open' : 'closed'}
                 dialogOpen={diagnosisDialogOpen}
                 setDialogOpen={setDiagnosisDialogOpen}
                 appointmentId={id}
-                diagnosisData={{}} // Pass empty object for new diagnosis
+                diagnosisData={selectedDiagnosis}
                 editable={true}
+                onSave={handleSaveDiagnosis}
             />
 
             {/* Care Plan Dialog */}
             <CarePlanDialog
+                key={carePlanDialogOpen ? 'open' : 'closed'}
                 dialogOpen={carePlanDialogOpen}
                 setDialogOpen={setCarePlanDialogOpen}
                 appointmentId={id}
-                carePlanData={{}} // Pass empty object for new care plan
+                carePlanData={selectedCarePlan}
                 editable={true}
+                onSave={handleSaveCarePlan}
             />
         </div>
     );

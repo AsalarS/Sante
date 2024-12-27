@@ -14,15 +14,17 @@ urlpatterns = [
     path('appointments-by-date/', AppointmentsByDateView.as_view(), name='appointments-by-date'),
     # Schedule & Appointments
     path('schedule/', get_schedule, name='get_schedule'),
-    path('appointments/add/', add_appointment, name='add_appointment'),
+    # path('appointments/add/', add_appointment, name='add_appointment'),
     path('patient/appointments/<int:patient_id>/', PatientAppointmentsView.as_view(), name='patient_appointments'),
-    path('appointment/<uuid:appointment_id>/', AppointmentDetailView.as_view(), name='appointment_detail'),
+    # path('appointment/<uuid:appointment_id>/', AppointmentDetailView.as_view(), name='appointment_detail'),
+    path('appointments/', AppointmentView.as_view(), name='appointment-create'),
+    path('appointments/<uuid:appointment_id>/', AppointmentView.as_view(), name='appointment-update'),
     # Careplans
     path('careplans/user/<int:user_id>/', CarePlansByUserView.as_view(), name='careplans_by_user'),
-    path('appointments/careplans/<int:appointment_id>/', CarePlanByAppointmentView.as_view(), name='careplan_by_appointment'),
+    path('appointments/careplans/<uuid:appointment_id>/', CarePlanByAppointmentView.as_view(), name='careplan_by_appointment'),
     # Diagnoses
     path('diagnoses/user/<int:user_id>/', DiagnosesByUserView.as_view(), name='diagnoses_by_user'),
-    path('appointment/diagnoses/<int:appointment_id>/', DiagnosisByAppointmentView.as_view(), name='diagnosis_by_appointment'),
+    path('appointments/diagnoses/<uuid:appointment_id>/', DiagnosisByAppointmentView.as_view(), name='diagnosis_by_appointment'),
     # Search
     path('search/patients/', search_patients, name='search_patients'),
     #User info views
