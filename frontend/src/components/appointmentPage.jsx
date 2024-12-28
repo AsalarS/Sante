@@ -139,39 +139,39 @@ function AppointmentPage() {
         setAppointment((prev) => ({ ...prev, [field]: value }));
     };
 
-    // Function to handle save a new diagnosis or update existing
     const handleSaveDiagnosis = (diagnosis) => {
-        if (diagnosis.id) {
-            // Update existing diagnosis by matching `id`
-            setDiagnoses((prevDiagnoses) =>
-                prevDiagnoses.map((d) =>
-                    d.id === diagnosis.id ? diagnosis : d
-                )
+        setDiagnoses(prevDiagnoses => {
+            // When adding a new diagnosis
+            if (!diagnosis.id) {
+                const newId = prevDiagnoses.length > 0 
+                    ? Math.max(...prevDiagnoses.map(d => Number(d.id))) + 1 
+                    : 1;
+                return [...prevDiagnoses, { ...diagnosis, id: newId }];
+            }
+            
+            // When updating existing diagnosis
+            return prevDiagnoses.map(d => 
+                d.id === diagnosis.id ? diagnosis : d
             );
-        } else {
-            // Add new diagnosis, and set a new id using the counter
-            const newDiagnosis = { ...diagnosis, id: idCounter };
-            setDiagnoses((prevDiagnoses) => [...prevDiagnoses, newDiagnosis]);
-            setIdCounter((prev) => prev + 1); // Increment the counter for the next ID
-        }
+        });
+        setDiagnosisDialogOpen(false);
     };
 
-    // Function to handle save a new care plan or update existing
     const handleSaveCarePlan = (carePlan) => {
-        if (carePlan.id) {
-            // Update existing care plan by matching `id`
-            setCarePlans((prevCarePlans) =>
-                prevCarePlans.map((cp) =>
+        setCarePlans(prevCarePlans => {
+            if (carePlan.id) {
+                // Update existing care plan
+                return prevCarePlans.map(cp =>
                     cp.id === carePlan.id ? carePlan : cp
-                )
-            );
-        } else {
-            // Add new care plan, and set a new id using the counter
-            const newCarePlan = { ...carePlan, id: idCounter };
-            setCarePlans((prevCarePlans) => [...prevCarePlans, newCarePlan]);
-            setIdCounter((prev) => prev + 1); // Increment the counter for the next ID
-        }
+                );
+            } else {
+                // Add new care plan with new ID
+                const newId = Math.max(...prevCarePlans.map(cp => cp.id || 0), 0) + 1;
+                return [...prevCarePlans, { ...carePlan, id: newId }];
+            }
+        });
     };
+
     // Function to handle adding a new care plan
     const handleAddCarePlan = (newCarePlan) => {
         setCarePlans((prevCarePlans) => [
@@ -207,12 +207,10 @@ function AppointmentPage() {
         setDiagnosisDialogOpen(true); // Open dialog
     };
 
-    const handleDeleteDiagnosis = (indexToDelete) => {
-        if (indexToDelete !== undefined) {
-            setDiagnoses((prevDiagnoses) => {
-                return prevDiagnoses.filter((_, index) => index !== indexToDelete);
-            });
-        }
+    const handleDeleteDiagnosis = (diagnosis) => {
+        setDiagnoses(prevDiagnoses => 
+            prevDiagnoses.filter(d => d.id !== diagnosis.id)
+        );
     };
 
     const handleDeleteCarePlan = (indexToDelete) => {
@@ -378,13 +376,13 @@ function AppointmentPage() {
                             </Button>
                         </div>
                         <div className="grid grid-cols-2 gap-4 overflow-y-auto max-h-32">
-                            {diagnoses?.map((diagnosis, index) => (
-                                <div key={index} className="bg-background-hover rounded-md p-4 flex flex-row justify-between">
+                            {diagnoses?.map((diagnosis) => (
+                                <div key={diagnosis.id} className="bg-background-hover rounded-md p-4 flex flex-row justify-between">
                                     <div className="self-center">
                                         <div className="flex flex-row mb-1 self-center">
-                                            <span className="font-semibold line-clamp-1 break-all">{diagnosis.diagnosis_name}</span>
+                                            <span className="font-semibold line-clamp-1 break-all">{diagnosis?.diagnosis_name}</span>
                                             {/* Primary or secondary diagnosis */}
-                                            <Badge className="text-white ml-4">{diagnosis.diagnosis_type}</Badge>
+                                            <Badge className="text-white ml-4">{diagnosis?.diagnosis_type}</Badge>
                                         </div>
                                     </div>
                                     <DropdownMenu>
@@ -404,7 +402,7 @@ function AppointmentPage() {
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 className="text-red-500 focus:text-red-500"
-                                                onClick={() => handleDeleteDiagnosis(diagnosis, index)}
+                                                onClick={() => handleDeleteDiagnosis(diagnosis)}
                                             >
                                                 Delete
                                             </DropdownMenuItem>
@@ -506,15 +504,17 @@ function AppointmentPage() {
                         </div>
                         <div className="flex justify-center">
                             <div className="flex h-5 items-center space-x-4 text-sm text-foreground font-bold">
-                                <div>{calculateAge(patient?.date_of_birth)}</div>
+                                <div>{patient?.date_of_birth ? calculateAge(patient.date_of_birth) : ''}</div>
                                 <Separator orientation="vertical" />
-                                <div>{patient?.gender}</div>
+                                <div>{patient?.gender || ''}</div>
                                 <Separator orientation="vertical" />
-                                <div>{patient?.blood_type}</div>
+                                <div>{patient?.blood_type || ''}</div>
                             </div>
                         </div>
                         <Popover>
-                            <PopoverTrigger className="w-full"><Button className="w-full mt-6 text-white">View Profile</Button></PopoverTrigger>
+                            <PopoverTrigger className="w-full" asChild>
+                                <Button className="w-full mt-6 text-white">View Profile</Button>
+                            </PopoverTrigger>
                             <PopoverContent >Place content for the popover here.</PopoverContent>
                         </Popover>
 
@@ -587,7 +587,7 @@ function AppointmentPage() {
 
             {/* Diagnosis Dialog */}
             <DiagnosisDialog
-                key={diagnosisDialogOpen ? 'open' : 'closed'}
+                key={`diagnosis-${diagnosisDialogOpen}-${selectedDiagnosis?.id || 'new'}`}
                 dialogOpen={diagnosisDialogOpen}
                 setDialogOpen={setDiagnosisDialogOpen}
                 appointmentId={id}
@@ -598,7 +598,7 @@ function AppointmentPage() {
 
             {/* Care Plan Dialog */}
             <CarePlanDialog
-                key={carePlanDialogOpen ? 'open' : 'closed'}
+                key={`careplan-${carePlanDialogOpen}-${selectedCarePlan?.id || 'new'}`}
                 dialogOpen={carePlanDialogOpen}
                 setDialogOpen={setCarePlanDialogOpen}
                 appointmentId={id}
