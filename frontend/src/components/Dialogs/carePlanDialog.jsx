@@ -28,10 +28,10 @@ export function CarePlanDialog({
   editable,
   isLoading,
 }) {
-  const [carePlan, setCarePlan] = useState(carePlanData || { care_plan_title: "", care_plan_type: "", additional_instructions: "" });
+  const [carePlan, setCarePlan] = useState(carePlanData || { care_plan_title: "", care_plan_type: "", additional_instructions: "", key: "" });
 
   useEffect(() => {
-    setCarePlan(carePlanData || { care_plan_title: "", care_plan_type: "", additional_instructions: "" });
+    setCarePlan(carePlanData || { care_plan_title: "", care_plan_type: "", additional_instructions: "", key: "" });
   }, [carePlanData]);
 
   const handleChange = (field, value) => {
@@ -94,10 +94,10 @@ export function CarePlanDialog({
 
         {carePlan.date_of_completion && <div className="flex flex-row gap-4 text-foreground/50 items-center mx-auto">
           <span className="text-foreground/80 text-sm font-semibold">Completed By :</span>
-            <span>{carePlan?.done_by}</span>
-            -
-            <span>{carePlan?.date_of_completion}</span>
-          </div> 
+          <span>{carePlan?.done_by}</span>
+          -
+          <span>{carePlan?.date_of_completion}</span>
+        </div>
         }
 
         <DialogFooter className="mt-4">

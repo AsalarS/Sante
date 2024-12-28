@@ -1,6 +1,6 @@
 from .models import Log
 
-def log_activity(request, action, description=""):
+def log_to_db(request, action, description=""):
     """
     Logs an activity for the current user.
 

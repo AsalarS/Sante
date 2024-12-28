@@ -90,11 +90,18 @@ export function LogAdminPage() {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
 
-  const fetchLogs = async () => {
+  const [currentPage, setCurrentPage] = useState(1); // Track current page
+  const [totalPages, setTotalPages] = useState(1); // Track total pages
+
+
+  const fetchLogs = async (page = 1) => {
     try {
-      const response = await api.get("/api/logs/admin/");
+      const response = await api.get("/api/logs/admin/", {
+        params: { page },
+      });
       if (response.status === 200) {
-        setLogs(response.data);
+        setLogs(response.data.results);
+        setTotalPages(Math.ceil(response.data.count / 10));
       } else {
         console.error("Failed to fetch logs:", response.statusText);
       }
@@ -106,8 +113,8 @@ export function LogAdminPage() {
   };
 
   useEffect(() => {
-    fetchLogs();
-  }, []);
+    fetchLogs(currentPage);
+  }, [currentPage]);
 
   const table = useReactTable({
     data: logs,
@@ -191,30 +198,29 @@ export function LogAdminPage() {
           </TableBody>
         </Table>
       </div>
+      {/* Pagination Controls */}
       <div className="flex items-center justify-center py-4 space-x-1">
         <Button
           variant="ghost"
           className="light:text-gray-700 dark:text-gray-200"
-          onClick={() => table.setPageIndex(0)}
-          disabled={!table.getCanPreviousPage()}
+          onClick={() => setCurrentPage(1)} // Go to the first page
+          disabled={currentPage === 1}
         >
           <ChevronsLeft />
         </Button>
         <Button
           variant="ghost"
           className="light:text-gray-700 dark:text-gray-200"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
+          onClick={() => setCurrentPage(currentPage - 1)} // Go to the previous page
+          disabled={currentPage === 1}
         >
           <ChevronLeft />
         </Button>
-        {Array.from({ length: pageCount }, (_, i) => (
+        {Array.from({ length: totalPages }, (_, i) => (
           <Button
             key={i}
-            variant={
-              table.getState().pagination.pageIndex === i ? "default" : "ghost"
-            }
-            onClick={() => table.setPageIndex(i)}
+            variant={currentPage === i + 1 ? "default" : "ghost"}
+            onClick={() => setCurrentPage(i + 1)} // Go to the selected page
             className="text-white"
           >
             {i + 1}
@@ -223,16 +229,16 @@ export function LogAdminPage() {
         <Button
           variant="ghost"
           className="light:text-gray-700 dark:text-gray-200"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
+          onClick={() => setCurrentPage(currentPage + 1)} // Go to the next page
+          disabled={currentPage === totalPages}
         >
           <ChevronRight />
         </Button>
         <Button
           variant="ghost"
           className="light:text-gray-700 dark:text-gray-200"
-          onClick={() => table.setPageIndex(pageCount - 1)}
-          disabled={!table.getCanNextPage()}
+          onClick={() => setCurrentPage(totalPages)} // Go to the last page
+          disabled={currentPage === totalPages}
         >
           <ChevronsRight />
         </Button>

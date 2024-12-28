@@ -20,9 +20,15 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from ..utilities import log_to_db
 
 logger = logging.getLogger(__name__)
 
+# Pagination Variables in class
+class AdminPagination(PageNumberPagination):
+    page_size = 10  # Number of appointments per page WAS 28 
+    page_size_query_param = "page_size"
+    
 # Create your views here.
 
 @api_view(["GET"])
@@ -36,16 +42,14 @@ def get_logs_admin(request):
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    logs = Log.objects.select_related('user').all()
-    serializedData = LogSerializer(logs, many=True)
-    return JsonResponse(serializedData.data, safe=False)
+    logs = Log.objects.select_related('user').order_by('-timestamp')
+    paginator = AdminPagination()
+    result_page = paginator.paginate_queryset(logs, request)
+    serialized_data = LogSerializer(result_page, many=True)
+    return paginator.get_paginated_response(serialized_data.data)
+
 
     #  Appointment Views
-
-
-class AppointmentPagination(PageNumberPagination):
-    page_size = 28  # Number of appointments per page
-    page_size_query_param = "page_size"
 
 
 class AppointmentView(APIView):
@@ -53,7 +57,7 @@ class AppointmentView(APIView):
 
     def get(self, request):
         appointments = Appointment.objects.all()
-        paginator = AppointmentPagination()
+        paginator = AdminPagination()
         result_page = paginator.paginate_queryset(appointments, request)
         serializer = AppointmentSerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
@@ -293,6 +297,45 @@ class CarePlanByAppointmentView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    def delete(self, request, appointment_id):
+        user = request.user
+
+        # Check if the logged-in user has the appropriate role
+        if user.role not in ['receptionist', 'admin', 'nurse', 'doctor']:
+            return Response({"error": "You do not have permission to delete care plans."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+        except Appointment.DoesNotExist:
+            return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Get the care plan ID from the request data
+        care_plan_id = request.data.get('id', None)
+
+        if not care_plan_id:
+            return Response({"error": "Care plan ID is required to delete."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            care_plan = CarePlan.objects.get(id=care_plan_id, appointment=appointment)
+        except CarePlan.DoesNotExist:
+            return Response({"error": "Care plan not found for this appointment."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Log
+        log_to_db(
+            request,
+            "DELETE: Care Plan",
+            f"Care Plan ID: {care_plan.id}, "
+            f"Appointment ID: {appointment.id}, "
+            f"Title: {care_plan.care_plan_title}, "
+            f"Type: {care_plan.care_plan_type}, "
+            f"Date of Completion: {care_plan.date_of_completion}, "
+            f"Done By: {care_plan.done_by}, "
+            f"Additional Instructions: {care_plan.additional_instructions}"
+        )
+        # Delete the care plan
+        care_plan.delete()
+        return Response({"message": "Care plan deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+    
 # Diagnoses Views
 class DiagnosesByUserView(APIView):
     permission_classes = [IsAuthenticated]
@@ -367,3 +410,27 @@ class DiagnosisByAppointmentView(APIView):
             return Response(DiagnosisSerializer(diagnosis).data, status=status.HTTP_200_OK if diagnosis_id else status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, appointment_id, diagnosis_id):
+        user = request.user
+
+        # Check if the logged-in user has the appropriate role
+        if user.role not in ['receptionist', 'admin', 'nurse', 'doctor']:
+            return Response({"error": "You do not have permission to delete diagnoses."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+        except Appointment.DoesNotExist:
+            return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            diagnosis = Diagnosis.objects.get(id=diagnosis_id, appointment=appointment)
+        except Diagnosis.DoesNotExist:
+            return Response({"error": "Diagnosis not found for this appointment."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Log the deletion (optional, for audit purposes)
+        log_to_db(request, "DELETE: Diagnosis", f"Diagnosis ID: {diagnosis.id}, Diagnosis Name: {diagnosis.diagnosis_name}, Diagnosis Type: {diagnosis.diagnosis_type} Appointment ID: {appointment.id}")
+
+        # Delete the diagnosis
+        diagnosis.delete()
+        return Response({"message": "Diagnosis deleted successfully."}, status=status.HTTP_204_NO_CONTENT)

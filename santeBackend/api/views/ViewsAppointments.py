@@ -8,7 +8,7 @@ import logging
 from django.utils import timezone
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from ..utilities import log_activity
+from ..utilities import log_to_db
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -182,7 +182,7 @@ def get_schedule(request):
 #         appointment.save()
 
 #         # Log successful appointment creation
-#         log_activity(request, "Appointment created/updated successfully", f"Appointment ID: {appointment.id}")
+#         log_to_db(request, "Appointment created/updated successfully", f"Appointment ID: {appointment.id}")
 
 #         return Response({
 #             'success': True,
