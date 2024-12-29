@@ -30,7 +30,7 @@
     {
       "label": "Run Daphne Server",
       "type": "shell",
-      "command": "source env/bin/activate && daphne -p 8001 -b 0.0.0.0 santeBackend.asgi:application",
+      "command": "source env/bin/activate && daphne -p 8001 -b 0.0.0.0 -v 2 santeBackend.asgi:application",
       "options": {
         "cwd": "${workspaceFolder}/santeBackend"
       },

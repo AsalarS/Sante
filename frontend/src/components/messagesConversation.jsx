@@ -1,61 +1,54 @@
+import { useEffect, useState, useRef } from "react";
+import { useParams } from "react-router-dom"; // To access chatID in the URL
 import api from "@/api";
-import {
-    ChatBubble,
-    ChatBubbleAvatar,
-    ChatBubbleMessage,
-    ChatBubbleTimestamp,
-} from "@/components/ui/chat/chat-bubble";
-import { ChatInput } from "@/components/ui/chat/chat-input";
-import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
-import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
 import { Send } from "lucide-react";
+import { ChatInput } from "./ui/chat/chat-input";
+import { ChatBubble, ChatBubbleAvatar, ChatBubbleMessage, ChatBubbleTimestamp } from "./ui/chat/chat-bubble";
+import MessageLoading from "./ui/chat/message-loading";
+import { ChatMessageList } from "./ui/chat/chat-message-list";
+import { ACCESS_TOKEN } from "@/constants";
 
-export default function MessagesConversation({ selectedConversation }) {
+export default function MessagesConversation({ chatID, sender }) {
     const [messages, setMessages] = useState([]);
     const [inputValue, setInputValue] = useState("");
+    const [isForbidden, setIsForbidden] = useState(false);
+    const senderId = sender?.id
     const ws = useRef(null);
-    const [isTyping, setIsTyping] = useState(false);
     const bottomRef = useRef(null);
+    const token = localStorage.getItem(ACCESS_TOKEN);
 
-    const senderId = localStorage.getItem('user_id');
-    const receiverId = selectedConversation;
 
-    const getFormattedTime = (date) => {
-        return new Date(date).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-    };
-
+    // Fetch the message history based on chatID
     useEffect(() => {
-        if (!selectedConversation || !senderId || !receiverId) {
-            return;
-        }
+        if (!chatID || !senderId) return;
 
         const fetchMessageHistory = async () => {
             try {
-                const response = await api.get(`/api/chats/${receiverId}/history/`);
+                const response = await api.get(`/api/chats/${chatID}/messages/`);
                 if (response.status === 200) {
-                    setMessages(response.data);
+
+                    setMessages(response.data.messages || []);
+                } else if (response.status === 403) {
+                    setIsForbidden(true); // Show forbidden if the user isn't part of the chat
                 } else {
                     console.error("Failed to fetch messages.");
                 }
             } catch (error) {
-                if(error.status === 404){
-                    console.log("No previous chats");
-                } else {
-                    console.error("Error fetching messages:", error);
-                }
+                console.error("Error fetching messages:", error);
             }
         };
 
-        fetchMessageHistory();
+        if (chatID && senderId) {
+            fetchMessageHistory();
+        }
+    }, [chatID, senderId]);
 
-        // Establish WebSocket connection
-        ws.current = new WebSocket(
-            `ws://localhost:8001/ws/chat/${senderId}/${receiverId}/`
-        );
+    // WebSocket connection logic
+    useEffect(() => {
+        if (!chatID || !senderId) return;
+
+        ws.current = new WebSocket(`ws://localhost:8001/ws/chat/${chatID}/?token=${token}`);
 
         ws.current.onopen = () => {
             console.log("WebSocket connection established");
@@ -63,16 +56,29 @@ export default function MessagesConversation({ selectedConversation }) {
 
         ws.current.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            console.log("Received message:", data);
+            console.log("data", data);
 
-            if (data.type === "message") {
+            if (data.message) {
                 setMessages((prevMessages) => [
                     ...prevMessages,
                     {
-                        id: Date.now(),
-                        content: data.message,
-                        sender_id: data.sender_id,
-                        timestamp: new Date().toISOString(),
+                        // id: Date.now(),
+                        // message: data.message,
+                        // sender_id: data.sender_id,
+                        // timestamp: new Date().toISOString(),
+                        id: data?.id,
+                        sender: {
+                            id: data?.sender?.id,
+                            email: data?.sender?.email,
+                            first_name: data?.sender?.first_name,
+                            last_name: data?.sender?.last_name,
+                            profile_image: data?.sender?.profile_image,
+                            role: data?.sender?.role,
+                        },
+                        timestamp: data?.timestamp,
+                        message_text: data?.message_text,
+                        is_read: data?.is_read,
+
                     },
                 ]);
             }
@@ -91,23 +97,29 @@ export default function MessagesConversation({ selectedConversation }) {
                 ws.current.close();
             }
         };
-    }, [selectedConversation, senderId, receiverId]);
+    }, [chatID, senderId]);
 
     const handleSendMessage = () => {
         if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
             console.error("WebSocket is not open. Cannot send message.");
-            console.log("WebSocket readyState:", ws.current?.readyState);
             return;
         }
 
         if (inputValue.trim()) {
             const newMessage = {
-                type: "message",
+                id: Date.now(),
+                sender: {
+                    id: sender.id,
+                    email: sender?.email,
+                    first_name: sender?.first_name,
+                    last_name: sender?.last_name,
+                    profile_image: sender?.profile_image,
+                    role: sender?.role,
+                },
                 message: inputValue,
-                sender_id: senderId,
+                timestamp: new Date().toISOString(),
+                is_read: false,
             };
-
-            console.log("Sending message payload:", JSON.stringify(newMessage));
 
             ws.current.send(JSON.stringify(newMessage));
 
@@ -115,9 +127,18 @@ export default function MessagesConversation({ selectedConversation }) {
                 ...prevMessages,
                 {
                     id: Date.now(),
-                    sender_id: senderId,
-                    content: inputValue,
-                    timestamp: getFormattedTime(Date.now()),
+                    sender: {
+                        id: sender.id,
+                        email: sender?.email,
+                        first_name: sender?.first_name,
+                        last_name: sender?.last_name,
+                        profile_image: sender?.profile_image,
+                        role: sender?.role,
+                    },
+                    message: inputValue,
+                    timestamp: new Date().toISOString(),
+                    is_read: false,
+
                 },
             ]);
 
@@ -131,74 +152,49 @@ export default function MessagesConversation({ selectedConversation }) {
         }
     }, [messages]);
 
+    if (isForbidden) {
+        return (
+            <div className="flex items-center justify-center h-full text-red-500">
+                <p>You do not have permission to view this conversation.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col h-full">
             {/* Chat Messages Section */}
-            {selectedConversation ? (
-                <div className="flex flex-col flex-grow overflow-y-auto p-4">
+            <div className="flex flex-col flex-grow overflow-y-auto p-4">
+                {false ? (
+                    <MessageLoading />
+                ) : (
                     <ChatMessageList>
-                        {messages.map((msg) => (
-                            <ChatBubble
-                                key={msg.id}
-                                variant={msg.sender_id === senderId ? "sent" : "received"}
-                            >
-                                <ChatBubbleAvatar
-                                    className="text-foreground bg-muted"
-                                    fallback={msg.sender_id.toString()[0].toUpperCase()}
-                                />
-                                <ChatBubbleMessage
-                                    variant={msg.sender_id === senderId ? "sent" : "received"}
-                                >
-                                    {msg.content}
-                                    <ChatBubbleTimestamp timestamp={msg.timestamp} />
+                        {Array.isArray(messages) && messages.length > 0 ? (messages.map((msg) => (
+                            <ChatBubble key={msg?.id} variant={msg?.sender?.id === senderId ? 'sent' : 'received'}>
+                                <ChatBubbleAvatar className="text-foreground bg-muted" src={msg?.sender?.avatar} fallback={msg.sender ? msg?.sender?.first_name?.charAt(0).toUpperCase() + msg?.sender?.last_name?.charAt(0).toUpperCase() : ""} />
+                                <ChatBubbleMessage variant={msg?.sender?.id === senderId ? 'sent' : 'received'} className="text-white">
+                                    {msg?.message_text || msg?.message}
+                                    <ChatBubbleTimestamp timestamp={new Date(msg.timestamp).toLocaleString()} />
                                 </ChatBubbleMessage>
                             </ChatBubble>
-                        ))}
-                        {isTyping && (
-                            <ChatBubble variant="received">
-                                <ChatBubbleAvatar
-                                    className="text-foreground bg-muted"
-                                    fallback="?"
-                                />
-                                <ChatBubbleMessage isLoading />
-                            </ChatBubble>
-                        )}
-                        <div ref={bottomRef} /> {/* Dummy div for auto-scroll */}
+                        ))) : null}
+                        {/* Empty div to act as the bottom reference point */}
+                        <div ref={bottomRef} />
                     </ChatMessageList>
-                </div>
-            ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                    Select a conversation to view messages.
-                </div>
-            )}
+                )}
+            </div>
 
             {/* Message Input Section */}
-            {selectedConversation && (
-                <div className="p-4 border-t border-border sticky bottom-0 bg-background flex items-center space-x-2">
-                    <ChatInput
-                        onChange={(e) => setInputValue(e.target.value)}
-                        value={inputValue}
-                        placeholder="Type a message..."
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSendMessage();
-                            }
-                        }}
-                        className="flex-grow border p-2 rounded-md text-foreground
-                        [&::-webkit-scrollbar]:w-2
-                        [&::-webkit-scrollbar-track]:rounded-full
-                        [&::-webkit-scrollbar-track]:bg-gray-100
-                        [&::-webkit-scrollbar-thumb]:rounded-full
-                        [&::-webkit-scrollbar-thumb]:bg-gray-300
-                        dark:[&::-webkit-scrollbar-track]:bg-neutral-700
-                        dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500"
-                    />
-                    <Button onClick={handleSendMessage} className="flex items-center h-full">
-                        <Send size={24} className="text-white" />
-                    </Button>
-                </div>
-            )}
+            <div className="p-4 border-t sticky bottom-0 bg-background flex items-center space-x-2 border-border">
+                <ChatInput
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Type a message..."
+                    className="flex-grow rounded-md text-foreground"
+                />
+                <Button onClick={handleSendMessage}>
+                    <Send size={24} className="text-white" />
+                </Button>
+            </div>
         </div>
     );
 }

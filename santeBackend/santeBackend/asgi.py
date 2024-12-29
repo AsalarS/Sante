@@ -13,9 +13,9 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'santeBackend.settings')
 django.setup()
 
 from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.auth import AuthMiddlewareStack
+from api.middleware import SimpleJWTAuthMiddleware
 from django.core.asgi import get_asgi_application
-import api.routing 
+import api.routing as routing
 
 # 2. Initialize Django's ASGI application
 django_asgi_app = get_asgi_application()
@@ -23,9 +23,9 @@ django_asgi_app = get_asgi_application()
 # 3. Define the ProtocolTypeRouter
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
-    "websocket": AuthMiddlewareStack(
+    "websocket": SimpleJWTAuthMiddleware(
         URLRouter(
-            api.routing.websocket_urlpatterns
+            routing.websocket_urlpatterns
         )
     ),
 })

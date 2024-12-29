@@ -46,4 +46,6 @@ urlpatterns = [
     # Chats
     path('chats/', UserChatsView.as_view(), name='chats-view'),
     path('chats/<int:user_id>/', UserChatsView.as_view(), name='chats-view'),
+    path('chats/<uuid:chat_id>/messages/', ChatMessagesView.as_view(), name='chat_messages'),
+    
 ]

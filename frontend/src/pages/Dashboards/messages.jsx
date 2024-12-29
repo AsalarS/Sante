@@ -1,20 +1,63 @@
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom"; // To access chatID in the URL
 import api from "@/api";
 import MessageInbox from "@/components/messageInbox";
 import MessagesConversation from "@/components/messagesConversation";
-import { useEffect, useState } from "react";
+import { ACCESS_TOKEN } from "@/constants";
 
 function MessagesPage() {
-    const [selectedConversation, setSelectedConversation] = useState(null); // Currently selected conversation ID
-    const [userId, setUserId] = useState(null); // Logged-in user's ID
-    const [loading, setLoading] = useState(false); // Loading state for fetching conversations
+    const { chatID } = useParams(); // Get chatID from the URL
+    const navigate = useNavigate();
+    const [selectedConversation, setSelectedConversation] = useState(null);
+    const [userId, setUserId] = useState(null);
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const wsRef = useRef(null); // WebSocket reference
+    const token = localStorage.getItem(ACCESS_TOKEN);
 
+
+    const handleSelectConversation = (chatId) => {
+        // Close the existing WebSocket connection if any
+        if (wsRef.current) {
+            wsRef.current.close();
+            wsRef.current = null;
+        }
+
+        // Establish a new WebSocket connection for the selected chat
+        const ws = new WebSocket(`ws://localhost:8001/ws/chat/${chatId}/?token=${token}`);
+        //const ws = new WebSocket(`ws://localhost:8001/ws/chat/${userId}/${chatId}/`);
+
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+            console.log("WebSocket connection established for chat:", chatId);
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log("WebSocket message:", data);
+        };
+
+        ws.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+
+        ws.onclose = () => {
+            console.log("WebSocket connection closed");
+        };
+        
+        setSelectedConversation(chatId);
+        navigate(`chat/${chatId}`);
+    };
+
+    // Fetch the logged-in user's info
     useEffect(() => {
-        // Fetch logged-in user's ID
         const fetchUserId = async () => {
             try {
                 const response = await api.get("/api/user-info/");
                 if (response.status === 200) {
                     setUserId(response.data.id);
+                    setUser(response.data)
                 } else {
                     console.error("Failed to fetch current user.");
                 }
@@ -31,9 +74,9 @@ function MessagesPage() {
             {/* Inbox Section */}
             {userId ? (
                 <MessageInbox
-                    onSelectConversation={(conversationId) => setSelectedConversation(conversationId)} // Callback for selecting a conversation
-                    userId={userId} // Pass the logged-in user's ID
-                    loading={loading} // Loading state
+                    onSelectConversation={handleSelectConversation}
+                    userId={userId}
+                    loading={loading}
                 />
             ) : (
                 <p>Loading user information...</p>
@@ -41,12 +84,8 @@ function MessagesPage() {
 
             {/* Conversation Section */}
             <div className="flex-grow">
-                {selectedConversation ? (
-                    <MessagesConversation
-                        selectedConversation={selectedConversation}
-                        senderId={userId}
-                        receiverId={null} // Will be determined within MessagesConversation
-                    />
+                {chatID ? (
+                    <MessagesConversation chatID={chatID} sender={user} />
                 ) : (
                     <div className="flex items-center justify-center h-full">
                         <p className="text-muted-foreground">Select a conversation to start chatting</p>

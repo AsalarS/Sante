@@ -5,6 +5,9 @@ from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
 from .models import Chat, ChatMessage, Notification
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 User = get_user_model()
 
@@ -45,68 +48,60 @@ def send_notification(user_id, notification_data):
 # Chat Consumer (handles the chat functionality)
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        # Get chat_id from URL and user_id from the scope
         self.chat_id = self.scope['url_route']['kwargs']['chat_id']
-        self.group_name = f"chat_{self.chat_id}"
+        self.chat_group_name = f"chat_{self.chat_id}"
+ 
+        # Access the user from the scope
+        self.user = self.scope['user']
+        if self.user.is_authenticated:
+            self.user = self.scope['user']
+            self.user_id = self.user.id
+        else:
+            print("User is not authenticated")
+            await self.close()  # Close the connection if the user is not authenticated
 
-        # Join the WebSocket group (this is what links all users in the same chat room)
+        # Join the chat group
         await self.channel_layer.group_add(
-            self.group_name,
+            self.chat_group_name,
             self.channel_name
         )
-
-        # Accept the WebSocket connection
         await self.accept()
 
     async def disconnect(self, close_code):
-        # Leave the group when the WebSocket connection is closed
+        # Leave the chat group
         await self.channel_layer.group_discard(
-            self.group_name,
+            self.chat_group_name,
             self.channel_name
         )
 
     async def receive(self, text_data):
-        # Parse the incoming message
+        # Parse the incoming message data
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
-        sender_id = text_data_json['sender']
 
-        # Get the sender user object
-        sender = await self.get_user_by_id(sender_id)
-
-        # Save the message to the database
-        chat_message = ChatMessage.objects.create(
-            chat_id=self.chat_id,
-            sender=sender,
-            message_text=message
-        )
-
-        # Send the message to the group (broadcast to all users in the chat)
-        send_chat_message(self.chat_id, {
-            'message': message,
-            'sender': sender.email,
-            'timestamp': chat_message.timestamp.strftime('%Y-%m-%d %H:%M:%S')
-        })
-
-        # Optionally send a notification to the other user in the chat
-        other_user = self.get_other_user(sender)
-        send_notification(other_user.id, {
-            'message': f"New message from {sender.email}",
-            'timestamp': chat_message.timestamp.strftime('%Y-%m-%d %H:%M:%S')
-        })
+        if message:
+            # Broadcast the message to the chat group
+            await self.channel_layer.group_send(
+                self.chat_group_name,
+                {
+                    'type': 'chat_message',  # Handler for this type of message
+                    'message': message,
+                    'sender_id': self.user_id,
+                }
+            )
 
     async def chat_message(self, event):
-        # This method handles the messages sent to the group (from `send_chat_message`)
-
+        # Receive the broadcast message from the group
         message = event['message']
-        sender = event['sender']
-        timestamp = event['timestamp']
+        sender_id = event['sender_id']
 
-        # Send the message to the WebSocket
+        # Send the message to the WebSocket client
         await self.send(text_data=json.dumps({
             'message': message,
-            'sender': sender,
-            'timestamp': timestamp
+            'sender_id': sender_id,
         }))
+
 
     async def get_user_by_id(self, user_id):
         # Fetch user by ID asynchronously

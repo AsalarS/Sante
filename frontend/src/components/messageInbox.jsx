@@ -6,7 +6,6 @@ import { Edit, Loader2, SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTrigger, DialogDescription, DialogTitle } from "./ui/dialog";
 import api from "@/api";
-import { ACCESS_TOKEN } from "@/constants";
 
 function MessageInbox({ onSelectConversation, userId }) {
     const [loading, setLoading] = useState(false);
@@ -15,7 +14,7 @@ function MessageInbox({ onSelectConversation, userId }) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [users, setUsers] = useState([]);
     const [userSearch, setUserSearch] = useState("");
-    const wsRef = useRef(null); // WebSocket reference
+    const [selectedConversation, setSelectedConversation] = useState(null);
 
     // Fetch existing chats for the inbox
     const fetchChats = async () => {
@@ -23,13 +22,13 @@ function MessageInbox({ onSelectConversation, userId }) {
         try {
             const response = await api.get("/api/chats/");
             if (response.status === 200) {
-                setChats(response.data || []);                
-                
+                setChats(response.data.chats || []);;
+
             } else {
                 console.error("Failed to fetch chats.");
             }
         } catch (error) {
-            if (error.status === 404) {
+            if (error.response && error.response.status === 404) {
                 console.error("404: No Chats Available");
             } else {
                 console.error("Error fetching chats:", error);
@@ -59,46 +58,27 @@ function MessageInbox({ onSelectConversation, userId }) {
         fetchUsers();
     }, []);
 
-    const handleSelectConversation = (chatId) => {
-        // Close the existing WebSocket connection if any
-        if (wsRef.current) {
-            wsRef.current.close();
-            wsRef.current = null;
+    // Function to create a chat and set the selected conversation
+    const createAndSelectConversation = async (user2Id) => {
+        try {
+            // Create a new chat
+            const response = await api.post('/api/chats/', { user2_id: user2Id });
+            const chatId = response.data.id;
+
+            // Set the selected conversation to the new chat ID
+            onSelectConversation(chatId);
+
+            // Optionally, fetch the updated list of chats
+            fetchChats();
+        } catch (error) {
+            console.error('Error creating chat:', error);
         }
-        
-
-        const token = localStorage.getItem(ACCESS_TOKEN);
-
-        // Establish a new WebSocket connection for the selected chat
-        const ws = new WebSocket(`ws://localhost:8001/ws/chat/${userId}/${chatId}/?token=${token}`);
-        //const ws = new WebSocket(`ws://localhost:8001/ws/chat/${userId}/${chatId}/`);
-
-        wsRef.current = ws;
-
-        ws.onopen = () => {
-            console.log("WebSocket connection established for chat:", chatId);
-        };
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log("WebSocket message:", data);
-        };
-
-        ws.onerror = (error) => {
-            console.error("WebSocket error:", error);
-        };
-
-        ws.onclose = () => {
-            console.log("WebSocket connection closed");
-        };
-
-        onSelectConversation(chatId); // Notify the parent component
     };
-    
+
     const filteredChats = Array.isArray(chats)
         ? chats.filter((chat) =>
-            chat?.user2?.name?.toLowerCase().includes(inboxSearch.toLowerCase()) ||
-            chat?.user1?.name?.toLowerCase().includes(inboxSearch.toLowerCase())
+            `${chat.user2.first_name} ${chat.user2.last_name}`.toLowerCase().includes(inboxSearch.toLowerCase()) ||
+            `${chat.user1.first_name} ${chat.user1.last_name}`.toLowerCase().includes(inboxSearch.toLowerCase())
         )
         : [];
 
@@ -116,7 +96,7 @@ function MessageInbox({ onSelectConversation, userId }) {
                 style={style}
                 className="flex items-center p-4 border-b hover:bg-background-hover cursor-pointer border-border"
                 onClick={() => {
-                    handleSelectConversation(user.id); // Trigger WebSocket on user select
+                    createAndSelectConversation(user.id); // Trigger WebSocket on user select
                     setIsDialogOpen(false); // Close the dialog
                 }}
             >
@@ -192,21 +172,21 @@ function MessageInbox({ onSelectConversation, userId }) {
                 {loading ? (
                     <p className="text-center p-4">Loading chats...</p>
                 ) : (
-                    filteredChats.map((chat) => {
+                    chats.map((chat) => {
                         const otherUser = chat.user1.id === userId ? chat.user2 : chat.user1;
                         return (
                             <li
                                 key={chat.id}
                                 className="flex items-center p-4 border-b hover:bg-background-hover cursor-pointer border-border"
-                                onClick={() => handleSelectConversation(chat.id)}
+                                onClick={() => onSelectConversation(chat.id)}
                             >
-                                <img
-                                    src={otherUser.avatar || "/path/to/default-avatar.png"}
-                                    alt="Avatar"
-                                    className="w-12 h-12 mr-3 rounded-full"
+                                <ChatBubbleAvatar
+                                    src={otherUser.avatar}
+                                    className="w-12 h-12 mr-3 text-foreground bg-muted text-lg font-semibold"
+                                    fallback={`${otherUser.first_name.charAt(0).toUpperCase()}${otherUser.last_name.charAt(0).toUpperCase()}`}
                                 />
                                 <div>
-                                    <div className="font-semibold text-lg text-foreground">{otherUser.name}</div>
+                                    <div className="font-semibold text-lg text-foreground">{otherUser.first_name} {otherUser.last_name}</div>
                                     <div className="text-sm text-muted-foreground">{chat.lastMessage}</div>
                                 </div>
                             </li>
