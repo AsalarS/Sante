@@ -28,7 +28,6 @@ function DoctorHome() {
       const response = await api.get("/api/users/patients/");
       if (response.status === 200) {
         setPatients(response.data);
-        console.log(response.data);
       } else {
         console.error("Failed to fetch patient data:", response.statusText);
       }

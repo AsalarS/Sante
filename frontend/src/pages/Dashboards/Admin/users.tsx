@@ -286,6 +286,8 @@ export function UserAdminPage() {
 
   const handleRegisterUser = async (registerData: User) => { // Register a new user
     try {
+      console.log(registerData);
+      
       const response = await api.post(`api/user/register/admin`, registerData);
 
       if (response.status === 200 || response.status === 201) {
@@ -297,6 +299,8 @@ export function UserAdminPage() {
     } catch (error: any) {
       if (error.response.status === 400) {
         toast.error("Missing or incorrect input: " + error.message);
+        console.log(error.response);
+        
       } else {
         toast.error("Failed to add user: " + error);
       }
@@ -347,7 +351,7 @@ export function UserAdminPage() {
         </Button>
         <AddUserDialog
           open={dialogOpen && !selectedUser}
-          onClose={() => setDialogOpen(false)}
+          onClose={() => {setDialogOpen(false); setSelectedUser(null)}}
           onSave={handleRegisterUser}
         />
       </div>
@@ -448,7 +452,7 @@ export function UserAdminPage() {
         <UserDialog
           user={selectedUser}
           open={dialogOpen && selectedUser}
-          onClose={() => setDialogOpen(false)}
+          onClose={() => {setDialogOpen(false); setSelectedUser(null)}}
           onSave={handleSaveUser}
         />
       )}

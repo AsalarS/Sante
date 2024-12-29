@@ -157,46 +157,6 @@ class Appointment(models.Model):
     def _str_(self):
         return f"Appointment {self.id} on {self.appointment_date} at {self.appointment_time}"
 
-
-class Chat(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user1 = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='chats_user1'
-    )
-    user2 = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='chats_user2'
-    )
-    created_date = models.DateTimeField(auto_now_add=True)
-    last_updated_date = models.DateTimeField(auto_now=True)
-
-    def _str_(self):
-        return f"Chat between {self.user1.email} and {self.user2.email}"
-
-
-class ChatMessage(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    chat = models.ForeignKey(
-        Chat,
-        on_delete=models.CASCADE,
-        related_name='messages'
-    )
-    sender = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='sent_messages'
-    )
-    timestamp = models.DateTimeField(auto_now_add=True)
-    message_text = models.TextField()
-    is_read = models.BooleanField(default=False)
-
-    def _str_(self):
-        return f"Message from {self.sender.email} at {self.timestamp}"
-
-
 class Log(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
@@ -263,3 +223,75 @@ class CarePlan(models.Model):
 
     def _str_(self):
         return f"Care Plan: {self.care_plan_title} for Appointment {self.appointment.id}"
+    
+class Chat(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user1 = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='chats_user1'
+    )
+    user2 = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='chats_user2'
+    )
+    created_date = models.DateTimeField(auto_now_add=True)
+    last_updated_date = models.DateTimeField(auto_now=True)
+
+    def _str_(self):
+        return f"Chat between {self.user1.email} and {self.user2.email}"
+
+
+class ChatMessage(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    chat = models.ForeignKey(
+        Chat,
+        on_delete=models.CASCADE,
+        related_name='messages'
+    )
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='sent_messages'
+    )
+    timestamp = models.DateTimeField(auto_now_add=True)
+    message_text = models.TextField()
+    is_read = models.BooleanField(default=False)
+
+    def _str_(self):
+        return f"Message from {self.sender.email} at {self.timestamp}"
+
+class Notification(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    chat = models.ForeignKey(
+        'Chat',
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    message = models.ForeignKey(
+        'ChatMessage',
+        on_delete=models.CASCADE,
+        related_name='notifications',
+        null=True,  # Allow null for non-message-based notifications
+        blank=True
+    )
+    notification_type = models.CharField(
+        max_length=50,
+        choices=[
+            ('NEW_MESSAGE', 'New Message'),
+            ('CHAT_CREATED', 'Chat Created'),
+            ('USER_JOINED', 'User Joined'),
+        ],
+        default='NEW_MESSAGE'
+    )
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Notification for {self.recipient.email} - {self.notification_type}"

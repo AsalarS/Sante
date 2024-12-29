@@ -1,4 +1,5 @@
 from .models import Log
+from channels.layers import get_channel_layer
 
 def log_to_db(request, action, description=""):
     """
@@ -34,3 +35,18 @@ def get_client_ip(request):
     else:
         ip = request.META.get("REMOTE_ADDR")
     return ip
+
+def send_notification(user, message):
+    """
+    Sends a notification to a specific user via WebSockets.
+    The user should be authenticated and have an active WebSocket connection.
+    """
+    channel_layer = get_channel_layer()
+    # Send the notification to the user's notification group
+    channel_layer.group_send(
+        f'notification_{user.id}',  # Notification group for the user
+        {
+            'type': 'send_notification',
+            'notification': message,  # The message to send
+        }
+    )

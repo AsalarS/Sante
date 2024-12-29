@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     "api",
-    "corsheaders"
+    "corsheaders",
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -150,3 +151,14 @@ CORS_ALLOWED_ORIGINS = [
 
 AUTH_USER_MODEL = 'api.UserProfile'
 LOGIN_URL = '/login/'
+
+# Channel layers
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
+
+# ASGI application
+
+ASGI_APPLICATION = 'santeBackend.asgi.application'

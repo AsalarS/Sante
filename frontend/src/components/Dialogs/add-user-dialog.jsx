@@ -107,15 +107,6 @@ const AddUserDialog = ({ open, onClose, onSave }) => {
             <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
               {/* Common Fields */}
               <div>
-                <Label>Email</Label>
-                <Input
-                  value={userData.email}
-                  onChange={(e) =>
-                    handleChange(setUserData)("email", e.target.value)
-                  }
-                />
-              </div>
-              <div>
                 <Label>First Name</Label>
                 <Input
                   value={userData.first_name}
@@ -130,6 +121,15 @@ const AddUserDialog = ({ open, onClose, onSave }) => {
                   value={userData.last_name}
                   onChange={(e) =>
                     handleChange(setUserData)("last_name", e.target.value)
+                  }
+                />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input
+                  value={userData.email}
+                  onChange={(e) =>
+                    handleChange(setUserData)("email", e.target.value)
                   }
                 />
               </div>
@@ -255,7 +255,6 @@ const AddUserDialog = ({ open, onClose, onSave }) => {
                   id="role"
                   required
                   onChange={(e) => {
-                    console.log("Selected Role:", e.target.value);
                     handleChange(setUserData)("role", e.target.value);
                   }}
                   className="p-2 border rounded-md bg-background w-full"

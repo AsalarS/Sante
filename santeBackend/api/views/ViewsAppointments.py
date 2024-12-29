@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from datetime import datetime, time, timedelta
 from django.db.models import Q
-from ..models import Employee, Appointment, Patient, UserProfile
+from ..models import Employee, Appointment, Patient
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import logging

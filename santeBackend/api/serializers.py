@@ -131,17 +131,17 @@ class PatientSerializer(serializers.ModelSerializer):
 
 
 class RegisterPatientSerializer(serializers.ModelSerializer):
-    medical_record_id = serializers.CharField(required=False, allow_null=True)
-    emergency_contact_name = serializers.CharField(required=False, allow_null=True)
-    emergency_contact_phone = serializers.CharField(required=False, allow_null=True)
-    blood_type = serializers.CharField(required=False, allow_null=True)
-    family_history = serializers.CharField(required=False, allow_null=True)
-    CPR_number = serializers.CharField(required=True)
-    place_of_birth = serializers.CharField(required=False, allow_null=True)
-    religion = serializers.CharField(required=False, allow_null=True)
+    medical_record_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    emergency_contact_name = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    emergency_contact_phone = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    blood_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    family_history = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    CPR_number = serializers.CharField(required=False, allow_blank=True, allow_null=True)  # Ensure blank is allowed
+    place_of_birth = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    religion = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     allergies = serializers.JSONField(required=False, default=dict)
     past_surgeries = serializers.JSONField(required=False, default=dict)
-    chronic_conditions = serializers.CharField(required=False, allow_null=True)
+    chronic_conditions = serializers.JSONField(required=False, default=dict)
 
     class Meta:
         model = UserProfile
@@ -188,20 +188,20 @@ class RegisterPatientSerializer(serializers.ModelSerializer):
             role=role,
         )
 
-        # Create patient record
+        # Set default values for optional fields
         patient_data = {
             "user": user,
-            "medical_record_id": validated_data.get("medical_record_id"),
-            "emergency_contact_name": validated_data.get("emergency_contact_name"),
-            "emergency_contact_phone": validated_data.get("emergency_contact_phone"),
-            "blood_type": validated_data.get("blood_type"),
-            "family_history": validated_data.get("family_history"),
-            "CPR_number": validated_data["CPR_number"],
-            "place_of_birth": validated_data.get("place_of_birth"),
-            "religion": validated_data.get("religion"),
+            "medical_record_id": validated_data.get("medical_record_id", None),
+            "emergency_contact_name": validated_data.get("emergency_contact_name", None),
+            "emergency_contact_phone": validated_data.get("emergency_contact_phone", None),
+            "blood_type": validated_data.get("blood_type", None),
+            "family_history": validated_data.get("family_history", None),
+            "CPR_number": validated_data.get("CPR_number", None),
+            "place_of_birth": validated_data.get("place_of_birth", None),
+            "religion": validated_data.get("religion", None),
             "allergies": validated_data.get("allergies", {}),
             "past_surgeries": validated_data.get("past_surgeries", {}),
-            "chronic_conditions": validated_data.get("chronic_conditions"),
+            "chronic_conditions": validated_data.get("chronic_conditions", {}),
         }
         Patient.objects.create(**patient_data)
 

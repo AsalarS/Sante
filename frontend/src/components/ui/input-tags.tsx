@@ -40,7 +40,6 @@ const InputTags = React.forwardRef<HTMLInputElement, InputTagsProps>(
         const updatedValue = { ...value, [trimmedKey]: newValue };
         
         onChange(updatedValue);
-        console.log("Updated value: " + JSON.stringify(updatedValue));
         setPendingKey(""); // Clear the input after adding
       }
     };

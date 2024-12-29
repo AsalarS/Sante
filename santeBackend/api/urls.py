@@ -2,6 +2,8 @@ from django.urls import path
 from .views.ViewsGeneral import *
 from .views.ViewsUsers import *
 from .views.ViewsAppointments import *
+from .views.ViewsChats import *
+from .views.ViewsDashboard import *
 urlpatterns = [
     path('users/', get_users, name='get_users'),
     
@@ -40,4 +42,8 @@ urlpatterns = [
     path('user-info/', UserInfoView.as_view(), name='user_info'), #to show current logged in user info
     path('user-info/<int:user_id>/', SpecificUserInfoView.as_view(), name='user_info_specific'), #to show a users info
     path('users/patients/', get_patients, name='get_patients'),
+    
+    # Chats
+    path('chats/', UserChatsView.as_view(), name='chats-view'),
+    path('chats/<int:user_id>/', UserChatsView.as_view(), name='chats-view'),
 ]
