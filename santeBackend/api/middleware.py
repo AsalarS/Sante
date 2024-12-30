@@ -1,3 +1,4 @@
+import logging
 from urllib.parse import parse_qs
 from channels.middleware import BaseMiddleware
 from django.contrib.auth.models import AnonymousUser
@@ -7,77 +8,63 @@ from asgiref.sync import sync_to_async
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
+logger = logging.getLogger(__name__)
+
 class SimpleJWTAuthMiddleware(BaseMiddleware):
-    """
-    Custom WebSocket middleware for Simple JWT authentication.
-    """
-    def __init__(self, inner):
-        self.inner = inner
-
     async def __call__(self, scope, receive, send):
-        """
-        Called when a WebSocket connection is made.
-        """
         try:
-            # Extract the token from the query string (e.g., ws://localhost:8001/ws/chat/3/?token=<your_token>)
-            token = None
-            query_string = scope.get('query_string', b'').decode('utf-8')  # Get the query string
-            if query_string:
-                parsed_qs = parse_qs(query_string)  # Parse the query string
-                token = parsed_qs.get('token', [None])[0]  # Extract the token value
+            # Close old database connections
+            await sync_to_async(close_old_connections)()
 
+            # Extract token from query string
+            query_string = scope.get('query_string', b'').decode('utf-8')
+            token = await self.extract_token(query_string)
+            
             if not token:
-                raise AuthenticationFailed("Token query parameter missing.")
+                scope['user'] = AnonymousUser()
+                return await self.inner(scope, receive, send)
 
-            # Run the synchronous JWT authentication in an async-compatible way
-            user = await sync_to_async(self.authenticate_user)(token)
+            # Authenticate user
+            user = await self.get_authenticated_user(token)
+            
+            if not user:
+                scope['user'] = AnonymousUser()
+                return await self.inner(scope, receive, send)
 
-            # Add the user to the scope
-            scope["user"] = user
+            # Add the authenticated user to the scope
+            scope['user'] = user
+            
+            return await self.inner(scope, receive, send)
 
-            # Proceed with the next middleware/consumer
-            await super().__call__(scope, receive, send)
-
-        except AuthenticationFailed as e:
-            # Handle authentication failure (e.g., close WebSocket if the token is invalid)
-            await send({
-                "type": "websocket.close",
-                "code": 4000  # This can vary depending on the WebSocket protocol
-            })
-            return
         except Exception as e:
-            # Handle other errors (log and close the WebSocket)
-            await send({
-                "type": "websocket.close",
-                "code": 4000
-            })
-            print("Error during WebSocket authentication:", str(e))
-            return
+            logging.error(f"Middleware error: {str(e)}")
+            scope['user'] = AnonymousUser()
+            return await self.inner(scope, receive, send)
+
+    @staticmethod
+    async def extract_token(query_string: str) -> str:
+        if not query_string:
+            return None
         
-    def _get_token(self, headers, query_string):
-        """
-        Extract the token from headers or query string.
-        """
-        # Check for Authorization header
-        auth_header = headers.get("authorization", "")
-        if auth_header.startswith("Bearer "):
-            return auth_header[7:]
-
-        # Check for token in query string (e.g., ws://.../?token=...)
-        query_params = dict(param.split('=') for param in query_string.split('&') if '=' in param)
-        return query_params.get("token")
-
-    def authenticate_user(self, token):
-        """
-        Validate the JWT token and return the user.
-        """
-        if not token:
-            return AnonymousUser()
-
         try:
-            # Validate the token
-            validated_token = JWTAuthentication().get_validated_token(token)
-            user = JWTAuthentication().get_user(validated_token)
-            return user
+            parsed_qs = parse_qs(query_string)
+            token = parsed_qs.get('token', [None])[0]
+            return token
         except Exception as e:
-            raise AuthenticationFailed("Invalid token or user.")
+            logging.error(f"Error extracting token: {str(e)}")
+            return None
+
+    @staticmethod
+    @sync_to_async
+    def get_authenticated_user(token: str):
+        try:
+            close_old_connections()
+            jwt_auth = JWTAuthentication()
+            validated_token = jwt_auth.get_validated_token(token)
+            user = jwt_auth.get_user(validated_token)
+            
+            return user if user and user.is_active else None
+            
+        except Exception as e:
+            logging.error(f"Error authenticating user: {str(e)}")
+            return None

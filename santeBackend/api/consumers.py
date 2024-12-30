@@ -13,19 +13,15 @@ logging.basicConfig(level=logging.DEBUG)
 User = get_user_model()
 
 # Utility function to send chat messages to a specific group (chat room)
+# Utility function to send chat messages to a specific group (chat room)
 def send_chat_message(chat_id, message_data):
-    # Get the channel layer
     channel_layer = get_channel_layer()
-
-    # We assume the chat_id is the room name and we will send the message to that room
     group_name = f"chat_{chat_id}"
-
-    # Send the message to the group (this will push the message to all consumers in this group)
     async_to_sync(channel_layer.group_send)(
-        group_name,  # Group name (chat room)
+        group_name,
         {
-            "type": "chat_message",  # This corresponds to the `chat_message` method in the consumer
-            "message": message_data,  # The actual message data
+            "type": "chat_message",
+            "message": message_data,
         }
     )
 
@@ -34,7 +30,7 @@ def send_notification(user_id, notification_data):
     # Get the channel layer
     channel_layer = get_channel_layer()
 
-    # We use the user_id as the group name for the user-specific notifications
+    # Using the user_id as the group name for the user-specific notifications
     group_name = f"user_{user_id}_notifications"
 
     # Send the notification to the group (this will push the message to the specific user)
@@ -48,30 +44,79 @@ def send_notification(user_id, notification_data):
 
 # Chat Consumer (handles the chat functionality)
 class ChatConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
-        # Get chat_id from URL and user_id from the scope
-        self.chat_id = self.scope['url_route']['kwargs']['chat_id']
-        self.chat_group_name = f"chat_{self.chat_id}"
+    @database_sync_to_async
+    def create_message_notification(self, message, recipient):
+        return Notification.objects.create(
+            recipient=recipient,
+            chat_id=self.chat_id,
+            message=message,
+            notification_type='NEW_MESSAGE'
+        )
         
-        # Access the user from the scope
-        self.user = self.scope.get('user', None)  # Get user from the scope
-        if not self.user or not self.user.is_authenticated:
-            logging.error("User is not authenticated")
-            await self.close()  # Close the connection if the user is not authenticated
+    async def connect(self):
+        try:
+            self.chat_id = self.scope['url_route']['kwargs']['chat_id']
+            self.chat_group_name = f"chat_{self.chat_id}"
+            
+            # Get user from scope
+            self.user = self.scope.get('user', None)
+            if not self.user or not self.user.is_authenticated:
+                logging.error("User is not authenticated")
+                await self.close()
+                return
+
+            # Get chat instance
+            self.chat = await self.get_chat(self.chat_id)
+            if not self.chat:
+                logging.error(f"Chat {self.chat_id} does not exist")
+                await self.close()
+                return
+
+            # Check access
+            can_access = await self.can_access_chat(self.chat, self.user)
+            if not can_access:
+                logging.error(f"User {self.user.id} does not have access to chat {self.chat_id}")
+                await self.close()
+                return
+
+            self.user_id = self.user.id
+            self.other_user = await database_sync_to_async(lambda: self.chat.user2 if self.chat.user1 == self.user else self.chat.user1)()
+
+            # Add to group
+            await self.channel_layer.group_add(
+                self.chat_group_name,
+                self.channel_name
+            )
+            
+            await self.accept()
+            
+        except Exception as e:
+            logging.error(f"Error in connect: {str(e)}")
+            await self.close()
             return
 
-        # Save user_id for later use
-        self.user_id = self.user.id
+    @database_sync_to_async
+    def get_chat(self, chat_id):
+        try:
+            return Chat.objects.get(id=chat_id)
+        except Chat.DoesNotExist:
+            return None
 
-        # Join the chat group
-        await self.channel_layer.group_add(
-            self.chat_group_name,
-            self.channel_name
-        )
-        await self.accept()
+    @database_sync_to_async
+    def can_access_chat(self, chat, user):
+        return chat.user1 == user or chat.user2 == user
 
     async def disconnect(self, close_code):
-        # Leave the chat group
+        # Send stopped typing status when user disconnects
+        await self.channel_layer.group_send(
+            self.chat_group_name,
+            {
+                'type': 'typing_status',
+                'user_id': self.user_id,
+                'is_typing': False
+            }
+        )
+        
         await self.channel_layer.group_discard(
             self.chat_group_name,
             self.channel_name
@@ -79,15 +124,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         try:
-            text_data_json = json.loads(text_data)
+            data = json.loads(text_data)
+            message_type = data.get('type')
+
+            if message_type == 'typing_status':
+                await self.channel_layer.group_send(
+                    self.chat_group_name,
+                    {
+                        'type': 'typing_status',
+                        'user_id': self.user_id,
+                        'is_typing': data.get('is_typing', False)
+                    }
+                )
+                return
+
+            message_text = data.get('message')
             
-            # Extract message text from the complete message object
-            message_text = text_data_json.get('message')
-            
-            # Create the message data structure for broadcasting
             message_data = {
                 'type': 'chat_message',
-                'id': text_data_json.get('id'),
+                'id': data.get('id'),
                 'sender': {
                     'id': self.user.id,
                     'email': self.user.email,
@@ -96,22 +151,51 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'profile_image': self.user.profile_image.url if hasattr(self.user, 'profile_image') and self.user.profile_image else None,
                     'role': self.user.role if hasattr(self.user, 'role') else None,
                 },
-                'timestamp': text_data_json.get('timestamp') or str(datetime.datetime.now()),
+                'timestamp': data.get('timestamp') or str(datetime.datetime.now()),
                 'message_text': message_text,
                 'is_read': False
             }
+
+            # Send "stopped typing" status when a message is sent
+            await self.channel_layer.group_send(
+                self.chat_group_name,
+                {
+                    'type': 'typing_status',
+                    'user_id': self.user_id,
+                    'is_typing': False
+                }
+            )
+
+            # Save message and create notification
+            message = await database_sync_to_async(ChatMessage.objects.create)(
+                chat_id=self.chat_id,
+                sender=self.user,
+                message_text=message_text
+            )
+
+            # Create notification for the other user
+            notification = await self.create_message_notification(message, self.other_user)
+            
+            # Send notification to the other user
+            send_notification(self.other_user.id, {
+                'id': str(notification.id),
+                'type': 'NEW_MESSAGE',
+                'chat_id': str(self.chat_id),
+                'message': message_text,
+                'sender_name': f"{self.user.first_name} {self.user.last_name}"
+            })
 
             # Broadcast the message to the chat group
             await self.channel_layer.group_send(
                 self.chat_group_name,
                 message_data
             )
+
         except Exception as e:
             logging.error(f"Error processing message: {e}")
             return
     
     async def chat_message(self, event):
-        # Send the message to the WebSocket client
         await self.send(text_data=json.dumps({
             'id': event['id'],
             'sender': event['sender'],
@@ -120,16 +204,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'is_read': event['is_read']
         }))
 
-    async def get_user_by_id(self, user_id):
-        # Fetch user by ID asynchronously
-        return await database_sync_to_async(User.objects.get)(id=user_id)
-
-    def get_other_user(self, sender):
-        # Get the other user in the chat (the one not sending the message)
-        chat = Chat.objects.get(id=self.chat_id)
-        if chat.user1 != sender:
-            return chat.user1
-        return chat.user2
+    async def typing_status(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'typing_status',
+            'user_id': event['user_id'],
+            'is_typing': event['is_typing']
+        }))
 
 # Notification Consumer (handles notifications for the user)
 class NotificationConsumer(AsyncWebsocketConsumer):

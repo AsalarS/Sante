@@ -12,6 +12,8 @@ export default function MessagesConversation({ chatID, sender, messages: initial
     const [inputValue, setInputValue] = useState("");
     const [isForbidden, setIsForbidden] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [typingUsers, setTypingUsers] = useState(new Set());
+    const typingTimeoutRef = useRef(null);
     const senderId = sender?.id;
     const bottomRef = useRef(null);
 
@@ -22,6 +24,32 @@ export default function MessagesConversation({ chatID, sender, messages: initial
         }
     }, [initialMessages]);
 
+    // Handle typing status
+    const handleTyping = () => {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+        // Clear existing timeout
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+
+        // Send typing status
+        ws.send(JSON.stringify({
+            type: 'typing_status',
+            is_typing: true
+        }));
+
+        // Set timeout to send stopped typing status
+        typingTimeoutRef.current = setTimeout(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'typing_status',
+                    is_typing: false
+                }));
+            }
+        }, 2000); // 2 second delay after stopping typing
+    };
+
     // WebSocket connection handling
     useEffect(() => {
         if (!ws) return;
@@ -29,17 +57,31 @@ export default function MessagesConversation({ chatID, sender, messages: initial
         const handleWebSocketMessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
+
+                // Handle typing status updates
+                if (data.type === 'typing_status') {
+                    setTypingUsers(prev => {
+                        const newSet = new Set(prev);
+                        if (data.is_typing) {
+                            newSet.add(data.user_id);
+                        } else {
+                            newSet.delete(data.user_id);
+                        }
+                        return newSet;
+                    });
+                    return;
+                }
+
+                // Handle regular messages
+
                 if (data.message_text || data.message) {
-                    setMessages((prevMessages) => [
-                        ...prevMessages,
-                        {
-                            id: data.id,
-                            sender: data.sender,
-                            message_text: data.message_text || data.message,
-                            timestamp: data.timestamp,
-                            is_read: data.is_read
-                        },
-                    ]);
+                    setMessages(prev => [...prev, {
+                        id: data.id,
+                        sender: data.sender,
+                        message_text: data.message_text || data.message,
+                        timestamp: data.timestamp,
+                        is_read: data.is_read
+                    }]);
                 }
             } catch (error) {
                 console.error("Error processing WebSocket message:", error);
@@ -47,12 +89,7 @@ export default function MessagesConversation({ chatID, sender, messages: initial
         };
 
         ws.addEventListener('message', handleWebSocketMessage);
-        ws.addEventListener('error', (error) => console.error("WebSocket error:", error));
-        ws.addEventListener('close', () => console.log("WebSocket connection closed"));
-
-        return () => {
-            ws.removeEventListener('message', handleWebSocketMessage);
-        };
+        return () => ws.removeEventListener('message', handleWebSocketMessage);
     }, [ws]);
 
     // Handle sending messages
@@ -153,6 +190,11 @@ export default function MessagesConversation({ chatID, sender, messages: initial
                                 </ChatBubbleMessage>
                             </ChatBubble>
                         ))}
+                        {typingUsers.size > 0 && (
+                            <>
+                                <ChatBubbleMessage isLoading variant={"received"} className="w-fit"/>
+                            </>
+                        )}
                         <div ref={bottomRef} />
                     </ChatMessageList>
                 )}
@@ -161,7 +203,10 @@ export default function MessagesConversation({ chatID, sender, messages: initial
             <div className="p-4 border-t sticky bottom-0 bg-background flex items-center space-x-2 border-border">
                 <ChatInput
                     value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
+                    onChange={(e) => {
+                        setInputValue(e.target.value);
+                        handleTyping();
+                    }}
                     onKeyDown={handleKeyPress}
                     placeholder="Type a message..."
                     className="flex-grow rounded-full text-foreground "

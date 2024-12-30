@@ -1,13 +1,15 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { FixedSizeList as List } from "react-window";
 import { ChatBubbleAvatar } from "./ui/chat/chat-bubble";
 import { Button } from "@/components/ui/button";
 import { Edit, Loader2, SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTrigger, DialogDescription, DialogTitle } from "./ui/dialog";
+import { useParams } from "react-router-dom";
 import api from "@/api";
 
 function MessageInbox({ onSelectConversation, userId }) {
+    const { chatID } = useParams(); // Get chatID from the URL
     const [loading, setLoading] = useState(false);
     const [chats, setChats] = useState([]);
     const [inboxSearch, setInboxSearch] = useState("");
@@ -170,14 +172,15 @@ function MessageInbox({ onSelectConversation, userId }) {
             {/* List Section */}
             <ul className="flex-1 overflow-y-auto overflow-x-hidden">
                 {loading ? (
-                    <p className="text-center p-4">Loading chats...</p>
+                    <p className="text-center p-4 text-foreground">Loading chats...</p>
                 ) : (
-                    chats.map((chat) => {
+                    filteredChats.map((chat) => {
                         const otherUser = chat.user1.id === userId ? chat.user2 : chat.user1;
+                        const isSelected = chat.id === chatID;
                         return (
                             <li
                                 key={chat.id}
-                                className="flex items-center p-4 border-b hover:bg-background-hover cursor-pointer border-border"
+                                className={`flex items-center p-4 border-b cursor-pointer border-border bg-background hover:bg-btn-hover/50 ${isSelected && 'bg-background-hover/50'}`}
                                 onClick={() => onSelectConversation(chat.id)}
                             >
                                 <ChatBubbleAvatar

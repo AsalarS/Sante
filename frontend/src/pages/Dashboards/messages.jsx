@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom"; // To access chatID in the URL
+import { useNavigate, useParams } from "react-router-dom";
 import api from "@/api";
 import MessageInbox from "@/components/messageInbox";
 import MessagesConversation from "@/components/messagesConversation";
 import { ACCESS_TOKEN } from "@/constants";
+import { toast } from "sonner";
 
 function MessagesPage() {
     const { chatID } = useParams(); // Get chatID from the URL
@@ -28,12 +29,18 @@ function MessagesPage() {
             const response = await api.get(`/api/chats/${chatId}/messages/`);
             if (response.status === 200) {
                 setMessages(response.data.messages || []);
-                
             } else {
                 console.error("Failed to fetch messages.");
             }
         } catch (error) {
-            console.error("Error fetching messages:", error);
+            if (error.response && error.response.status === 404) {
+                toast.error("Chat does not exist.");
+                navigate(`/${localStorage.getItem('role')}/messages/`);
+                  
+            } else {
+                console.error("Error fetching messages:", error);
+            }
+            return;
         }
 
         // Establish a new WebSocket connection for the selected chat
@@ -70,7 +77,7 @@ function MessagesPage() {
         };
 
         setSelectedConversation(chatId);
-        navigate(`/${localStorage.getItem('role')}/messages/chat/${chatId}`);
+        navigate(`/${localStorage.getItem('role')}/messages/${chatId}`);
     };
 
     // Fetch the logged-in user's info

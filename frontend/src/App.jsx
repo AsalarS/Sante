@@ -64,7 +64,7 @@ function App() {
             <Route path="patients/appointment" element={<AppointmentPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="messages" element={<MessagesPage />} />
-            <Route path="messages/chat/:chatID" element={<MessagesPage />} />
+            <Route path="messages/:chatID" element={<MessagesPage />} />
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
@@ -81,7 +81,7 @@ function App() {
             <Route index element={<Navigate to="dashboard" />} />
             <Route path="labs" element={<LabsPage />} />
             <Route path="messages" element={<MessagesPage />} />
-            <Route path="messages/chat/:chatID" element={<MessagesPage />} />
+            <Route path="messages/:chatID" element={<MessagesPage />} />
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
@@ -99,7 +99,7 @@ function App() {
             <Route path="patients" element={<PatientsPage />} />
             <Route path="patients/:patientId" element={<PatientsPage />} />
             <Route path="messages" element={<MessagesPage />} />
-            <Route path="messages/chat/:chatID" element={<MessagesPage />} />
+            <Route path="messages/:chatID" element={<MessagesPage />} />
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
@@ -118,7 +118,7 @@ function App() {
             <Route path="patients/:patientId" element={<PatientsPage />} />
             <Route path="appointments" element={<ReceptionistAppointment />} />
             <Route path="messages" element={<MessagesPage />} />
-            <Route path="messages/chat/:chatID" element={<MessagesPage />} />
+            <Route path="messages/:chatID" element={<MessagesPage />} />
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
@@ -138,7 +138,7 @@ function App() {
             <Route path="chat" element={<AdminHome />} />
             <Route path="logs" element={<LogAdminPage />} />
             <Route path="messages" element={<MessagesPage />} />
-            <Route path="messages/chat/:chatID" element={<MessagesPage />} />
+            <Route path="messages/:chatID" element={<MessagesPage />} />
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
