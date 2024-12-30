@@ -12,21 +12,32 @@ function MessagesPage() {
     const [userId, setUserId] = useState(null);
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [messages, setMessages] = useState([]);
     const wsRef = useRef(null); // WebSocket reference
     const token = localStorage.getItem(ACCESS_TOKEN);
 
-
-    const handleSelectConversation = (chatId) => {
+    const handleSelectConversation = async (chatId) => {
         // Close the existing WebSocket connection if any
         if (wsRef.current) {
             wsRef.current.close();
             wsRef.current = null;
         }
 
+        // Fetch initial messages from the database
+        try {
+            const response = await api.get(`/api/chats/${chatId}/messages/`);
+            if (response.status === 200) {
+                setMessages(response.data.messages || []);
+                
+            } else {
+                console.error("Failed to fetch messages.");
+            }
+        } catch (error) {
+            console.error("Error fetching messages:", error);
+        }
+
         // Establish a new WebSocket connection for the selected chat
         const ws = new WebSocket(`ws://localhost:8001/ws/chat/${chatId}/?token=${token}`);
-        //const ws = new WebSocket(`ws://localhost:8001/ws/chat/${userId}/${chatId}/`);
-
         wsRef.current = ws;
 
         ws.onopen = () => {
@@ -36,6 +47,18 @@ function MessagesPage() {
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             console.log("WebSocket message:", data);
+            if (data.message_text) {
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    {
+                        id: data.id,
+                        sender: data.sender,
+                        message_text: data.message_text,
+                        timestamp: data.timestamp,
+                        is_read: data.is_read
+                    },
+                ]);
+            }
         };
 
         ws.onerror = (error) => {
@@ -45,9 +68,9 @@ function MessagesPage() {
         ws.onclose = () => {
             console.log("WebSocket connection closed");
         };
-        
+
         setSelectedConversation(chatId);
-        navigate(`chat/${chatId}`);
+        navigate(`/${localStorage.getItem('role')}/messages/chat/${chatId}`);
     };
 
     // Fetch the logged-in user's info
@@ -69,6 +92,13 @@ function MessagesPage() {
         fetchUserId();
     }, []);
 
+    // Automatically select conversation if chatID is present in the URL
+    useEffect(() => {
+        if (chatID) {
+            handleSelectConversation(chatID);
+        }
+    }, [chatID]);
+
     return (
         <div className="flex h-screen">
             {/* Inbox Section */}
@@ -85,7 +115,7 @@ function MessagesPage() {
             {/* Conversation Section */}
             <div className="flex-grow">
                 {chatID ? (
-                    <MessagesConversation chatID={chatID} sender={user} />
+                    <MessagesConversation chatID={chatID} sender={user} messages={messages} ws={wsRef.current} />
                 ) : (
                     <div className="flex items-center justify-center h-full">
                         <p className="text-muted-foreground">Select a conversation to start chatting</p>

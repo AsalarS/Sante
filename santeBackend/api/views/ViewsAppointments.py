@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from datetime import datetime, time, timedelta
 from django.db.models import Q
-from ..models import Employee, Appointment, Patient
+from ..models import Employee, Appointment, Patient, UserProfile
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import logging
@@ -182,7 +182,7 @@ def get_schedule(request):
 #         appointment.save()
 
 #         # Log successful appointment creation
-#         log_to_db(request, "Appointment created/updated successfully", f"Appointment ID: {appointment.id}")
+#         log_activity(request, "Appointment created/updated successfully", f"Appointment ID: {appointment.id}")
 
 #         return Response({
 #             'success': True,

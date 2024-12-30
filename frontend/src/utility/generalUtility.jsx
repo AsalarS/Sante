@@ -16,3 +16,14 @@ export const convertTo24HourFormat = (time) => { //Convert the time to 24 hour f
   }
   return `${hour24.toString().padStart(2, "0")}:${minute}`;
 };
+
+// Format timestamp to dd/mm/yyyy HH:MM (24-hour format)
+export const formatTimestamp = (timestamp) => {
+  const date = new Date(timestamp);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+};

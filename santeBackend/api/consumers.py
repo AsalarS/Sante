@@ -1,3 +1,4 @@
+import datetime
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
@@ -51,15 +52,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Get chat_id from URL and user_id from the scope
         self.chat_id = self.scope['url_route']['kwargs']['chat_id']
         self.chat_group_name = f"chat_{self.chat_id}"
- 
+        
         # Access the user from the scope
-        self.user = self.scope['user']
-        if self.user.is_authenticated:
-            self.user = self.scope['user']
-            self.user_id = self.user.id
-        else:
-            print("User is not authenticated")
+        self.user = self.scope.get('user', None)  # Get user from the scope
+        if not self.user or not self.user.is_authenticated:
+            logging.error("User is not authenticated")
             await self.close()  # Close the connection if the user is not authenticated
+            return
+
+        # Save user_id for later use
+        self.user_id = self.user.id
 
         # Join the chat group
         await self.channel_layer.group_add(
@@ -76,32 +78,47 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
     async def receive(self, text_data):
-        # Parse the incoming message data
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
+        try:
+            text_data_json = json.loads(text_data)
+            
+            # Extract message text from the complete message object
+            message_text = text_data_json.get('message')
+            
+            # Create the message data structure for broadcasting
+            message_data = {
+                'type': 'chat_message',
+                'id': text_data_json.get('id'),
+                'sender': {
+                    'id': self.user.id,
+                    'email': self.user.email,
+                    'first_name': self.user.first_name,
+                    'last_name': self.user.last_name,
+                    'profile_image': self.user.profile_image.url if hasattr(self.user, 'profile_image') and self.user.profile_image else None,
+                    'role': self.user.role if hasattr(self.user, 'role') else None,
+                },
+                'timestamp': text_data_json.get('timestamp') or str(datetime.datetime.now()),
+                'message_text': message_text,
+                'is_read': False
+            }
 
-        if message:
             # Broadcast the message to the chat group
             await self.channel_layer.group_send(
                 self.chat_group_name,
-                {
-                    'type': 'chat_message',  # Handler for this type of message
-                    'message': message,
-                    'sender_id': self.user_id,
-                }
+                message_data
             )
-
+        except Exception as e:
+            logging.error(f"Error processing message: {e}")
+            return
+    
     async def chat_message(self, event):
-        # Receive the broadcast message from the group
-        message = event['message']
-        sender_id = event['sender_id']
-
         # Send the message to the WebSocket client
         await self.send(text_data=json.dumps({
-            'message': message,
-            'sender_id': sender_id,
+            'id': event['id'],
+            'sender': event['sender'],
+            'message_text': event['message_text'],
+            'timestamp': event['timestamp'],
+            'is_read': event['is_read']
         }))
-
 
     async def get_user_by_id(self, user_id):
         # Fetch user by ID asynchronously
