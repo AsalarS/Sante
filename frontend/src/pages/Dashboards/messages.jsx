@@ -4,92 +4,27 @@ import api from "@/api";
 import MessageInbox from "@/components/messageInbox";
 import MessagesConversation from "@/components/messagesConversation";
 import { ACCESS_TOKEN } from "@/constants";
-import { toast } from "sonner";
 
 function MessagesPage() {
-    const { chatID } = useParams(); // Get chatID from the URL
+    const { chatID } = useParams();
     const navigate = useNavigate();
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [userId, setUserId] = useState(null);
     const [user, setUser] = useState(null);
+    const [selectedUser, setSelectedUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [messages, setMessages] = useState([]);
-    const wsRef = useRef(null); // WebSocket reference
+    const wsRef = useRef(null);
     const token = localStorage.getItem(ACCESS_TOKEN);
 
-    const handleSelectConversation = async (chatId) => {
-        // Close the existing WebSocket connection if any
-        if (wsRef.current) {
-            wsRef.current.close();
-            wsRef.current = null;
-        }
-
-        // Fetch initial messages from the database
-        try {
-            const response = await api.get(`/api/chats/${chatId}/messages/`);
-            if (response.status === 200) {
-                setMessages(response.data.messages || []);
-            } else {
-                console.error("Failed to fetch messages.");
-            }
-        } catch (error) {
-            if (error.response && error.response.status === 404) {
-                toast.error("Chat does not exist.");
-                navigate(`/${localStorage.getItem('role')}/messages/`);
-                  
-            } else {
-                console.error("Error fetching messages:", error);
-            }
-            return;
-        }
-
-        // Establish a new WebSocket connection for the selected chat
-        const ws = new WebSocket(`ws://localhost:8001/ws/chat/${chatId}/?token=${token}`);
-        wsRef.current = ws;
-
-        ws.onopen = () => {
-            console.log("WebSocket connection established for chat:", chatId);
-        };
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log("WebSocket message:", data);
-            if (data.message_text) {
-                setMessages((prevMessages) => [
-                    ...prevMessages,
-                    {
-                        id: data.id,
-                        sender: data.sender,
-                        message_text: data.message_text,
-                        timestamp: data.timestamp,
-                        is_read: data.is_read
-                    },
-                ]);
-            }
-        };
-
-        ws.onerror = (error) => {
-            console.error("WebSocket error:", error);
-        };
-
-        ws.onclose = () => {
-            console.log("WebSocket connection closed");
-        };
-
-        setSelectedConversation(chatId);
-        navigate(`/${localStorage.getItem('role')}/messages/${chatId}`);
-    };
-
-    // Fetch the logged-in user's info
+    // Fetch user info on mount
     useEffect(() => {
         const fetchUserId = async () => {
             try {
                 const response = await api.get("/api/user-info/");
                 if (response.status === 200) {
                     setUserId(response.data.id);
-                    setUser(response.data)
-                } else {
-                    console.error("Failed to fetch current user.");
+                    setUser(response.data);
                 }
             } catch (error) {
                 console.error("Error fetching current user:", error);
@@ -99,16 +34,91 @@ function MessagesPage() {
         fetchUserId();
     }, []);
 
-    // Automatically select conversation if chatID is present in the URL
-    useEffect(() => {
-        if (chatID) {
-            handleSelectConversation(chatID);
+    const handleSelectConversation = async (chatId, selectedUserId) => {
+        if (!chatId || !selectedUserId) {
+            return;
         }
-    }, [chatID]);
+        setLoading(true);
+
+        try {
+            // Close existing WebSocket
+            if (wsRef.current) {
+                wsRef.current.close();
+                wsRef.current = null;
+            }
+
+            // Fetch messages
+            const messagesResponse = await api.get(`/api/chats/${chatId}/messages/`);
+            if (messagesResponse.status === 200) {
+                setMessages(messagesResponse.data.messages || []);
+            }
+
+            // Fetch selected user info if we have their ID
+            if (selectedUserId) {
+                const userResponse = await api.get(`/api/users/${selectedUserId}/basic`);
+                if (userResponse.status === 200) {
+                    setSelectedUser(userResponse.data);
+                }
+            }
+
+            // Initialize WebSocket
+            const ws = new WebSocket(`ws://localhost:8001/ws/chat/${chatId}/?token=${token}`);
+            wsRef.current = ws;
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.message_text) {
+                    setMessages(prevMessages => [
+                        ...prevMessages,
+                        {
+                            id: data.id,
+                            sender_id: data.sender_id,
+                            message_text: data.message_text,
+                            timestamp: data.timestamp,
+                            is_read: data.is_read
+                        }
+                    ]);
+                }
+            };
+
+            setSelectedConversation(chatId);
+            navigate(`/${localStorage.getItem('role')}/messages/${chatId}`);
+        } catch (error) {
+            console.error("Error in conversation selection:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Auto-select conversation from URL
+    useEffect(() => {
+        const autoSelectConversation = async () => {
+            if (chatID && userId) {
+                try {
+                    // First fetch the messages to verify the chat exists
+                    const messagesResponse = await api.get(`/api/chats/${chatID}/messages/`);
+                    if (messagesResponse.status === 200) {
+                        const chatData = messagesResponse.data;
+                        // Find a message not sent by the current user to get the other user's ID
+                        const messageFromOtherUser = chatData.messages.find(msg => msg.sender_id !== userId);
+                        if (messageFromOtherUser) {
+                            const otherUserId = messageFromOtherUser.sender_id;
+                            handleSelectConversation(chatID, otherUserId);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error in auto-selecting conversation:", error);
+                    // Optionally redirect to messages home page if chat doesn't exist
+
+                }
+            }
+        };
+
+        autoSelectConversation();
+    }, [chatID, userId]);
 
     return (
         <div className="flex h-screen">
-            {/* Inbox Section */}
             {userId ? (
                 <MessageInbox
                     onSelectConversation={handleSelectConversation}
@@ -119,10 +129,15 @@ function MessagesPage() {
                 <p>Loading user information...</p>
             )}
 
-            {/* Conversation Section */}
             <div className="flex-grow">
-                {chatID ? (
-                    <MessagesConversation chatID={chatID} sender={user} messages={messages} ws={wsRef.current} />
+                {user && chatID ? (
+                    <MessagesConversation
+                        chatID={chatID}
+                        sender={user}
+                        messages={messages}
+                        ws={wsRef.current}
+                        selectedUser={selectedUser}
+                    />
                 ) : (
                     <div className="flex items-center justify-center h-full">
                         <p className="text-muted-foreground">Select a conversation to start chatting</p>

@@ -7,47 +7,33 @@ import MessageLoading from "./ui/chat/message-loading";
 import { ChatMessageList } from "./ui/chat/chat-message-list";
 import { formatTimestamp } from "@/utility/generalUtility";
 
-export default function MessagesConversation({ chatID, sender, messages: initialMessages, ws }) {
-    const [messages, setMessages] = useState(initialMessages || []);
+export default function MessagesConversation({ chatID, sender, messages: initialMessages, ws, selectedUser }) {
+    const [messages, setMessages] = useState([]);
     const [inputValue, setInputValue] = useState("");
     const [isForbidden, setIsForbidden] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [typingUsers, setTypingUsers] = useState(new Set());
-    const typingTimeoutRef = useRef(null);
-    const senderId = sender?.id;
     const bottomRef = useRef(null);
 
-    // Update messages when initialMessages changes
     useEffect(() => {
         if (Array.isArray(initialMessages)) {
             setMessages(initialMessages);
         }
     }, [initialMessages]);
 
-    // Handle typing status
-    const handleTyping = () => {
-        if (!ws || ws.readyState !== WebSocket.OPEN) return;
-
-        // Clear existing timeout
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
+    const getMessageSender = (msg) => {
+        if (msg.sender_id === sender?.id) {
+            return {
+                ...sender,
+                initials: sender.first_name && sender.last_name ? 
+                    `${sender.first_name.charAt(0)}${sender.last_name.charAt(0)}` : '?'
+            };
         }
-
-        // Send typing status
-        ws.send(JSON.stringify({
-            type: 'typing_status',
-            is_typing: true
-        }));
-
-        // Set timeout to send stopped typing status
-        typingTimeoutRef.current = setTimeout(() => {
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'typing_status',
-                    is_typing: false
-                }));
-            }
-        }, 2000); // 2 second delay after stopping typing
+        return {
+            ...selectedUser,
+            initials: selectedUser?.first_name && selectedUser?.last_name ? 
+                `${selectedUser.first_name.charAt(0)}${selectedUser.last_name.charAt(0)}` : '?'
+        };
     };
 
     // WebSocket connection handling
@@ -58,7 +44,6 @@ export default function MessagesConversation({ chatID, sender, messages: initial
             try {
                 const data = JSON.parse(event.data);
 
-                // Handle typing status updates
                 if (data.type === 'typing_status') {
                     setTypingUsers(prev => {
                         const newSet = new Set(prev);
@@ -72,16 +57,16 @@ export default function MessagesConversation({ chatID, sender, messages: initial
                     return;
                 }
 
-                // Handle regular messages
-
-                if (data.message_text || data.message) {
-                    setMessages(prev => [...prev, {
+                if (data.message_text) {
+                    const newMessage = {
                         id: data.id,
-                        sender: data.sender,
-                        message_text: data.message_text || data.message,
+                        sender_id: data.sender_id,
+                        message_text: data.message_text,
                         timestamp: data.timestamp,
                         is_read: data.is_read
-                    }]);
+                    };
+
+                    setMessages(prev => [...prev, newMessage]);
                 }
             } catch (error) {
                 console.error("Error processing WebSocket message:", error);
@@ -103,38 +88,26 @@ export default function MessagesConversation({ chatID, sender, messages: initial
         if (!trimmedMessage) return;
 
         const newMessage = {
-            id: crypto.randomUUID(), // More reliable than Date.now()
-            sender: {
-                id: sender?.id,
-                email: sender?.email,
-                first_name: sender?.first_name,
-                last_name: sender?.last_name,
-                profile_image: sender?.profile_image,
-                role: sender?.role,
-            },
-            message: trimmedMessage,
+            id: crypto.randomUUID(),
+            sender_id: sender?.id,
+            message_text: trimmedMessage,
             timestamp: new Date().toISOString(),
-            is_read: false,
+            is_read: false
         };
 
         try {
-            ws.send(JSON.stringify(newMessage));
+            ws.send(JSON.stringify({
+                sender_id: sender?.id,
+                message: trimmedMessage
+            }));
 
-            setMessages((prevMessages) => [
-                ...prevMessages,
-                {
-                    ...newMessage,
-                    message_text: trimmedMessage, // Ensure consistency with received message format
-                }
-            ]);
-
+            setMessages(prevMessages => [...prevMessages, newMessage]);
             setInputValue("");
         } catch (error) {
             console.error("Error sending message:", error);
         }
     };
 
-    // Handle Enter key press
     const handleKeyPress = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -142,7 +115,6 @@ export default function MessagesConversation({ chatID, sender, messages: initial
         }
     };
 
-    // Scroll to bottom when messages update
     useEffect(() => {
         if (bottomRef.current) {
             bottomRef.current.scrollIntoView({ behavior: "smooth" });
@@ -164,36 +136,35 @@ export default function MessagesConversation({ chatID, sender, messages: initial
                     <MessageLoading />
                 ) : (
                     <ChatMessageList>
-                        {messages?.map((msg) => (
-                            <ChatBubble
-                                key={msg?.id}
-                                variant={msg?.sender?.id === senderId ? 'sent' : 'received'}
-                            >
-                                <ChatBubbleAvatar
-                                    className="text-foreground bg-muted"
-                                    src={msg?.sender?.profile_image || msg?.sender?.avatar}
-                                    fallback={
-                                        msg?.sender?.first_name && msg?.sender?.last_name
-                                            ? `${msg.sender.first_name.charAt(0)}${msg.sender.last_name.charAt(0)}`
-                                            : "?"
-                                    }
-                                />
-                                <ChatBubbleMessage
-                                    variant={msg?.sender?.id === senderId ? 'sent' : 'received'}
-                                    className="text-white"
+                        {messages.map((msg) => {
+                            const messageSender = getMessageSender(msg);
+                            const isSentByCurrentUser = msg.sender_id === sender?.id;
+                            
+                            return (
+                                <ChatBubble
+                                    key={msg?.id}
+                                    variant={isSentByCurrentUser ? 'sent' : 'received'}
                                 >
-                                    {msg?.message_text || msg?.message}
-                                    <ChatBubbleTimestamp
-                                        className="text-white/80"
-                                        timestamp={formatTimestamp(msg.timestamp)}
+                                    <ChatBubbleAvatar
+                                        className="text-foreground bg-muted"
+                                        src={messageSender?.profile_image || messageSender?.avatar}
+                                        fallback={messageSender?.initials || '?'}
                                     />
-                                </ChatBubbleMessage>
-                            </ChatBubble>
-                        ))}
+                                    <ChatBubbleMessage
+                                        variant={isSentByCurrentUser ? 'sent' : 'received'}
+                                        className="text-white"
+                                    >
+                                        {msg?.message_text}
+                                        <ChatBubbleTimestamp
+                                            className="text-white/80"
+                                            timestamp={formatTimestamp(msg.timestamp)}
+                                        />
+                                    </ChatBubbleMessage>
+                                </ChatBubble>
+                            );
+                        })}
                         {typingUsers.size > 0 && (
-                            <>
-                                <ChatBubbleMessage isLoading variant={"received"} className="w-fit"/>
-                            </>
+                            <ChatBubbleMessage isLoading variant="received" className="w-fit"/>
                         )}
                         <div ref={bottomRef} />
                     </ChatMessageList>
@@ -203,13 +174,10 @@ export default function MessagesConversation({ chatID, sender, messages: initial
             <div className="p-4 border-t sticky bottom-0 bg-background flex items-center space-x-2 border-border">
                 <ChatInput
                     value={inputValue}
-                    onChange={(e) => {
-                        setInputValue(e.target.value);
-                        handleTyping();
-                    }}
+                    onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyPress}
                     placeholder="Type a message..."
-                    className="flex-grow rounded-full text-foreground "
+                    className="flex-grow rounded-full text-foreground"
                 />
                 <Button
                     className="rounded-2xl"

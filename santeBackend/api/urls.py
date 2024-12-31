@@ -41,6 +41,7 @@ urlpatterns = [
     #User info views
     path('user-info/', UserInfoView.as_view(), name='user_info'), #to show current logged in user info
     path('user-info/<int:user_id>/', SpecificUserInfoView.as_view(), name='user_info_specific'), #to show a users info
+    path('users/<int:user_id>/basic', BasicUserInfo.as_view(), name='user_info_basic'), #to show a users basic info
     path('users/patients/', get_patients, name='get_patients'),
     
     # Chats

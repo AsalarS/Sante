@@ -143,14 +143,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             message_data = {
                 'type': 'chat_message',
                 'id': data.get('id'),
-                'sender': {
-                    'id': self.user.id,
-                    'email': self.user.email,
-                    'first_name': self.user.first_name,
-                    'last_name': self.user.last_name,
-                    'profile_image': self.user.profile_image.url if hasattr(self.user, 'profile_image') and self.user.profile_image else None,
-                    'role': self.user.role if hasattr(self.user, 'role') else None,
-                },
+                'sender_id': self.user.id,
                 'timestamp': data.get('timestamp') or str(datetime.datetime.now()),
                 'message_text': message_text,
                 'is_read': False
@@ -198,7 +191,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
             'id': event['id'],
-            'sender': event['sender'],
+            'sender_id': event['sender_id'],
             'message_text': event['message_text'],
             'timestamp': event['timestamp'],
             'is_read': event['is_read']

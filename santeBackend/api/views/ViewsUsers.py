@@ -518,3 +518,22 @@ class SpecificUserInfoView(APIView):
             )
 
         return Response(user_data)
+
+class BasicUserInfo(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, user_id):
+        # Retrieve the user
+        user = get_object_or_404(UserProfile, id=user_id)
+
+        # Prepare the user data
+        user_data = {
+            "user_id": user.id,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "profile_image": user.profile_image.url if user.profile_image else None,
+            "role": user.role,
+        }
+
+        return Response(user_data, status=status.HTTP_200_OK)

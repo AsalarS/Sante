@@ -90,14 +90,7 @@ class ChatMessagesView(APIView):
         message_data = [
             {
                 "id": message.id,
-                "sender":{
-                    "id": message.sender.id,
-                    "email": message.sender.email,
-                    "first_name": message.sender.first_name,
-                    "last_name": message.sender.last_name,
-                    "profile_image": message.sender.profile_image.url if message.sender.profile_image else None,
-                    "role" : message.sender.role,
-                },
+                "sender_id": message.sender.id,
                 "timestamp": message.timestamp,
                 "message_text": message.message_text,
                 "is_read": message.is_read,

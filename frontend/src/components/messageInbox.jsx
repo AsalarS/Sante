@@ -68,7 +68,7 @@ function MessageInbox({ onSelectConversation, userId }) {
             const chatId = response.data.id;
 
             // Set the selected conversation to the new chat ID
-            onSelectConversation(chatId);
+            onSelectConversation(chatId, user2Id);
 
             // Optionally, fetch the updated list of chats
             fetchChats();
@@ -181,7 +181,7 @@ function MessageInbox({ onSelectConversation, userId }) {
                             <li
                                 key={chat.id}
                                 className={`flex items-center p-4 border-b cursor-pointer border-border bg-background hover:bg-btn-hover/50 ${isSelected && 'bg-background-hover/50'}`}
-                                onClick={() => onSelectConversation(chat.id)}
+                                onClick={() => onSelectConversation(chat.id, otherUser.id)}
                             >
                                 <ChatBubbleAvatar
                                     src={otherUser.avatar}
