@@ -44,7 +44,7 @@ function MessageInbox({ onSelectConversation, userId }) {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const response = await api.get("/api/users/");
+            const response = await api.get("/api/chats/users/");
             if (response.status === 200) {
                 setUsers(response.data);
             }
@@ -77,17 +77,31 @@ function MessageInbox({ onSelectConversation, userId }) {
         }
     };
 
+    // Search and filter chats based on the search query
     const filteredChats = Array.isArray(chats)
-        ? chats.filter((chat) =>
-            `${chat.user2.first_name} ${chat.user2.last_name}`.toLowerCase().includes(inboxSearch.toLowerCase()) ||
-            `${chat.user1.first_name} ${chat.user1.last_name}`.toLowerCase().includes(inboxSearch.toLowerCase())
-        )
+        ? chats.filter((chat) => {
+            const user1FullName = `${chat.user1.first_name} ${chat.user1.last_name}`.toLowerCase();
+            const user2FullName = `${chat.user2.first_name} ${chat.user2.last_name}`.toLowerCase();
+            const user1Email = chat.user1.email.toLowerCase();
+            const user2Email = chat.user2.email.toLowerCase();
+            const searchQuery = inboxSearch.toLowerCase().trim();
+
+            // Check for name or email matches
+            return (
+                user1FullName.includes(searchQuery) ||
+                user2FullName.includes(searchQuery) ||
+                user1Email.includes(searchQuery) ||
+                user2Email.includes(searchQuery)
+            );
+        })
         : [];
 
     const filteredUsers = users?.filter((user) =>
-        user.first_name.toLowerCase().includes(userSearch.toLowerCase()) ||
-        user.last_name.toLowerCase().includes(userSearch.toLowerCase()) ||
-        user.email.toLowerCase().includes(userSearch.toLowerCase())
+        user.id !== userId && (
+            user.first_name.toLowerCase().includes(userSearch.toLowerCase()) ||
+            user.last_name.toLowerCase().includes(userSearch.toLowerCase()) ||
+            user.email.toLowerCase().includes(userSearch.toLowerCase())
+        )
     );
 
     const renderUser = ({ index, style }) => {
@@ -145,25 +159,31 @@ function MessageInbox({ onSelectConversation, userId }) {
                             <DialogDescription>Choose a person to start a conversation with.</DialogDescription>
                         </DialogHeader>
 
-                        <Input
-                            type="text"
-                            placeholder="Search users"
-                            className="mb-2"
-                            value={userSearch}
-                            onChange={(e) => setUserSearch(e.target.value)}
-                        />
                         {loading ? (
                             <Loader2 className="animate-spin mx-auto my-4" />
+                        ) : filteredUsers.length === 0 ? (
+                            <div className="flex items-center justify-center h-full p-4">
+                                <p className="text-muted-foreground">No users available</p>
+                            </div>
                         ) : (
-                            <List
-                                height={300}
-                                itemCount={filteredUsers.length}
-                                itemSize={80}
-                                width="100%"
-                                className="[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500"
-                            >
-                                {renderUser}
-                            </List>
+                            <>
+                                <Input
+                                    type="text"
+                                    placeholder="Search users"
+                                    className="mb-2"
+                                    value={userSearch}
+                                    onChange={(e) => setUserSearch(e.target.value)}
+                                />
+                                <List
+                                    height={300}
+                                    itemCount={filteredUsers.length}
+                                    itemSize={80}
+                                    width="100%"
+                                    className="[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500"
+                                >
+                                    {renderUser}
+                                </List>
+                            </>
                         )}
                     </DialogContent>
                 </Dialog>

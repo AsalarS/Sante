@@ -4,6 +4,7 @@ import api from "@/api";
 import MessageInbox from "@/components/messageInbox";
 import MessagesConversation from "@/components/messagesConversation";
 import { ACCESS_TOKEN } from "@/constants";
+import { toast } from "sonner";
 
 function MessagesPage() {
     const { chatID } = useParams();
@@ -107,8 +108,8 @@ function MessagesPage() {
                         }
                     }
                 } catch (error) {
-                    console.error("Error in auto-selecting conversation:", error);
-                    // Optionally redirect to messages home page if chat doesn't exist
+                    toast.error("Error selecting conversation");
+                    navigate(`/${localStorage.getItem('role')}/messages`);
 
                 }
             }

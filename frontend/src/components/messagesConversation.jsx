@@ -25,13 +25,13 @@ export default function MessagesConversation({ chatID, sender, messages: initial
         if (msg.sender_id === sender?.id) {
             return {
                 ...sender,
-                initials: sender.first_name && sender.last_name ? 
+                initials: sender.first_name && sender.last_name ?
                     `${sender.first_name.charAt(0)}${sender.last_name.charAt(0)}` : '?'
             };
         }
         return {
             ...selectedUser,
-            initials: selectedUser?.first_name && selectedUser?.last_name ? 
+            initials: selectedUser?.first_name && selectedUser?.last_name ?
                 `${selectedUser.first_name.charAt(0)}${selectedUser.last_name.charAt(0)}` : '?'
         };
     };
@@ -131,6 +131,15 @@ export default function MessagesConversation({ chatID, sender, messages: initial
 
     return (
         <div className="flex flex-col h-full">
+            {selectedUser && (
+                <div className="flex items-center p-4 border-b border-border bg-background w-full"> {/* Top Section */}
+                    <ChatBubbleAvatar className="text-foreground bg-muted" fallback={selectedUser.first_name.charAt(0) + selectedUser.last_name.charAt(0)} />
+                    <div className='ml-4'>
+                        <div className="font-semibold text-lg text-foreground leading-5">{selectedUser.first_name} {selectedUser.last_name}</div>
+                        <div className="text-sm text-muted-foreground">{selectedUser.role}</div>
+                    </div>
+                </div>
+            )}
             <div className="flex flex-col flex-grow overflow-y-auto p-4">
                 {isLoading ? (
                     <MessageLoading />
@@ -139,7 +148,7 @@ export default function MessagesConversation({ chatID, sender, messages: initial
                         {messages.map((msg) => {
                             const messageSender = getMessageSender(msg);
                             const isSentByCurrentUser = msg.sender_id === sender?.id;
-                            
+
                             return (
                                 <ChatBubble
                                     key={msg?.id}
@@ -164,7 +173,7 @@ export default function MessagesConversation({ chatID, sender, messages: initial
                             );
                         })}
                         {typingUsers.size > 0 && (
-                            <ChatBubbleMessage isLoading variant="received" className="w-fit"/>
+                            <ChatBubbleMessage isLoading variant="received" className="w-fit" />
                         )}
                         <div ref={bottomRef} />
                     </ChatMessageList>

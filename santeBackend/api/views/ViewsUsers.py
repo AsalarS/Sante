@@ -192,6 +192,29 @@ def get_users(request):  # List users
     serializedData = UserSerializer(users, many=True)
     return JsonResponse(serializedData.data, safe=False)
 
+@api_view(["GET"])
+def get_users_chat(request):  # List users
+    if not request.user.is_authenticated:
+        return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # Get the current logged-in user
+    current_user = request.user
+
+    # Get all users who have a role
+    users_with_role = UserProfile.objects.exclude(role__isnull=True).exclude(role='')
+
+    # Get all users the current user has a chat with
+    chats_user1 = Chat.objects.filter(user1=current_user).values_list('user2', flat=True)
+    chats_user2 = Chat.objects.filter(user2=current_user).values_list('user1', flat=True)
+    chats = chats_user1.union(chats_user2)
+
+    # Exclude users the current user already has a chat with and the current user themselves
+    users_to_chat_with = users_with_role.exclude(id__in=chats).exclude(id=current_user.id)
+
+    # Serialize the data
+    serialized_data = UserSerializer(users_to_chat_with, many=True)
+    return JsonResponse(serialized_data.data, safe=False)
+
 
 # To Get all user information. ONLY FOR ADMIN
 
