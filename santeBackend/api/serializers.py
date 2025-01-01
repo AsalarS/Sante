@@ -260,8 +260,24 @@ class DiagnosisSerializer(serializers.ModelSerializer):
     class Meta:
         model = Diagnosis
         fields = '__all__'
+        
+class DiagnosisExtraDataSerializer(serializers.ModelSerializer):
+    date = serializers.DateField(source='appointment.appointment_date', read_only=True)
+    diagnosed_by = UserSerializer(source='appointment.doctor.user', read_only=True)
+
+    class Meta:
+        model = Diagnosis
+        fields = ['id', 'appointment', 'diagnosis_name', 'diagnosis_type', 'date', 'diagnosed_by']
 
 class CarePlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = CarePlan
         fields = '__all__'
+        
+class CarePlanExtraDataSerializer(serializers.ModelSerializer):
+    date = serializers.DateField(source='appointment.appointment_date', read_only=True)
+    done_by = UserSerializer(source='done_by.user', read_only=True)
+
+    class Meta:
+        model = CarePlan
+        fields = ['id', 'appointment', 'care_plan_title', 'care_plan_type', 'date_of_completion', 'done_by', 'additional_instructions', 'date']

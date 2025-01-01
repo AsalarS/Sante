@@ -27,6 +27,7 @@ import {
   ChevronsRight,
   Ellipsis,
   Filter,
+  Loader2,
 } from "lucide-react";
 import api from "@/api";
 import {
@@ -36,7 +37,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -81,18 +82,16 @@ export const columns: ColumnDef<Appointment>[] = [
     cell: ({ row }) => {
       const patient = row.getValue<User>("patient");
       return patient ? (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div>
-                {patient.email}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{patient.first_name} {patient.last_name}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              {patient.email}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{patient.first_name} {patient.last_name}</p>
+          </TooltipContent>
+        </Tooltip>
       ) : (
         "-"
       );
@@ -104,18 +103,16 @@ export const columns: ColumnDef<Appointment>[] = [
     cell: ({ row }) => {
       const doctor = row.getValue<User>("doctor");
       return doctor ? (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div>
-                {doctor.email}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{doctor.first_name} {doctor.last_name}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              {doctor.email}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{doctor.first_name} {doctor.last_name}</p>
+          </TooltipContent>
+        </Tooltip>
       ) : (
         "-"
       );
@@ -169,18 +166,16 @@ export const columns: ColumnDef<Appointment>[] = [
     cell: ({ row }) => {
       const notes = row.getValue<string | null>("notes");
       return notes ? (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div>
-                <div className="line-clamp-1 break-all">{notes || "-"}</div>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{notes || "-"}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <div className="line-clamp-1 break-all">{notes || "-"}</div>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{notes || "-"}</p>
+          </TooltipContent>
+        </Tooltip>
       ) : (
         "-"
       );
@@ -302,7 +297,7 @@ export function AppointmentsAdminPage() {
   const pageCount = table.getPageCount();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loader2 className="w-6 h-6 text-primary animate-spin mx-auto my-auto" />;
   }
 
   return (

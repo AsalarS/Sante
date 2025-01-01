@@ -25,22 +25,6 @@ const PatientProfileDialog = ({ open, onClose, patientData, onSave }) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handleSave = async () => {
-        try {
-            const response = await api.patch(`/api/patient/${formData.id}/`, formData);
-            if (response.status === 200) {
-                toast.success("Patient data updated successfully");
-                onSave(formData);
-                onClose();
-            } else {
-                toast.error("Failed to update patient data");
-            }
-        } catch (error) {
-            console.error("Failed to update patient data:", error);
-            toast.error("An error occurred while updating the patient data");
-        }
-    };
-
     return (
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className="text-foreground">
@@ -147,7 +131,7 @@ const PatientProfileDialog = ({ open, onClose, patientData, onSave }) => {
                     <Button variant="ghost" onClick={onClose}>
                         Cancel
                     </Button>
-                    <Button onClick={handleSave}>Save</Button>
+                    <Button onClick={() => onSave(formData)}>Save</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

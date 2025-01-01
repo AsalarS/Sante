@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 import ErrorPage from "@/pages/errorPage";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 function ProtectedRoute({ children, allowedRoles }) {
     const [isAuthorized, setIsAuthorized] = useState(null);
@@ -72,7 +73,7 @@ function ProtectedRoute({ children, allowedRoles }) {
     }, []);
 
     if (isAuthorized === null) {
-        return <Loader2 className="animate-spin h-8 w-8" />;
+        return <Loader2 className="animate-spin h-8 w-8 m-auto text-primary" />;
     }
 
     if (!isAuthorized) {
@@ -82,7 +83,7 @@ function ProtectedRoute({ children, allowedRoles }) {
     if (allowedRoles.includes(userRole)) {
         return children;
     } else {
-        console.log("User unauthorized, redirecting to error page");
+        toast.error("User unauthorized, redirecting to error page");
         return <ErrorPage error={401} />;
     }
 }

@@ -5,6 +5,7 @@ import MessageInbox from "@/components/messageInbox";
 import MessagesConversation from "@/components/messagesConversation";
 import { ACCESS_TOKEN } from "@/constants";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 function MessagesPage() {
     const { chatID } = useParams();
@@ -127,7 +128,7 @@ function MessagesPage() {
                     loading={loading}
                 />
             ) : (
-                <p>Loading user information...</p>
+                <Loader2 className="animate-spin w-12 h-12 text-primary m-auto" />
             )}
 
             <div className="flex-grow">

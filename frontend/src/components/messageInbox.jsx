@@ -192,7 +192,7 @@ function MessageInbox({ onSelectConversation, userId }) {
             {/* List Section */}
             <ul className="flex-1 overflow-y-auto overflow-x-hidden">
                 {loading ? (
-                    <p className="text-center p-4 text-foreground">Loading chats...</p>
+                    <Loader2 className="animate-spin mx-auto my-4 text-primary" />
                 ) : (
                     filteredChats.map((chat) => {
                         const otherUser = chat.user1.id === userId ? chat.user2 : chat.user1;

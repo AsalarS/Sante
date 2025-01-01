@@ -215,13 +215,10 @@ class CarePlansByUserView(APIView):
         if user.role not in ['receptionist', 'admin', 'nurse', 'doctor']:
             return Response({"error": "You do not have permission to view these care plans."}, status=status.HTTP_403_FORBIDDEN)
 
-        try:
-            patient = Patient.objects.get(user__id=user_id)
-        except Patient.DoesNotExist:
-            return Response({"error": "Patient not found."}, status=status.HTTP_404_NOT_FOUND)
+        patient = get_object_or_404(Patient, user__id=user_id)
 
         care_plans = CarePlan.objects.filter(appointment__patient=patient)
-        serializer = CarePlanSerializer(care_plans, many=True)
+        serializer = CarePlanExtraDataSerializer(care_plans, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class CarePlanByAppointmentView(APIView):
@@ -344,7 +341,7 @@ class DiagnosesByUserView(APIView):
             return Response({"error": "Patient not found."}, status=status.HTTP_404_NOT_FOUND)
 
         diagnoses = Diagnosis.objects.filter(appointment__patient=patient)
-        serializer = DiagnosisSerializer(diagnoses, many=True)
+        serializer = DiagnosisExtraDataSerializer(diagnoses, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class DiagnosisByAppointmentView(APIView):

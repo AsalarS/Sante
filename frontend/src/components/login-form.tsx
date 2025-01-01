@@ -134,7 +134,7 @@ export function LoginForm({ route, method }: LoginFormProps) {
 
 
           <Button type="submit" className="w-full text-white" disabled={loading}>
-            {loading ? <Loader2  className="animate-spin" /> : name}
+            {loading ? <Loader2  className="animate-spin text-primary" /> : name}
           </Button>
         </form>
 

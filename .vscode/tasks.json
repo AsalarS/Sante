@@ -43,9 +43,9 @@
     {
       "label": "Run All Commands",
       "dependsOn": [
-        "Run Frontend",
-        "Run Backend (Activate Env and Runserver)",
-        "Run Daphne Server"
+        "Frontend",
+        "Backend (Activate Env and Runserver)",
+        "Daphne Server"
       ],
       "problemMatcher": []
     }

@@ -470,15 +470,16 @@ class UserInfoView(APIView):
 
     def put(self, request):
         user = request.user
-        # partial=True allows partial updates to certain fields
         serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class PatientView(APIView):
+    permission_classes = [IsAuthenticated]
 
-
-class SpecificUserInfoView(APIView):
+class DetailedUserView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, user_id):
@@ -522,6 +523,43 @@ class SpecificUserInfoView(APIView):
             )
 
         return Response(user_data)
+    
+    def patch(self, request, user_id):
+        if not request.user.is_authenticated:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if request.user.role not in ["admin", "nurse", "doctor", "receptionist"]:
+            return Response(
+                {"error": "Forbidden: Only admins, nurses, doctors, and receptionists can update this resource."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        user = get_object_or_404(UserProfile, id=user_id)
+        role = user.role
+        user_serializer = UserSerializer(user, data=request.data, partial=True)
+
+        if role == 'patient':
+            patient = get_object_or_404(Patient, user=user)
+            patient_serializer = PatientSerializer(patient, data=request.data, partial=True)
+        elif role in ["doctor", "nurse", "admin", "receptionist"]:
+            employee = get_object_or_404(Employee, user=user)
+            employee_serializer = EmployeeSerializer(employee, data=request.data, partial=True)
+        else:
+            return Response({"error": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if user_serializer.is_valid() and (patient_serializer.is_valid() if role == 'patient' else employee_serializer.is_valid()):
+            user_serializer.save()
+            if role == 'patient':
+                patient_serializer.save()
+            elif role in ["doctor", "nurse", "admin", "receptionist"]:
+                employee_serializer.save()
+                print(user_serializer.errors)  # Log serializer errors
+                print(patient_serializer.errors)  # Log serializer errors
+            return Response(user_serializer.data, status=status.HTTP_200_OK)
+        
+        print(user_serializer.errors)  # Log serializer errors
+        print(patient_serializer.errors)  # Log serializer errors
+        return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class BasicUserInfo(APIView):
     permission_classes = [IsAuthenticated]

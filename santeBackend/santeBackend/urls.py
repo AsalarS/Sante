@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from api.views.ViewsGeneral import * 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from api.views.ViewsUsers import RegisterUserView, TestingRegisterView, UserInfoView, SpecificUserInfoView, get_patients
+from api.views.ViewsUsers import RegisterUserView, TestingRegisterView
 
 urlpatterns = [
     path('admin/', admin.site.urls),

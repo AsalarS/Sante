@@ -11,7 +11,7 @@ import {
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Table,
   TableBody,
@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter } from "lucide-react";
+import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "@/api";
 
@@ -46,18 +46,16 @@ export const columns: ColumnDef<Chat>[] = [
     cell: ({ row }) => {
       const user1 = row.getValue<User>("user1");
       return user1 ? (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className=" line-clamp-1 break-all">
-                {user1.email}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{user1.first_name} {user1.last_name}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className=" line-clamp-1 break-all">
+              {user1.email}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{user1.first_name} {user1.last_name}</p>
+          </TooltipContent>
+        </Tooltip>
       ) : (
         "-"
       );
@@ -69,18 +67,16 @@ export const columns: ColumnDef<Chat>[] = [
     cell: ({ row }) => {
       const user2 = row.getValue<User>("user2");
       return user2 ? (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className=" line-clamp-1 break-all">
-                {user2.email}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{user2.first_name} {user2.last_name}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className=" line-clamp-1 break-all">
+              {user2.email}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{user2.first_name} {user2.last_name}</p>
+          </TooltipContent>
+        </Tooltip>
       ) : (
         "-"
       );
@@ -171,7 +167,7 @@ export function ChatsAdminPage() {
   const pageCount = table.getPageCount();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loader2 className="w-6 h-6 animate-spin m-auto" />;
   }
 
   return (

@@ -19,8 +19,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter, Loader2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "@/api";
 
@@ -46,16 +46,14 @@ export const columns: ColumnDef<ChatMessage>[] = [
     cell: ({ row }) => {
       const message_text = row.getValue<string>("message_text");
       return (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className=" line-clamp-1 break-all">{message_text}</div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{message_text}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className=" line-clamp-1 break-all">{message_text}</div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{message_text}</p>
+          </TooltipContent>
+        </Tooltip>
       );
     },
   },
@@ -65,18 +63,16 @@ export const columns: ColumnDef<ChatMessage>[] = [
     cell: ({ row }) => {
       const sender = row.getValue<User>("sender");
       return sender ? (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div>
-                {sender.email}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{sender.first_name} {sender.last_name}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              {sender.email}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{sender.first_name} {sender.last_name}</p>
+          </TooltipContent>
+        </Tooltip>
       ) : (
         "-"
       );
@@ -167,7 +163,7 @@ export function ChatMessagesPage() {
   const pageCount = table.getPageCount();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto my-auto" />;
   }
 
   return (

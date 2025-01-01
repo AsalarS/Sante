@@ -200,7 +200,7 @@ const Register = () => {
                                 </div>
                                 {/* SUBMIT BUTTON */}
                                 <Button type="submit" className="w-full col-span-1 md:col-span-2 text-white" disabled={loading}>
-                                    {loading ? <Loader2 className="animate-spin" /> : "Register"}
+                                    {loading ? <Loader2 className="animate-spin m-auto text-primary" /> : "Register"}
                                 </Button>
                             </form>
 

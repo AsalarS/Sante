@@ -101,10 +101,10 @@ class UserProfile(AbstractUser):
 class Patient(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE, primary_key=True)  # Use `user` as the primary key
     medical_record_id = models.CharField(max_length=100, unique=True, blank=True, null=True)
-    emergency_contact_name = models.CharField(max_length=255, null=True)
-    emergency_contact_phone = models.CharField(max_length=15, null=True)
-    blood_type = models.CharField(max_length=10, null=True)
-    family_history = models.TextField(null=True)
+    emergency_contact_name = models.CharField(max_length=255, blank=True, null=True)
+    emergency_contact_phone = models.CharField(max_length=15, blank=True, null=True)
+    blood_type = models.CharField(max_length=10, blank=True, null=True)
+    family_history = models.TextField(null=True, blank=True)
     CPR_number = models.CharField(max_length=50, blank=True, null=True)
     place_of_birth = models.CharField(max_length=255, blank=True, null=True)
     religion = models.CharField(max_length=50, blank=True, null=True)

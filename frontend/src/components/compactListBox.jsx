@@ -2,7 +2,7 @@ import React from "react";
 import { Maximize2, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 function CompactListBox({
   title,
@@ -42,20 +42,18 @@ function CompactListBox({
             {displayAsBadges ? (
               <div className="flex flex-wrap items-center space-x-2 mb-2">
                 {displayData.map(([key, value]) => (
-                  <TooltipProvider key={key}>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Badge
-                          className="bg-chart-5 text-white hover:bg-chart-5/75 mb-2 max-w-20"
-                        >
-                          <span className="line-clamp-1 break-all">{key}</span>
-                        </Badge>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        <p>{value}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Tooltip key={key}>
+                    <TooltipTrigger>
+                      <Badge
+                        className="bg-chart-5 text-white hover:bg-chart-5/75 mb-2 max-w-20"
+                      >
+                        <span className="line-clamp-1 break-all">{key}</span>
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      <p>{value}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 ))}
 
                 <div className="bg-foreground/10 text-white hover:bg-foreground/25 mb-2 rounded-full">

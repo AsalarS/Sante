@@ -26,6 +26,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Ellipsis,
+  Loader2,
   UserRoundPlus,
 } from "lucide-react";
 import api from "@/api";
@@ -36,7 +37,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import UserDialog from "@/components/Dialogs/userDetailsDialog";
 import {
   AlertDialog,
@@ -105,18 +106,16 @@ export const columns = (
         const first_name = row.getValue<string | null>("first_name");
         const last_name = row.getValue<string | null>("last_name");
         return email ? (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div>
-                  {email}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{first_name} {last_name}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                {email}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{first_name} {last_name}</p>
+            </TooltipContent>
+          </Tooltip>
         ) : (
           "-"
         );
@@ -343,7 +342,7 @@ export function UserAdminPage() {
   const pageCount = table.getPageCount();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loader2 className="w-6 h-6 text-primary animate-spin mx-auto my-auto" />;
   }
 
   return (

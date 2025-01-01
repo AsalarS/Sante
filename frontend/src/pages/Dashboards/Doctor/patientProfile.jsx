@@ -33,6 +33,7 @@ import api from "@/api";
 import { calculateAge } from "@/utility/generalUtility";
 import { format } from "date-fns";
 import PatientProfileDialog from "@/components/Dialogs/patientProfileDialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 
 const statusColors = {
@@ -55,9 +56,9 @@ function PatientProfile({ patientId }) {
   useEffect(() => {
     const fetchPatientData = async () => {
       try {
-        const response = await api.get(`/api/user-info/${patientId}/`);
+        const response = await api.get(`/api/user/${patientId}/`);
         if (response.status === 200) {
-          const patient = response.data;
+          const patient = response.data;         
           setPatient(patient);
         } else {
           console.error("Failed to fetch users:", response.statusText);
@@ -139,8 +140,20 @@ function PatientProfile({ patientId }) {
     });
   };
 
-  const handleSave = (updatedPatient) => {
-    setPatient(updatedPatient);
+  const handleSave = async (updatedPatient) => {
+    try {
+      const response = await api.patch(`/api/user/${updatedPatient.id}/`, updatedPatient);
+      if (response.status === 200) {
+        toast.success("Patient data updated successfully");
+        setPatient(updatedPatient);
+        setDialogOpen(false);
+      } else {
+        toast.error("Failed to update patient data");
+      }
+    } catch (error) {
+      console.error("Failed to update patient data:", error);
+      toast.error("An error occurred while updating the patient data");
+    }
   };
 
   const handleCancelAppointment = async (appointmentId) => {
@@ -160,6 +173,10 @@ function PatientProfile({ patientId }) {
       console.error("Failed to cancel appointment:", error);
       toast.error("An error occurred while canceling the appointment");
     }
+  };
+
+  const handleNotesChange = (field, value) => {
+    setPatient((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -302,9 +319,6 @@ function PatientProfile({ patientId }) {
                               <DropdownMenuTrigger asChild>
                                 <Button
                                   variant="ghost"
-                                  onClick={() =>
-                                    console.log("View user:", user)
-                                  }
                                 >
                                   <Ellipsis className="text-foreground" />
                                 </Button>
@@ -353,18 +367,64 @@ function PatientProfile({ patientId }) {
                         <TableHead>Done By</TableHead>
                         <TableHead>Date Done</TableHead>
                         <TableHead>Instructions</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {carePlans?.map((plan) => (
                         <TableRow key={plan.id} className="border-border">
-                          <TableCell>{plan.title}</TableCell>
-                          <TableCell>{plan.type}</TableCell>
+                          <TableCell className="line-clamp-2 break-words">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div>
+                                  {plan.care_plan_title}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{plan.care_plan_title}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell>
+                            <div
+                              className={`px-2 py-1 text-sm text-center rounded-md ${{
+                                Immediate: "bg-primary/20 text-primary",
+                                "Long-term": "bg-chart-5/20 text-chart-5",
+                              }[plan.care_plan_type]
+                                }`}>
+                              {plan.care_plan_type}
+                            </div></TableCell>
                           <TableCell>{plan.date}</TableCell>
-                          <TableCell>{plan.doneBy}</TableCell>
-                          <TableCell>{plan.dateDone}</TableCell>
+                          <TableCell>{plan.done_by?.first_name} {plan.done_by?.last_name}</TableCell>
+                          <TableCell>{plan.date_of_completion}</TableCell>
                           <TableCell className="line-clamp-2 break-words max-w-44">
-                            {plan.instructions}
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div>
+                                  {plan.additional_instructions}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{plan.additional_instructions}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                >
+                                  <Ellipsis className="text-foreground" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                <DropdownMenuItem className="flex flex-row justify-between" onClick={() => handleCopyId(plan.id)}>
+                                  Copy ID <Copy />
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-green-500 focus:text-green-600">Complete</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -383,25 +443,53 @@ function PatientProfile({ patientId }) {
                         <TableHead className="text-center">Type</TableHead>
                         <TableHead>Diagnosed By</TableHead>
                         <TableHead>Diagnosis Date</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {diagnoses?.map((diagnosis) => (
                         <TableRow key={diagnosis.id} className="border-border">
-                          <TableCell>{diagnosis.diagnosis}</TableCell>
+                          <TableCell className="line-clamp-1 break-words">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div>
+                                  {diagnosis.diagnosis_name}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{diagnosis.diagnosis_name}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TableCell>
                           <TableCell>
                             <div
                               className={`px-2 py-1 text-sm text-center rounded-md ${{
                                 Primary: "bg-primary/20 text-primary",
                                 Secondary: "bg-chart-5/20 text-chart-5",
-                              }[diagnosis.type]
+                              }[diagnosis.diagnosis_type]
                                 }`}
                             >
-                              {diagnosis.type}
+                              {diagnosis.diagnosis_type}
                             </div>
                           </TableCell>
-                          <TableCell>{diagnosis.diagnosedBy}</TableCell>
-                          <TableCell>{diagnosis.diagnosisDate}</TableCell>
+                          <TableCell>{diagnosis.diagnosed_by?.first_name} {diagnosis.diagnosed_by?.last_name}</TableCell>
+                          <TableCell>
+                            {diagnosis.date}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost">
+                                  <Ellipsis className="text-foreground" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                <DropdownMenuItem className="flex flex-row justify-between" onClick={() => handleCopyId(diagnosis.id)}>
+                                  Copy ID <Copy />
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -418,6 +506,7 @@ function PatientProfile({ patientId }) {
                       placeholder="Enter notes..."
                       className="w-full min-h-28 flex-grow bg-border resize-none text-foreground text-sm"
                       value={patient?.patient_notes || ""}
+                      onChange={(e) => handleNotesChange("patient_notes", e.target.value)}
                       readOnly={userRole !== "doctor"}
                     />
                   </div>
@@ -429,12 +518,17 @@ function PatientProfile({ patientId }) {
                       placeholder="Enter notes..."
                       className="w-full min-h-28 flex-grow bg-border resize-none text-foreground text-sm"
                       value={patient?.family_history || ""}
-                      readOnly={userRole === "nurse"}
+                      onChange={(e) => handleNotesChange("family_history", e.target.value)}
+                      readOnly={userRole !== "doctor"}
                     />
                   </div>
-                  <Button className="w-32 self-end mt-2">
-                    Update
-                  </Button>
+                  {
+                    userRole === "doctor" && (
+                      <Button className="w-32 self-end mt-2" onClick={() => handleSave(patient)}>
+                        Update
+                      </Button>
+                    )
+                  }
                 </div>
               </TabsContent>
             </Tabs>

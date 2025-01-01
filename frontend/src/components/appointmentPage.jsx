@@ -58,7 +58,7 @@ function AppointmentPage() {
 
     const fetchPatientData = async () => {
         try {
-            const response = await api.get(`/api/user-info/${patientId}/`);
+            const response = await api.get(`/api/user/${patientId}/`);
             if (response.status === 200) {
                 const patient = response.data;
                 setPatient(patient);

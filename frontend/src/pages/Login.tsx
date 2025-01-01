@@ -90,7 +90,7 @@ function Login() {
                                     <Link to="/register/" className="underline">Forgot password?</Link>
                                 </div> */}
                                 <Button type="submit" className="w-full text-white" disabled={loading}>
-                                    {loading ? <Loader2 className="animate-spin" /> : "Login"}
+                                    {loading ? <Loader2 className="animate-spin m-auto text-primary" /> : "Login"}
                                 </Button>
                             </form>
 

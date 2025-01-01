@@ -48,7 +48,7 @@ export default function Sidebar({ children, onImageClick }) {
   }
 
   if (!userInfo) {
-    return <div>No user info available</div>;
+    return <div className="text-foreground">No user info available</div>;
   }
 
   return (
@@ -94,7 +94,7 @@ export default function Sidebar({ children, onImageClick }) {
                   <span className="text-xs text-muted-foreground line-clamp-1 break-all">{userInfo.email}</span>
                 </>
               ) : (
-                <p className="text-foreground">Loading...</p>
+                <Loader2 className="animate-spin w-6 h-6 text-primary" />
               )}
             </div>
             <div className="p-1.5 rounded-lg bg-darker-background hover:bg-even-darker-background text-foreground">

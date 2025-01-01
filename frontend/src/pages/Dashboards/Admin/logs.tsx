@@ -19,9 +19,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter } from "lucide-react";
+import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter, Loader2 } from "lucide-react";
 import api from "@/api";
-import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 
 export type User = {
@@ -48,8 +48,7 @@ export const columns: ColumnDef<Log>[] = [
       const user = row.getValue<User>("user");
 
       return user ? (
-        <TooltipProvider>
-          <Tooltip>
+        <Tooltip>
             <TooltipTrigger asChild>
               <div className=" line-clamp-1 break-all">
                 {user.email}
@@ -59,7 +58,6 @@ export const columns: ColumnDef<Log>[] = [
               <p>{user.first_name} {user.last_name}</p>
             </TooltipContent>
           </Tooltip>
-        </TooltipProvider>
       ) : (
         "-"
       );
@@ -149,7 +147,7 @@ export function LogAdminPage() {
   const pageCount = table.getPageCount();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loader2 className="w-6 h-6 animate-spin m-auto" />;
   }
 
   return (

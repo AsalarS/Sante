@@ -28,6 +28,7 @@ import { Toaster } from "sonner"
 import { ChatsAdminPage } from "./pages/Dashboards/Admin/chats"
 import { ChatMessagesPage } from "./pages/Dashboards/Admin/chatMessages"
 import { AppointmentsAdminPage } from "./pages/Dashboards/Admin/appointments"
+import { TooltipProvider } from "./components/ui/tooltip"
 
 function Logout() {
   localStorage.clear()
@@ -41,7 +42,8 @@ function RegisterAndLogout() {
 
 function App() {
   return (
-    <DarkModeProvider>
+    <TooltipProvider>
+      <DarkModeProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -150,6 +152,7 @@ function App() {
       </BrowserRouter>
       <Toaster richColors toastOptions={{}} />
     </DarkModeProvider>
+    </TooltipProvider>
   );
 }
 
