@@ -4,7 +4,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from api.models import Chat, ChatMessage
+from ..serializers import ChatMessageSerializer, ChatSerializer
+from .ViewsGeneral import AdminPagination
 from ..utilities import log_to_db
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 User = get_user_model()
 
@@ -60,6 +65,7 @@ class UserChatsView(APIView):
             return JsonResponse({"error": "User2 not found"}, status=400)
 
         chat = Chat.objects.create(user1=user1, user2=user2)
+        log_to_db(request, "CREATE: Chat", f"Chat created between {user1.email} and {user2.email}")
         return JsonResponse({
             "id": str(chat.id),
             "user1": chat.user1.email,
@@ -81,8 +87,8 @@ class ChatMessagesView(APIView):
         # Get the chat
         chat = get_object_or_404(Chat, id=chat_id)
 
-        # Check if the user is either user1 or user2 in the chat
-        if chat.user1 != user and chat.user2 != user:
+        # Check if the user is either user1, user2, or an admin
+        if chat.user1 != user and chat.user2 != user and user.role != "admin":
             return HttpResponseForbidden("You do not have permission to view these messages")
 
         # Get all messages in the chat
@@ -128,3 +134,42 @@ class ChatMessagesView(APIView):
             "message_text": message.message_text,
             "is_read": message.is_read,
         })
+        
+@api_view(["GET"])
+def get_chats_admin(request):
+    if not request.user.is_authenticated:
+        return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if request.user.role != "admin":
+        return Response(
+            {"error": "Forbidden: Only admins can access this resource."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    # Retrieve all chats with related user1 and user2 data
+    chats = Chat.objects.select_related('user1', 'user2').order_by('-created_date')
+    paginator = AdminPagination()
+    result_page = paginator.paginate_queryset(chats, request)
+    serialized_data = ChatSerializer(result_page, many=True)
+    return paginator.get_paginated_response(serialized_data.data)
+
+@api_view(["GET"])
+def get_chat_messages_admin(request, chat_id):
+    if not request.user.is_authenticated:
+        return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if request.user.role != "admin":
+        return Response(
+            {"error": "Forbidden: Only admins can access this resource."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    # Retrieve the chat
+    chat = get_object_or_404(Chat, id=chat_id)
+
+    # Retrieve all messages for the chat
+    messages = ChatMessage.objects.select_related('sender').filter(chat=chat).order_by('timestamp')
+    paginator = AdminPagination()
+    result_page = paginator.paginate_queryset(messages, request)
+    serialized_data = ChatMessageSerializer(result_page, many=True)
+    return paginator.get_paginated_response(serialized_data.data)

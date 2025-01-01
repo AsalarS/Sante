@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   ColumnDef,
   SortingState,
@@ -19,10 +19,36 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Ellipsis,
+  Filter,
+} from "lucide-react";
 import api from "@/api";
-import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+  } from "@/components/ui/alert-dialog";
 
 export type User = {
   id: number;
@@ -31,107 +57,178 @@ export type User = {
   last_name: string;
 };
 
-export type Log = {
-  id: number;
-  user: User;
-  action: string;
-  timestamp: string;
-  ip_address: string;
-  description: string;
+export type Appointment = {
+  id: string;
+  patient: User;
+  doctor: User;
+  appointment_date: string;
+  appointment_time: string;
+  status: string;
+  notes: string | null;
 };
 
-export const columns: ColumnDef<Log>[] = [
+export const columns: ColumnDef<Appointment>[] = [
   {
-    accessorKey: "user",
-    header: "User",
+    accessorKey: "patient",
+    header: "Patient",
     cell: ({ row }) => {
-      const user = row.getValue<User>("user");
-
-      return user ? (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className=" line-clamp-1 break-all">
-                {user.email}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{user.first_name} {user.last_name}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      ) : (
-        "-"
+      const patient = row.getValue<User>("patient");
+      return (
+        <div>
+          {patient ? `${patient.first_name} ${patient.last_name} (${patient.email})` : "-"}
+        </div>
       );
     },
   },
   {
-    accessorKey: "action",
-    header: "Action",
-    cell: ({ row }) => <div className=" line-clamp-1 break-all">{row.getValue<string>("action") || "-"}</div>,
+    accessorKey: "doctor",
+    header: "Doctor",
+    cell: ({ row }) => {
+      const doctor = row.getValue<User>("doctor");
+      return (
+        <div>
+          {doctor ? `${doctor.first_name} ${doctor.last_name} (${doctor.email})` : "-"}
+        </div>
+      );
+    },
   },
   {
-    accessorKey: "timestamp",
+    accessorKey: "appointment_date",
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Timestamp <ArrowUpDown className="ml-1" />
+        Appointment Date <ArrowUpDown className="ml-1" />
       </Button>
     ),
     cell: ({ row }) => {
-      const timestamp = row.getValue<string>("timestamp");
-      return <div>{timestamp ? new Date(timestamp).toLocaleString() : "-"}</div>;
+      const appointment_date = row.getValue<string>("appointment_date");
+      return <div>{appointment_date ? new Date(appointment_date).toLocaleDateString() : "-"}</div>;
     },
   },
   {
-    accessorKey: "ip_address",
-    header: "IP Address",
-    cell: ({ row }) => <div>{row.getValue<string>("ip_address") || "-"}</div>,
+    accessorKey: "appointment_time",
+    header: "Appointment Time",
+    cell: ({ row }) => {
+      const appointment_time = row.getValue<string>("appointment_time");
+      return <div>{appointment_time || "-"}</div>;
+    },
   },
   {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => <div className=" line-clamp-1 break-all">{row.getValue<string>("description") || "-"}</div>,
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.getValue<string>("status");
+      return <div>{status || "-"}</div>;
+    },
+  },
+  {
+    accessorKey: "notes",
+    header: "Notes",
+    cell: ({ row }) => {
+      const notes = row.getValue<string | null>("notes");
+      return <div className="line-clamp-1 break-all">{notes || "-"}</div>;
+    },
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      const appointment = row.original;
+      const [isAlertOpen, setIsAlertOpen] = useState(false);
+
+      return (
+        <>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+              >
+                <Ellipsis className="text-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                onClick={() => {
+                  // Handle view details
+                }}
+              >
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-red-500 focus:text-red-500"
+                onClick={() => setIsAlertOpen(true)}
+              >
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Alert for deletion */}
+          <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+            <AlertDialogContent className="text-foreground">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the
+                  appointment.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setIsAlertOpen(false)}>
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-red-600 hover:bg-red-500"
+                  onClick={() => {
+                    console.log("Appointment deleted:", row.original);
+                    setIsAlertOpen(false);
+                  }}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      );
+    },
   },
 ];
 
-export function LogAdminPage() {
+export function AppointmentsAdminPage() {
   const [loading, setLoading] = useState(true);
-  const [logs, setLogs] = useState<Log[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
-
   const [currentPage, setCurrentPage] = useState(1); // Track current page
   const [totalPages, setTotalPages] = useState(1); // Track total pages
 
-
-  const fetchLogs = async (page = 1) => {
+  const fetchAppointments = async (page = 1) => { // Fetch all appointments from the API
     try {
-      const response = await api.get("/api/logs/admin/", {
+      const response = await api.get("/api/appointments/", {
         params: { page },
       });
       if (response.status === 200) {
-        setLogs(response.data.results);
+        setAppointments(response.data.results);
         setTotalPages(Math.ceil(response.data.count / 10));
       } else {
-        console.error("Failed to fetch logs:", response.statusText);
+        console.error("Failed to fetch appointments:", response.statusText);
       }
     } catch (error) {
-      console.error("Failed to fetch logs:", error);
+      console.error("Failed to fetch appointments:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchLogs(currentPage);
+    fetchAppointments(currentPage);
   }, [currentPage]);
 
   const table = useReactTable({
-    data: logs,
+    data: appointments,
     columns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
@@ -157,14 +254,15 @@ export function LogAdminPage() {
       <div className="flex items-center py-4">
         {/* Title */}
         <div className="flex flex-row content-center self-center">
-          <h1 className="text-foreground font-bold text-xl ml-1">Logs</h1>
+          <h1 className="text-foreground font-bold text-xl ml-1">Appointments</h1>
         </div>
         <div className="flex flex-row ml-auto gap-4">
+          {/* TODO: Add backend based search */}
           <Input
-            placeholder="Filter by user..."
-            value={(table.getColumn("user")?.getFilterValue() as string) ?? ""}
+            placeholder="Filter by patient..."
+            value={(table.getColumn("patient")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
-              table.getColumn("user")?.setFilterValue(event.target.value)
+              table.getColumn("patient")?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
           />
@@ -210,7 +308,10 @@ export function LogAdminPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-foreground">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-foreground"
+                >
                   No results.
                 </TableCell>
               </TableRow>

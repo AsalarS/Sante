@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Run Frontend",
+      "label": "Frontend",
       "type": "shell",
       "command": "npm run dev",
       "options": {
@@ -15,7 +15,7 @@
       }
     },
     {
-      "label": "Run Backend (Activate Env and Runserver)",
+      "label": "Backend (Activate Env and Runserver)",
       "type": "shell",
       "command": "source env/bin/activate && python manage.py runserver",
       "options": {
@@ -28,7 +28,7 @@
       }
     },
     {
-      "label": "Run Daphne Server",
+      "label": "Daphne Server",
       "type": "shell",
       "command": "source env/bin/activate && daphne -p 8001 -b 0.0.0.0 -v 2 santeBackend.asgi:application",
       "options": {

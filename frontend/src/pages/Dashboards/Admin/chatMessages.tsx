@@ -20,9 +20,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "@/api";
-import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-
 
 export type User = {
   id: number;
@@ -31,32 +31,49 @@ export type User = {
   last_name: string;
 };
 
-export type Log = {
-  id: number;
-  user: User;
-  action: string;
+export type ChatMessage = {
+  id: string;
+  sender: User;
+  message_text: string;
   timestamp: string;
-  ip_address: string;
-  description: string;
+  is_read: boolean;
 };
 
-export const columns: ColumnDef<Log>[] = [
+export const columns: ColumnDef<ChatMessage>[] = [
   {
-    accessorKey: "user",
-    header: "User",
+    accessorKey: "message_text",
+    header: "Message",
     cell: ({ row }) => {
-      const user = row.getValue<User>("user");
-
-      return user ? (
+      const message_text = row.getValue<string>("message_text");
+      return (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className=" line-clamp-1 break-all">
-                {user.email}
+              <div className=" line-clamp-1 break-all">{message_text}</div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{message_text}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    },
+  },
+  {
+    accessorKey: "sender",
+    header: "Sender",
+    cell: ({ row }) => {
+      const sender = row.getValue<User>("sender");
+      return sender ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                {sender.email}
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{user.first_name} {user.last_name}</p>
+              <p>{sender.first_name} {sender.last_name}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -64,11 +81,6 @@ export const columns: ColumnDef<Log>[] = [
         "-"
       );
     },
-  },
-  {
-    accessorKey: "action",
-    header: "Action",
-    cell: ({ row }) => <div className=" line-clamp-1 break-all">{row.getValue<string>("action") || "-"}</div>,
   },
   {
     accessorKey: "timestamp",
@@ -86,52 +98,58 @@ export const columns: ColumnDef<Log>[] = [
     },
   },
   {
-    accessorKey: "ip_address",
-    header: "IP Address",
-    cell: ({ row }) => <div>{row.getValue<string>("ip_address") || "-"}</div>,
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => <div className=" line-clamp-1 break-all">{row.getValue<string>("description") || "-"}</div>,
+    accessorKey: "is_read",
+    header: () => (
+      <div className="text-center">Read Status</div>
+    ),
+    cell: ({ row }) => {
+      const is_read = row.getValue<boolean>("is_read");
+      return (
+        <div className={`px-2 py-1 text-center rounded-md ${is_read ? "bg-primary/20 text-primary" : "bg-chart-5/20 text-chart-5"}`}>
+          {is_read ? "Read" : "Unread"}
+        </div>
+      );
+    },
   },
 ];
 
-export function LogAdminPage() {
+export function ChatMessagesPage() {
+  const { chatID } = useParams();
   const [loading, setLoading] = useState(true);
-  const [logs, setLogs] = useState<Log[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
-
   const [currentPage, setCurrentPage] = useState(1); // Track current page
   const [totalPages, setTotalPages] = useState(1); // Track total pages
 
+  const navigate = useNavigate();
 
-  const fetchLogs = async (page = 1) => {
+  const fetchMessages = async (page = 1) => {
     try {
-      const response = await api.get("/api/logs/admin/", {
+      const response = await api.get(`/api/admin/chat/${chatID}/messages/`, {
         params: { page },
       });
       if (response.status === 200) {
-        setLogs(response.data.results);
+        console.log("Fetched messages:", response.data);
+        setMessages(response.data.results);
         setTotalPages(Math.ceil(response.data.count / 10));
       } else {
-        console.error("Failed to fetch logs:", response.statusText);
+        console.error("Failed to fetch messages:", response.statusText);
       }
     } catch (error) {
-      console.error("Failed to fetch logs:", error);
+      console.error("Failed to fetch messages:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchLogs(currentPage);
-  }, [currentPage]);
+    fetchMessages(currentPage);
+  }, [currentPage, chatID]);
 
   const table = useReactTable({
-    data: logs,
+    data: messages,
     columns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
@@ -156,15 +174,28 @@ export function LogAdminPage() {
     <div className="w-full px-4">
       <div className="flex items-center py-4">
         {/* Title */}
+        <div className="flex text-foreground bg-btn-normal rounded-md mr-4 items-center p-1 hover:bg-btn-normal/80 w-fit"
+          onClick={() => {
+            if (window.history.length > 1) {
+              // Go back to the previous page
+              navigate(-1);
+            } else {
+              // If there's no history, navigate to the /patients page
+              navigate('/chat');
+            }
+          }}>
+          <ChevronLeft size={24} />
+        </div>
         <div className="flex flex-row content-center self-center">
-          <h1 className="text-foreground font-bold text-xl ml-1">Logs</h1>
+          <h1 className="text-foreground font-bold text-xl ml-1">Chat Messages</h1>
         </div>
         <div className="flex flex-row ml-auto gap-4">
+          {/* TODO: Make search work */}
           <Input
-            placeholder="Filter by user..."
-            value={(table.getColumn("user")?.getFilterValue() as string) ?? ""}
+            placeholder="Filter by sender..."
+            value={(table.getColumn("sender")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
-              table.getColumn("user")?.setFilterValue(event.target.value)
+              table.getColumn("sender")?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
           />
@@ -197,6 +228,7 @@ export function LogAdminPage() {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="cursor-pointer"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="text-foreground">

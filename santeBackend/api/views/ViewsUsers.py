@@ -7,6 +7,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import JsonResponse
+
+from ..utilities import log_to_db
 from ..models import UserProfile, Patient, Employee
 from django.db import transaction
 from rest_framework.decorators import authentication_classes, permission_classes
@@ -34,6 +36,7 @@ class RegisterUserView(APIView):
             serializer = RegisterPatientSerializer(data=request.data)
             if serializer.is_valid():
                 user = serializer.save()
+                log_to_db(request.user, "CREATE: Patient", f"Patient created: {user.email}")
                 return Response(
                     {
                         "user": {
@@ -52,6 +55,7 @@ class RegisterUserView(APIView):
             serializer = RegisterEmployeeSerializer(data=request.data)
             if serializer.is_valid():
                 user = serializer.save()
+                log_to_db(request.user, "CREATE: User", f"Employee created: {user.email}")
                 return Response(
                     {
                         "user": {
@@ -70,6 +74,7 @@ class RegisterUserView(APIView):
             serializer = UserSerializer(data=request.data)
             if serializer.is_valid():
                 user = serializer.save()
+                log_to_db(request.user, "CREATE: User", f"User created: {user.email}")
                 return Response(
                     {
                         "user": {
@@ -167,6 +172,7 @@ class TestingRegisterView(APIView):
                 raise inner_exception
 
             logger.debug("Successfully registered user: %s", user.email)
+            log_to_db(request.user, "CREATE: User", f"User created: {user.email}")
 
             return Response(
                 {"message": "User created successfully!"},
@@ -452,31 +458,6 @@ def update_user_admin(request, user_id):
         {"message": "User information updated successfully!", "user": response_data},
         status=status.HTTP_200_OK,
     )
-
-
-@api_view(["DELETE"])
-def delete_user_admin(request, user_id):
-    try:
-        user = UserProfile.objects.get(id=user_id)
-        user.delete()
-        logger.info(f"Admin {request.user.id} deleted user {user_id}.")
-        return JsonResponse(
-            {"message": "User deleted successfully."}, status=status.HTTP_200_OK
-        )
-    except UserProfile.DoesNotExist:
-        logger.warning(
-            f"Admin {request.user.id} attempted to delete non-existent user {user_id}."
-        )
-        return JsonResponse(
-            {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
-        )
-    except Exception as e:
-        logger.error(f"Error deleting user {user_id} by admin {request.user.id}: {e}")
-        return JsonResponse(
-            {"error": "An error occurred while deleting the user."},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
 
 class UserInfoView(APIView):
     permission_classes = [IsAuthenticated]

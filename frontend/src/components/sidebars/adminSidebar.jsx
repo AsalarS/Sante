@@ -43,7 +43,7 @@ function AdminSidebar() {
                 />
                 <SidebarItem
                     icon={<MessagesSquare size={20} />}
-                    text="Chat"
+                    text="Chats"
                     
                     onClick={() => {
                         navigate("/admin/chat");

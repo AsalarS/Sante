@@ -224,11 +224,16 @@ class LogSerializer(serializers.ModelSerializer):
 
 
 class ChatSerializer(serializers.ModelSerializer):
+    user1 = UserSerializer()
+    user2 = UserSerializer()
+
     class Meta:
         model = Chat
-        fields = '__all__'
+        fields = ['id', 'user1', 'user2', 'created_date', 'last_updated_date']
 
 class ChatMessageSerializer(serializers.ModelSerializer):
+    sender = UserSerializer()
+    
     class Meta:
         model = ChatMessage
         fields = '__all__'

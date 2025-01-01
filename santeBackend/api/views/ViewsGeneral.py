@@ -56,7 +56,16 @@ class AppointmentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        appointments = Appointment.objects.all()
+        if not request.user.is_authenticated:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if request.user.role != "admin":
+            return Response(
+                {"error": "Forbidden: Only admins can access this resource."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        
+        appointments = Appointment.objects.select_related('patient', 'doctor').all()
         paginator = AdminPagination()
         result_page = paginator.paginate_queryset(appointments, request)
         serializer = AppointmentSerializer(result_page, many=True)
@@ -66,6 +75,7 @@ class AppointmentView(APIView):
         serializer = AppointmentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+            log_to_db(request, "CREATE: Appointment", f'Created appointment {serializer.data["id"]} by {request.user.email}')
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -288,6 +298,15 @@ class CarePlanByAppointmentView(APIView):
         else:
             # If no care_plan_id exists, create a new care plan
             request.data['appointment'] = appointment.id  # Ensure the care plan is linked to the appointment
+            log_to_db(
+                request,
+                "CREATE: Care Plan",
+                f"Appointment ID: {appointment.id}, "
+                f"Title: {request.data.get('care_plan_title', '')}, "
+                f"Type: {request.data.get('care_plan_type', '')}, "
+                f"Date of Completion: {request.data.get('date_of_completion', '')}, "
+                f"Done By: {request.data.get('done_by', '')}, "
+                f"Additional Instructions: {request.data.get('additional_instructions', '')}")
             serializer = CarePlanSerializer(data=request.data)
 
         # Validate and save the care plan
@@ -402,6 +421,13 @@ class DiagnosisByAppointmentView(APIView):
         else:
             # If no diagnosis_id exists, create a new diagnosis
             request.data['appointment'] = appointment.id  # Ensure the diagnosis is linked to the appointment
+            log_to_db(
+                request,
+                "CREATE: Diagnosis",
+                f"Appointment ID: {appointment.id}, "
+                f"Name: {request.data.get('diagnosis_name', '')}, "
+                f"Type: {request.data.get('diagnosis_type', '')}, "
+                )
             serializer = DiagnosisSerializer(data=request.data)
 
         # Validate and save the diagnosis

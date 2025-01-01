@@ -49,5 +49,7 @@ urlpatterns = [
     path('chats/users/', get_users_chat, name='get_users'),
     path('chats/<int:user_id>/', UserChatsView.as_view(), name='chats-view'),
     path('chats/<uuid:chat_id>/messages/', ChatMessagesView.as_view(), name='chat_messages'),
+    path('admin/chats/', get_chats_admin, name='chats-admin-view'),
+    path('admin/chat/<uuid:chat_id>/messages/', get_chat_messages_admin, name='chat-messages-admin-view'),
     
 ]

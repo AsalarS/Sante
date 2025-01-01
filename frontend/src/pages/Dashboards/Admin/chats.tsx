@@ -11,6 +11,7 @@ import {
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Table,
   TableBody,
@@ -20,9 +21,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import api from "@/api";
-import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-
 
 export type User = {
   id: number;
@@ -31,32 +31,30 @@ export type User = {
   last_name: string;
 };
 
-export type Log = {
-  id: number;
-  user: User;
-  action: string;
-  timestamp: string;
-  ip_address: string;
-  description: string;
+export type Chat = {
+  id: string;
+  user1: User;
+  user2: User;
+  created_date: string;
+  last_updated_date: string;
 };
 
-export const columns: ColumnDef<Log>[] = [
+export const columns: ColumnDef<Chat>[] = [
   {
-    accessorKey: "user",
-    header: "User",
+    accessorKey: "user1",
+    header: "User 1",
     cell: ({ row }) => {
-      const user = row.getValue<User>("user");
-
-      return user ? (
+      const user1 = row.getValue<User>("user1");
+      return user1 ? (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <div className=" line-clamp-1 break-all">
-                {user.email}
+                {user1.email}
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{user.first_name} {user.last_name}</p>
+              <p>{user1.first_name} {user1.last_name}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -66,72 +64,96 @@ export const columns: ColumnDef<Log>[] = [
     },
   },
   {
-    accessorKey: "action",
-    header: "Action",
-    cell: ({ row }) => <div className=" line-clamp-1 break-all">{row.getValue<string>("action") || "-"}</div>,
+    accessorKey: "user2",
+    header: "User 2",
+    cell: ({ row }) => {
+      const user2 = row.getValue<User>("user2");
+      return user2 ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className=" line-clamp-1 break-all">
+                {user2.email}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{user2.first_name} {user2.last_name}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        "-"
+      );
+    },
   },
   {
-    accessorKey: "timestamp",
+    accessorKey: "created_date",
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Timestamp <ArrowUpDown className="ml-1" />
+        Created Date <ArrowUpDown className="ml-1" />
       </Button>
     ),
     cell: ({ row }) => {
-      const timestamp = row.getValue<string>("timestamp");
-      return <div>{timestamp ? new Date(timestamp).toLocaleString() : "-"}</div>;
+      const created_date = row.getValue<string>("created_date");
+      return <div>{created_date ? new Date(created_date).toLocaleString() : "-"}</div>;
     },
   },
   {
-    accessorKey: "ip_address",
-    header: "IP Address",
-    cell: ({ row }) => <div>{row.getValue<string>("ip_address") || "-"}</div>,
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => <div className=" line-clamp-1 break-all">{row.getValue<string>("description") || "-"}</div>,
+    accessorKey: "last_updated_date",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Last Updated Date <ArrowUpDown className="ml-1" />
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const last_updated_date = row.getValue<string>("last_updated_date");
+      return <div>{last_updated_date ? new Date(last_updated_date).toLocaleString() : "-"}</div>;
+    },
   },
 ];
 
-export function LogAdminPage() {
+export function ChatsAdminPage() {
   const [loading, setLoading] = useState(true);
-  const [logs, setLogs] = useState<Log[]>([]);
+  const [chats, setChats] = useState<Chat[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
-
   const [currentPage, setCurrentPage] = useState(1); // Track current page
   const [totalPages, setTotalPages] = useState(1); // Track total pages
 
+  const navigate = useNavigate();
 
-  const fetchLogs = async (page = 1) => {
+  const fetchChats = async (page = 1) => {
     try {
-      const response = await api.get("/api/logs/admin/", {
+      const response = await api.get("/api/admin/chats/", {
         params: { page },
       });
       if (response.status === 200) {
-        setLogs(response.data.results);
+        console.log("Fetched chats:", response.data);
+        setChats(response.data.results);
         setTotalPages(Math.ceil(response.data.count / 10));
       } else {
-        console.error("Failed to fetch logs:", response.statusText);
+        console.error("Failed to fetch chats:", response.statusText);
       }
     } catch (error) {
-      console.error("Failed to fetch logs:", error);
+      console.error("Failed to fetch chats:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchLogs(currentPage);
+    fetchChats(currentPage);
   }, [currentPage]);
 
   const table = useReactTable({
-    data: logs,
+    data: chats,
     columns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
@@ -157,14 +179,15 @@ export function LogAdminPage() {
       <div className="flex items-center py-4">
         {/* Title */}
         <div className="flex flex-row content-center self-center">
-          <h1 className="text-foreground font-bold text-xl ml-1">Logs</h1>
+          <h1 className="text-foreground font-bold text-xl ml-1">Chats</h1>
         </div>
         <div className="flex flex-row ml-auto gap-4">
+          {/* TODO: Make search work */}
           <Input
             placeholder="Filter by user..."
-            value={(table.getColumn("user")?.getFilterValue() as string) ?? ""}
+            value={(table.getColumn("user1")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
-              table.getColumn("user")?.setFilterValue(event.target.value)
+              table.getColumn("user1")?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
           />
@@ -197,6 +220,8 @@ export function LogAdminPage() {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  onClick={() => navigate(`/admin/chat/messages/${row.original.id}`)} // Navigate to chat messages page
+                  className="cursor-pointer"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="text-foreground">

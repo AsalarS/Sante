@@ -25,6 +25,9 @@ import { LogAdminPage } from "./pages/Dashboards/Admin/logs"
 import AppointmentPage from "./components/appointmentPage"
 import { ReceptionistAppointment } from "./pages/Dashboards/Receptionist/receptionistAppointment"
 import { Toaster } from "sonner"
+import { ChatsAdminPage } from "./pages/Dashboards/Admin/chats"
+import { ChatMessagesPage } from "./pages/Dashboards/Admin/chatMessages"
+import { AppointmentsAdminPage } from "./pages/Dashboards/Admin/appointments"
 
 function Logout() {
   localStorage.clear()
@@ -134,8 +137,9 @@ function App() {
             <Route path="dashboard" element={<AdminHome />} />
             <Route index element={<Navigate to="dashboard" />} />
             <Route path="users" element={<UserAdminPage />} />
-            <Route path="appointments" element={<AdminHome />} />
-            <Route path="chat" element={<AdminHome />} />
+            <Route path="appointments" element={<AppointmentsAdminPage />} />
+            <Route path="chat" element={<ChatsAdminPage />} />
+            <Route path="chat/messages/:chatID" element={<ChatMessagesPage />} />
             <Route path="logs" element={<LogAdminPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="messages/:chatID" element={<MessagesPage />} />
