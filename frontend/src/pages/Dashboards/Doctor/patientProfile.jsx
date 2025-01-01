@@ -278,7 +278,6 @@ function PatientProfile({ patientId }) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {console.log("appointments", appointments)}
                       {appointments?.map((appointment) => (
                         <TableRow
                           key={appointment.id}
