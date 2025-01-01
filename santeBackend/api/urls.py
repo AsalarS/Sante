@@ -13,18 +13,16 @@ urlpatterns = [
     path('logs/admin/', get_logs_admin, name='get_logs_admin'),
     
     # path('users/patients/', get_patients, name='get_patients'),
-    path('appointments/', AppointmentView.as_view(), name='get_appointments'),
     path('available-doctors/', AvailableDoctorsView.as_view(), name='available-doctors'),
     path('appointments-by-date/', AppointmentsByDateView.as_view(), name='appointments-by-date'),
     
     # Schedule & Appointments
     path('schedule/', get_schedule, name='get_schedule'),
     
-    # path('appointments/add/', add_appointment, name='add_appointment'),
     path('patient/appointments/<int:patient_id>/', PatientAppointmentsView.as_view(), name='patient_appointments'),
     
     # path('appointment/<uuid:appointment_id>/', AppointmentDetailView.as_view(), name='appointment_detail'),
-    path('appointments/', AppointmentView.as_view(), name='appointment-create'),
+    path('appointments/', AppointmentView.as_view(), name='appointment_view'),
     path('appointments/<uuid:appointment_id>/', AppointmentView.as_view(), name='appointment-update'),
     
     # Careplans

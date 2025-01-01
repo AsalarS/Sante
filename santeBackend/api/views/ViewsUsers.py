@@ -36,7 +36,7 @@ class RegisterUserView(APIView):
             serializer = RegisterPatientSerializer(data=request.data)
             if serializer.is_valid():
                 user = serializer.save()
-                log_to_db(request.user, "CREATE: Patient", f"Patient created: {user.email}")
+                log_to_db(request, "CREATE: Patient", f"Patient created: {user.email}")
                 return Response(
                     {
                         "user": {
@@ -55,7 +55,7 @@ class RegisterUserView(APIView):
             serializer = RegisterEmployeeSerializer(data=request.data)
             if serializer.is_valid():
                 user = serializer.save()
-                log_to_db(request.user, "CREATE: User", f"Employee created: {user.email}")
+                log_to_db(request, "CREATE: User", f"Employee created: {user.email}")
                 return Response(
                     {
                         "user": {
@@ -74,7 +74,7 @@ class RegisterUserView(APIView):
             serializer = UserSerializer(data=request.data)
             if serializer.is_valid():
                 user = serializer.save()
-                log_to_db(request.user, "CREATE: User", f"User created: {user.email}")
+                log_to_db(request, "CREATE: User", f"User created: {user.email}")
                 return Response(
                     {
                         "user": {
@@ -172,7 +172,7 @@ class TestingRegisterView(APIView):
                 raise inner_exception
 
             logger.debug("Successfully registered user: %s", user.email)
-            log_to_db(request.user, "CREATE: User", f"User created: {user.email}")
+            log_to_db(request, "CREATE: User", f"User created: {user.email}")
 
             return Response(
                 {"message": "User created successfully!"},

@@ -202,14 +202,14 @@ function AppointmentPage() {
     };
 
     const handleDeleteDiagnosis = (diagnosis) => {
-        setDiagnoses(prevDiagnoses => 
+        setDiagnoses(prevDiagnoses =>
             prevDiagnoses.filter(d => d.id !== diagnosis.id)
         );
         setDiagnosesDirty(true);
     };
-    
+
     const handleDeleteCarePlan = (carePlan) => {
-        setCarePlans(prevCarePlans => 
+        setCarePlans(prevCarePlans =>
             prevCarePlans.filter(cp => cp.id !== carePlan.id)
         );
         setCarePlansDirty(true);
@@ -218,33 +218,33 @@ function AppointmentPage() {
     const saveAppointment = async () => {
         setLoading(true);
         try {
-            // 1. First save/update the appointment
+            // save/update the appointment
             const appointmentResponse = await api.patch(`/api/appointments/${id}/`, appointment);
-            
+
             if (appointmentResponse.status !== 200) {
                 throw new Error('Failed to save appointment');
             }
-    
-            // 2. Handle diagnoses synchronization
+
+            //Handle diagnoses synchronization
             if (diagnosesDirty) {
-                // First, fetch all existing diagnoses from the API
+                //fetch all existing diagnoses from the API
                 const existingDiagnosesResponse = await api.get(`/api/appointments/diagnoses/${id}/`);
                 const existingDiagnoses = existingDiagnosesResponse.data || [];
-    
+
                 // Find diagnoses to delete (ones in API but not in local state)
-                const diagnosesToDelete = existingDiagnoses.filter(existingDiagnosis => 
-                    !diagnoses.some(localDiagnosis => 
-                        localDiagnosis.id === existingDiagnosis.id || 
+                const diagnosesToDelete = existingDiagnoses.filter(existingDiagnosis =>
+                    !diagnoses.some(localDiagnosis =>
+                        localDiagnosis.id === existingDiagnosis.id ||
                         localDiagnosis.key === existingDiagnosis.key
                     )
                 );
-    
+
                 // Delete removed diagnoses
                 const deletePromises = diagnosesToDelete.map(diagnosis =>
                     api.delete(`/api/appointments/diagnoses/${id}/${diagnosis.id}/`)
                 );
                 await Promise.all(deletePromises);
-    
+
                 // Save/update remaining diagnoses
                 if (diagnoses.length > 0) {
                     const diagnosesToSave = diagnoses.map(diagnosis => ({
@@ -252,40 +252,43 @@ function AppointmentPage() {
                         appointment_id: id,
                         id: diagnosis.id.startsWith('temp_') ? undefined : diagnosis.id
                     }));
-    
-                    const savePromises = diagnosesToSave.map(diagnosis => 
+
+                    const savePromises = diagnosesToSave.map(diagnosis =>
                         api.patch(`/api/appointments/diagnoses/${id}/`, {
-                            data: { id: diagnosis.id}
-                        })
+                            id: diagnosis.id,
+                            diagnosis_name: diagnosis.diagnosis_name,
+                            diagnosis_type: diagnosis.diagnosis_type
+                        }
+                        )
                     );
-                    
+
                     await Promise.all(savePromises);
                 }
                 setDiagnosesDirty(false);
             }
-    
-            // 3. Handle care plans synchronization
+
+            // Handle care plans synchronization
             if (carePlansDirty) {
                 // First, fetch all existing care plans from the API
                 const existingCarePlansResponse = await api.get(`/api/appointments/careplans/${id}/`);
                 const existingCarePlans = existingCarePlansResponse.data || [];
-    
+
                 // Find care plans to delete (ones in API but not in local state)
-                const carePlansToDelete = existingCarePlans.filter(existingPlan => 
-                    !carePlans.some(localPlan => 
-                        localPlan.id === existingPlan.id || 
+                const carePlansToDelete = existingCarePlans.filter(existingPlan =>
+                    !carePlans.some(localPlan =>
+                        localPlan.id === existingPlan.id ||
                         localPlan.key === existingPlan.key
                     )
                 );
-    
+
                 // Delete removed care plans
                 const deletePromises = carePlansToDelete.map(plan =>
                     api.delete(`/api/appointments/careplans/${id}/`, {
-                        data: { id: plan.id } 
+                        data: { id: plan.id }
                     })
                 );
                 await Promise.all(deletePromises);
-    
+
                 // Save/update remaining care plans
                 if (carePlans.length > 0) {
                     const carePlansToSave = carePlans.map(plan => ({
@@ -293,25 +296,25 @@ function AppointmentPage() {
                         appointment_id: id,
                         id: plan.id.startsWith('temp_') ? undefined : plan.id
                     }));
-    
-                    const savePromises = carePlansToSave.map(plan => 
+
+                    const savePromises = carePlansToSave.map(plan =>
                         api.patch(`/api/appointments/careplans/${id}/`, plan)
                     );
-                    
+
                     await Promise.all(savePromises);
                 }
                 setCarePlansDirty(false);
             }
-    
+
             toast.success("Appointment saved successfully!");
-    
+
             // Navigate away only after everything is saved
             if (window.history.length > 1) {
                 navigate(-1);
             } else {
                 navigate("/patients");
             }
-    
+
         } catch (error) {
             console.error("Error saving appointment data:", error);
             toast.error("An error occurred while saving. Please try again.");
@@ -319,66 +322,6 @@ function AppointmentPage() {
             setLoading(false);
         }
     };
-
-    // Fetch appointment, care plans, and diagnoses when the component mounts
-    // const saveAppointment = async () => {
-    //     setLoading(true);
-    //     try {
-    //         // 1. First save/update the appointment
-    //         const appointmentResponse = await api.patch(`/api/appointments/${id}/`, appointment);
-            
-    //         if (appointmentResponse.status !== 200) {
-    //             throw new Error('Failed to save appointment');
-    //         }
-    
-    //         // 2. Handle diagnoses if they've been modified
-    //         if (diagnosesDirty && diagnoses.length > 0) {
-    //             const diagnosesToSave = diagnoses.map(diagnosis => ({
-    //                 ...diagnosis,
-    //                 appointment_id: id,
-    //                 id: diagnosis.id.startsWith('temp_') ? undefined : diagnosis.id
-    //             }));
-    
-    //             const diagnosesPromises = diagnosesToSave.map(diagnosis => 
-    //                 api.patch(`/api/appointments/diagnoses/${id}/`, diagnosis)
-    //             );
-                
-    //             await Promise.all(diagnosesPromises);
-    //             setDiagnosesDirty(false);
-    //         }
-    
-    //         // 3. Handle care plans if they've been modified
-    //         if (carePlansDirty && carePlans.length > 0) {
-    //             const carePlansToSave = carePlans.map(carePlan => ({
-    //                 ...carePlan,
-    //                 appointment_id: id,
-    //                 id: carePlan.id.startsWith('temp_') ? undefined : carePlan.id
-    //             }));
-    
-    //             const carePlanPromises = carePlansToSave.map(carePlan => 
-    //                 api.patch(`/api/appointments/careplans/${id}/`, carePlan)
-    //             );
-                
-    //             await Promise.all(carePlanPromises);
-    //             setCarePlansDirty(false);
-    //         }
-    
-    //         toast.success("Appointment and all related data saved successfully!");
-    
-    //         // Navigate away only after everything is saved
-    //         if (window.history.length > 1) {
-    //             navigate(-1);
-    //         } else {
-    //             navigate("/patients");
-    //         }
-    
-    //     } catch (error) {
-    //         console.error("Error saving appointment data:", error);
-    //         toast.error("An error occurred while saving. Please try again.");
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
 
     if (loading) {
         return (

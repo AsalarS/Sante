@@ -1,6 +1,8 @@
 from django.http import JsonResponse
 from datetime import datetime, time, timedelta
 from django.db.models import Q
+
+from .ViewsGeneral import AdminPagination
 from ..models import Employee, Appointment, Patient, UserProfile
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -13,7 +15,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from ..serializers import AppointmentSerializer
+from ..serializers import AppointmentSerializer, AppointmentWithUserSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -91,105 +93,72 @@ def get_schedule(request):
 
     return JsonResponse({'success': True, 'schedule': schedule})
 
+
 class AppointmentView(APIView):
-    def get(self, request, appointment_id=None):
-        """
-        Retrieve one or more appointments.
-        If `appointment_id` is provided, fetch details of a single appointment.
-        Otherwise, return a list of all appointments.
-        """
-        if appointment_id:
-            # Fetch a single appointment
-            try:
-                appointment = get_object_or_404(Appointment, pk=appointment_id)
-                serializer = AppointmentSerializer(appointment)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except Exception as e:
-                return Response({
-                    'success': False,
-                    'message': f'An error occurred: {str(e)}'
-                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            # Fetch all appointments
-            try:
-                appointments = Appointment.objects.all()
-                serializer = AppointmentSerializer(appointments, many=True)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except Exception as e:
-                return Response({
-                    'success': False,
-                    'message': f'An error occurred: {str(e)}'
-                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
-    def post(self, request):
-        """
-        Create a new appointment.
-        """
-        # Same implementation as before
-        patient_id = request.data.get('patient_id')
-        doctor_id = request.data.get('doctor_id')
-        appointment_date = request.data.get('appointment_date')
-        appointment_time = request.data.get('appointment_time')
+        if request.user.role != "admin":
+            return Response(
+                {"error": "Forbidden: Only admins can access this resource."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        
+        appointments = Appointment.objects.select_related('patient', 'doctor').order_by('appointment_date', 'appointment_time').all()
+        paginator = AdminPagination()
+        result_page = paginator.paginate_queryset(appointments, request)
+        serializer = AppointmentWithUserSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+    
+    # Get a specific appointments data
+    def get(self, request, appointment_id):
+        if not request.user.is_authenticated:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        if not all([patient_id, doctor_id, appointment_date, appointment_time]):
-            return Response({
-                'success': False,
-                'message': 'Patient ID, Doctor ID, Date, and Time are required'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            parsed_date = timezone.datetime.strptime(
-                appointment_date, '%Y-%m-%d').date()
-            parsed_time = timezone.datetime.strptime(
-                appointment_time, '%H:%M').time()
-            patient = get_object_or_404(Patient, pk=patient_id)
-            doctor = get_object_or_404(Employee, pk=doctor_id)
-
-            appointment = Appointment.objects.create(
-                patient=patient,
-                doctor=doctor,
-                appointment_date=parsed_date,
-                appointment_time=parsed_time,
-                status='Scheduled',
+        if request.user.role not in ["receptionist", "doctor", "admin", "nurse"]:
+            return Response(
+                {"error": "Forbidden: Only employees can access this resource."},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
-            log_to_db(request.user, "CREATE: Appointment", f'Created appointment {appointment.id} by {request.user.email}')
-            
-            return Response({
-                'success': True,
-                'message': 'Appointment created successfully',
-                'appointment_id': str(appointment.id)
-            }, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response({
-                'success': False,
-                'message': f'An error occurred: {str(e)}'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        appointment = get_object_or_404(Appointment, id=appointment_id)
+        serializer = AppointmentWithUserSerializer(appointment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def patch(self, request, appointment_id=None):
-        """
-        Update an existing appointment.
-        """
+    def post(self, request):
+        serializer = AppointmentSerializer(data=request.data)
+        if serializer.is_valid():
+            appointment = serializer.save()
+            log_to_db(request, "CREATE: Appointment", f"Created appointment {appointment.id} by {request.user.email}")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, appointment_id):
         if not appointment_id:
-            return Response({
-                'success': False,
-                'message': 'Appointment ID is required for updating'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Appointment ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not request.user.is_authenticated:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        try:
-            appointment = get_object_or_404(Appointment, pk=appointment_id)
-            serializer = AppointmentSerializer(
-                appointment, data=request.data, partial=True)
+        if request.user.role not in ["receptionist", "doctor", "admin", "nurse"]:
+            return Response(
+                {"error": "Forbidden: Only employees can access this resource."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({
-                'success': False,
-                'message': f'An error occurred: {str(e)}'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        appointment = get_object_or_404(Appointment, id=appointment_id)
+        data = request.data.copy()
+        # Remove nested fields from the data
+        data.pop('patient', None)
+        data.pop('doctor', None)
+        
+        serializer = AppointmentSerializer(appointment, data=data, partial=True)
+        if serializer.is_valid():
+            appointment = serializer.save()
+            log_to_db(request, "UPDATE: Appointment", f"Updated appointment {appointment.id} by {request.user.email}")
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PatientAppointmentsView(APIView):
@@ -208,5 +177,5 @@ class PatientAppointmentsView(APIView):
             return Response({"error": "Patient not found."}, status=status.HTTP_404_NOT_FOUND)
 
         appointments = Appointment.objects.filter(patient=patient)
-        serializer = AppointmentSerializer(appointments, many=True)
+        serializer = AppointmentWithUserSerializer(appointments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

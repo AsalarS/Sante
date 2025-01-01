@@ -39,16 +39,23 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-  } from "@/components/ui/alert-dialog";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+export const statusColors = {
+  Scheduled: "bg-primary/20 text-primary font-semibold",
+  Completed: "bg-green-400/20 text-green-400 font-semibold",
+  Cancelled: "bg-red-400/20 text-red-400 font-semibold",
+  "No Show": "bg-orange-400/20 text-orange-400 font-semibold",
+};
 
 export type User = {
   id: number;
@@ -73,10 +80,21 @@ export const columns: ColumnDef<Appointment>[] = [
     header: "Patient",
     cell: ({ row }) => {
       const patient = row.getValue<User>("patient");
-      return (
-        <div>
-          {patient ? `${patient.first_name} ${patient.last_name} (${patient.email})` : "-"}
-        </div>
+      return patient ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                {patient.email}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{patient.first_name} {patient.last_name}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        "-"
       );
     },
   },
@@ -85,10 +103,21 @@ export const columns: ColumnDef<Appointment>[] = [
     header: "Doctor",
     cell: ({ row }) => {
       const doctor = row.getValue<User>("doctor");
-      return (
-        <div>
-          {doctor ? `${doctor.first_name} ${doctor.last_name} (${doctor.email})` : "-"}
-        </div>
+      return doctor ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                {doctor.email}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{doctor.first_name} {doctor.last_name}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        "-"
       );
     },
   },
@@ -104,7 +133,7 @@ export const columns: ColumnDef<Appointment>[] = [
     ),
     cell: ({ row }) => {
       const appointment_date = row.getValue<string>("appointment_date");
-      return <div>{appointment_date ? new Date(appointment_date).toLocaleDateString() : "-"}</div>;
+      return <div className="text-center">{appointment_date ? new Date(appointment_date).toLocaleDateString() : "-"}</div>;
     },
   },
   {
@@ -112,15 +141,26 @@ export const columns: ColumnDef<Appointment>[] = [
     header: "Appointment Time",
     cell: ({ row }) => {
       const appointment_time = row.getValue<string>("appointment_time");
-      return <div>{appointment_time || "-"}</div>;
+      return (
+        <div>
+          {appointment_time
+            ? new Date(`1970-01-01T${appointment_time}Z`).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+            : "-"}
+        </div>
+      );
     },
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: ({ column }) => (
+      <div className="text-center">Status</div>
+    ),
     cell: ({ row }) => {
       const status = row.getValue<string>("status");
-      return <div>{status || "-"}</div>;
+      return <div className={`px-2 py-1 text-sm  self-center text-center rounded-md ${statusColors[status as keyof typeof statusColors]}`}>{status || "-"}</div>;
     },
   },
   {
@@ -128,7 +168,22 @@ export const columns: ColumnDef<Appointment>[] = [
     header: "Notes",
     cell: ({ row }) => {
       const notes = row.getValue<string | null>("notes");
-      return <div className="line-clamp-1 break-all">{notes || "-"}</div>;
+      return notes ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <div className="line-clamp-1 break-all">{notes || "-"}</div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{notes || "-"}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        "-"
+      );
     },
   },
   {
@@ -211,6 +266,7 @@ export function AppointmentsAdminPage() {
         params: { page },
       });
       if (response.status === 200) {
+        console.log("Fetched appointments:", response.data);
         setAppointments(response.data.results);
         setTotalPages(Math.ceil(response.data.count / 10));
       } else {

@@ -33,6 +33,14 @@ import api from "@/api";
 import { calculateAge } from "@/utility/generalUtility";
 import { format } from "date-fns";
 import PatientProfileDialog from "@/components/Dialogs/patientProfileDialog";
+import { toast } from "sonner";
+
+const statusColors = {
+  Scheduled: "bg-primary/20 text-primary font-semibold",
+  Completed: "bg-green-400/20 text-green-400 font-semibold",
+  Cancelled: "bg-red-400/20 text-red-400 font-semibold",
+  "No Show": "bg-orange-400/20 text-orange-400 font-semibold",
+};
 
 function PatientProfile({ patientId }) {
   const navigate = useNavigate();
@@ -125,20 +133,33 @@ function PatientProfile({ patientId }) {
 
   const handleCopyId = (id) => {
     navigator.clipboard.writeText(id).then(() => {
+      toast.success("ID copied to clipboard");
     }).catch(err => {
       console.error("Failed to copy: ", err);
     });
   };
 
-  const statusColors = {
-    Scheduled: "bg-primary/20 text-primary font-semibold",
-    Completed: "bg-green-400/20 text-green-400 font-semibold",
-    Canceled: "bg-red-400/20 text-red-400 font-semibold",
-    "No Show": "bg-orange-400/20 text-orange-400 font-semibold",
-  };
-
   const handleSave = (updatedPatient) => {
     setPatient(updatedPatient);
+  };
+
+  const handleCancelAppointment = async (appointmentId) => {
+    try {
+      const response = await api.patch(`/api/appointments/${appointmentId}/`, { status: "Cancelled" });
+      if (response.status === 200) {
+        toast.success("Appointment cancelled successfully");
+        setAppointments((prevAppointments) =>
+          prevAppointments.map((appointment) =>
+            appointment.id === appointmentId ? { ...appointment, status: "Cancelled" } : appointment
+          )
+        );
+      } else {
+        toast.error("Failed to cancel appointment");
+      }
+    } catch (error) {
+      console.error("Failed to cancel appointment:", error);
+      toast.error("An error occurred while canceling the appointment");
+    }
   };
 
   return (
@@ -257,12 +278,13 @@ function PatientProfile({ patientId }) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
+                      {console.log("appointments", appointments)}
                       {appointments?.map((appointment) => (
                         <TableRow
                           key={appointment.id}
                           className="border-border"
                         >
-                          <TableCell>{appointment.doctor}</TableCell>
+                          <TableCell>{appointment.doctor?.first_name} {appointment.doctor?.last_name}</TableCell>
                           <TableCell>{appointment.appointment_date}</TableCell>
                           <TableCell>{format(new Date(`1970-01-01T${appointment.appointment_time}`), "HH:mm")}</TableCell>
                           <TableCell>
@@ -274,7 +296,7 @@ function PatientProfile({ patientId }) {
                             </div>
                           </TableCell>
                           <TableCell className="text-center">
-                            {appointment.flowUpRequired ? "Yes" : "No"}
+                            {appointment.follow_up_required ? "Yes" : "No"}
                           </TableCell>
                           <TableCell>
                             <DropdownMenu>
@@ -292,6 +314,7 @@ function PatientProfile({ patientId }) {
                                 <DropdownMenuItem className="flex flex-row justify-between" onClick={() => handleCopyId(appointment.id)}>
                                   Copy ID <Copy />
                                 </DropdownMenuItem>
+                                {/* TODO: Add edit functioanlity */}
                                 {/* Open the appointment and pass user id */}
                                 {userRole.toLowerCase() === "doctor" && (appointment.status === "Scheduled" || appointment.status === "Completed") && (
                                   <DropdownMenuItem onClick={() => navigate(`/doctor/patients/appointment/${appointment.id}`, {
@@ -300,11 +323,15 @@ function PatientProfile({ patientId }) {
                                     Open
                                   </DropdownMenuItem>
                                 )}
-
-                                <DropdownMenuItem>Edit</DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-500 focus:text-red-500">
-                                  Cancel
-                                </DropdownMenuItem>
+                                {appointment.status != "Cancelled" &&
+                                  (
+                                    <>
+                                      <DropdownMenuItem>Edit</DropdownMenuItem>
+                                      <DropdownMenuItem className="text-red-500 focus:text-red-500" onClick={() => handleCancelAppointment(appointment.id)}>
+                                        Cancel
+                                      </DropdownMenuItem>
+                                    </>)
+                                }
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>

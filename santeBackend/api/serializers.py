@@ -210,9 +210,22 @@ class RegisterPatientSerializer(serializers.ModelSerializer):
 # APPOINTMENT SERIALIZER
 
 class AppointmentSerializer(serializers.ModelSerializer):
+    patient = PatientSerializer()
+    doctor = EmployeeSerializer()
+    
     class Meta:
         model = Appointment
         fields = "__all__"
+        
+# Appointment view that returns the user object instead of the patient and doctor objects
+
+class AppointmentWithUserSerializer(serializers.ModelSerializer):
+    patient = UserSerializer(source='patient.user')
+    doctor = UserSerializer(source='doctor.user')
+
+    class Meta:
+        model = Appointment
+        fields = '__all__'
 
 # LOGS SERIALIZER
 

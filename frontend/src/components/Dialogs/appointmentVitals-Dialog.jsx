@@ -47,7 +47,7 @@ export function AppointmentVitalsDialog({
       };
 
       const response = await api.patch(`/api/appointments/${appointmentId}/`, updatedVitalsData);
-      if (response.status === 200) {
+      if (response.status >= 200 && response.status < 300) {
         toast.success("Vitals updated successfully");
         setDialogOpen(false);
       } else {

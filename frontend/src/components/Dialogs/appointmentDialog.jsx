@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Check, ChevronsUpDown, Loader2, Search, X } from "lucide-react";
+import { Loader2, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import api from "@/api";
-import { date } from "zod";
 import { toast } from "sonner";
 
 export function AppointmentDialog({
@@ -50,7 +49,7 @@ export function AppointmentDialog({
         ...appointment,
         time: appointment.time ? convertTo24Hour(appointment.time) : "",
       });
-      
+
       if (appointment.status !== "Available") {
         setSelectedPatient({
           id: appointment.patient_id || "",
@@ -59,16 +58,25 @@ export function AppointmentDialog({
           email: appointment.patient_email || "",
           CPR_number: appointment.patient_cpr || "",
         });
-        setPatientSearch(`${appointment.patient_first_name} ${appointment.patient_last_name}`);
+        setPatientSearch(
+          appointment.patient_first_name && appointment.patient_last_name
+            ? `${appointment.patient_first_name} ${appointment.patient_last_name}`
+            : ""
+        );
+      } else {
+        setPatientSearch("");
+        setSelectedPatient(null);
       }
     } else {
       setDialogData({});
+      setPatientSearch("");
+      setSelectedPatient(null);
     }
   }, [appointment]);
 
-  
+
   // Clear Data when opening the dialog
-  useEffect(() => { 
+  useEffect(() => {
     if (!dialogOpen) {
       setDialogData({});
       setPatientSearch("");
@@ -83,63 +91,42 @@ export function AppointmentDialog({
 
   //Handle save appointment
   const handleSave = async () => {
-    // Validate required fields
-    if (!selectedPatient) {
-      toast.error("Please select a patient");
-      return;
-    }
-
-    if (!dialogData.doctorId) {
-      toast.error("Please select a doctor");
-      return;
-    }
-
-    if (!dialogData.date) {
-      toast.error("Please select an appointment date");
-      return;
-    }
-
-    if (!dialogData.time) {
-      toast.error("Please select an appointment time");
+    if (!selectedPatient || !dialogData.doctorId || !dialogData.date || !dialogData.time) {
+      toast.error("Please fill all required fields");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Prepare appointment data
       const payload = {
         patient_id: selectedPatient.id,
         doctor_id: dialogData.doctorId,
         appointment_date: dialogData.date,
         appointment_time: dialogData.time,
-        status: dialogData.status,
-        appointment_id: dialogData.app_id,
+        status: dialogData.status || "Scheduled",
       };
 
-      console.log("payload", dialogData);
-      
-      // Send PATCH request to create appointment
-      const response = await api.patch("/api/appointments/add/", payload);
+      if (dialogData.app_id) {
+        payload.id = dialogData.app_id;
+      }
 
-      if (response.status === 200) {
-        // Close the dialog on successful creation
+      const isNewAppointment = !dialogData.app_id;
+      const method = isNewAppointment ? "post" : "patch";
+      const url = "/api/appointments/";
+
+      const response = await api[method](url, payload);
+
+      if (response.status === 200 || response.status === 201) {
         setDialogOpen(false);
-        toast.success("Appointment updated  successfully ", response.data);
-      } else {
-        // Handle unsuccessful response
-        toast.error(response.data.message || "Failed to create appointment");
+        toast.success(`Appointment ${isNewAppointment ? 'created' : 'updated'} successfully`);
       }
     } catch (err) {
-      console.error("Appointment creation error:", err);
-      toast.error(
-        err.response?.data?.message ||
-        "An error occurred while creating the appointment"
-      );
+      console.error("Appointment save error:", err);
+      toast.error(err.response?.data?.message || "An error occurred");
     } finally {
       setIsLoading(false);
     }
-    setDialogOpen(false);
   };
 
   // Debounced search handler with API call
@@ -159,6 +146,7 @@ export function AppointmentDialog({
 
       if (response.data.success) {
         const patients = response.data.patients;
+        console.log("patients", patients);
         setFilteredPatients(patients);
         setIsSearchListVisible(patients.length > 0);
       } else {
@@ -205,18 +193,30 @@ export function AppointmentDialog({
 
   // Select patient handler
   const handlePatientSelect = (patient) => {
-    // Set the selected patient
     setSelectedPatient(patient);
-    // Auto-fill the input with the patient's full name
     setPatientSearch(`${patient.first_name} ${patient.last_name}`);
-    // Hide the search list
     setIsSearchListVisible(false);
+    setDialogData(prev => ({
+      ...prev,
+      patient_id: patient.id,
+      patient_first_name: patient.first_name,
+      patient_last_name: patient.last_name,
+      patient_email: patient.email,
+      patient_cpr: patient.CPR_number
+    }));
   };
 
-  // Clear selected patient
   const handleClearPatient = () => {
     setSelectedPatient(null);
     setPatientSearch("");
+    setDialogData(prev => ({
+      ...prev,
+      patient_id: null,
+      patient_first_name: null,
+      patient_last_name: null,
+      patient_email: null,
+      patient_cpr: null
+    }));
   };
 
   return (
@@ -235,16 +235,18 @@ export function AppointmentDialog({
         </DialogHeader>
 
         {/* Patient Search */}
-        <Label>Patient</Label>
         <div className="relative">
           <div className="flex items-center">
             <div className="relative w-full">
               <Input
                 ref={inputRef}
                 placeholder="Search patients"
-                value={selectedPatient ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : patientSearch}
-                onChange={(e) => setPatientSearch(e.target.value)}
-                onFocus={() => patientSearch && setIsSearchListVisible(true)}
+                value={patientSearch}
+                onChange={(e) => {
+                  setPatientSearch(e.target.value);
+                  setSelectedPatient(null);
+                }}
+                onFocus={() => setIsSearchListVisible(true)}
                 className="pr-10"
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -263,7 +265,7 @@ export function AppointmentDialog({
           {/* Loading and Error States */}
           {isLoading && (
             <div className="absolute z-10 mt-1 w-full bg-background border border-border rounded-md shadow-lg p-4 text-center">
-              Loading patients...
+              <Loader2 className="text-primary animate-spin mx-auto" />
             </div>
           )}
 
@@ -273,10 +275,9 @@ export function AppointmentDialog({
             </div>
           )}
 
-          {/* Custom Search List */}
+          {/* Search Results */}
           {!isLoading &&
             !error &&
-            !selectedPatient &&
             isSearchListVisible &&
             filteredPatients.length > 0 && (
               <ul
@@ -294,8 +295,8 @@ export function AppointmentDialog({
                         {patient.first_name} {patient.last_name}
                       </div>
                       <div className="text-sm text-foreground/50">
-                        {patient.email}{" "}
-                        {patient.CPR_number ? "- " + patient.CPR_number : ""}
+                        {patient.email}
+                        {patient.CPR_number ? " - " + patient.CPR_number : ""}
                       </div>
                     </div>
                   </li>
@@ -307,8 +308,9 @@ export function AppointmentDialog({
           {!isLoading &&
             !error &&
             isSearchListVisible &&
+            patientSearch &&
             filteredPatients.length === 0 && (
-              <div className="absolute z-10 mt-1 w-full bg-backgrounnd border border-borderrounded-md shadow-lg p-4 text-center text-foreground">
+              <div className="absolute z-10 mt-1 w-full bg-background border border-border rounded-md shadow-lg p-4 text-center text-foreground">
                 No patients found
               </div>
             )}
@@ -349,10 +351,9 @@ export function AppointmentDialog({
             />
           </div>
         </div>
-
-        {dialogData.status != "Available" &&
-          <RadioGroup 
-            value={dialogData.status || ""} 
+        {dialogData?.status &&
+          <RadioGroup
+            value={dialogData.status || ""}
             className="flex flex-row justify-between px-2 mt-6"
             onValueChange={(value) => {
               handleChange("status", value)

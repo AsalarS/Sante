@@ -45,7 +45,8 @@ function DoctorHome() {
   const statusColors = {
     Scheduled: "bg-primary/20 text-primary font-semibold",
     Completed: "bg-green-400/20 text-green-400 font-semibold",
-    Canceled:  "bg-red-400/20 text-red-400 font-semibold",
+    Cancelled:  "bg-red-400/20 text-red-400 font-semibold",
+    "No Show": "bg-orange-400/20 text-orange-400 font-semibold",
 };
 
   const [activeChart, setActiveChart] = useState("desktop")

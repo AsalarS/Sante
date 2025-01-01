@@ -1,6 +1,7 @@
 from datetime import datetime
 import sys
 from sqlite3 import IntegrityError
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -50,36 +51,7 @@ def get_logs_admin(request):
 
 
     #  Appointment Views
-
-
-class AppointmentView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        if not request.user.is_authenticated:
-            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
-
-        if request.user.role != "admin":
-            return Response(
-                {"error": "Forbidden: Only admins can access this resource."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        
-        appointments = Appointment.objects.select_related('patient', 'doctor').all()
-        paginator = AdminPagination()
-        result_page = paginator.paginate_queryset(appointments, request)
-        serializer = AppointmentSerializer(result_page, many=True)
-        return paginator.get_paginated_response(serializer.data)
-
-    def post(self, request):
-        serializer = AppointmentSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            log_to_db(request, "CREATE: Appointment", f'Created appointment {serializer.data["id"]} by {request.user.email}')
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
+    
 class AppointmentsByDateView(APIView):
     """
     View to return all appointments booked on a specific date.
@@ -385,10 +357,7 @@ class DiagnosisByAppointmentView(APIView):
         if user.role not in ['receptionist', 'admin', 'nurse', 'doctor']:
             return Response({"error": "You do not have permission to view these diagnoses."}, status=status.HTTP_403_FORBIDDEN)
 
-        try:
-            appointment = Appointment.objects.get(id=appointment_id)
-        except Appointment.DoesNotExist:
-            return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
+        appointment = get_object_or_404(Appointment, id=appointment_id)
 
         diagnoses = Diagnosis.objects.filter(appointment=appointment)
         serializer = DiagnosisSerializer(diagnoses, many=True)
@@ -401,10 +370,7 @@ class DiagnosisByAppointmentView(APIView):
         if user.role not in ['receptionist', 'admin', 'nurse', 'doctor']:
             return Response({"error": "You do not have permission to create or update diagnoses."}, status=status.HTTP_403_FORBIDDEN)
 
-        try:
-            appointment = Appointment.objects.get(id=appointment_id)
-        except Appointment.DoesNotExist:
-            return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
+        appointment = get_object_or_404(Appointment, id=appointment_id)
 
         # Get the diagnosis ID from the request data (if exists)
         diagnosis_id = request.data.get('id', None)
@@ -417,7 +383,7 @@ class DiagnosisByAppointmentView(APIView):
                 return Response({"error": "Diagnosis not found for this appointment."}, status=status.HTTP_404_NOT_FOUND)
 
             # Update the diagnosis
-            serializer = DiagnosisSerializer(diagnosis, data=request.data, partial=True)  # Partial=True allows partial updates
+            serializer = DiagnosisSerializer(diagnosis, data=request.data, partial=True)
         else:
             # If no diagnosis_id exists, create a new diagnosis
             request.data['appointment'] = appointment.id  # Ensure the diagnosis is linked to the appointment
