@@ -22,7 +22,7 @@ function ReceptionistSidebar() {
                     active={location.pathname === "/receptionist/dashboard"}
                 />
                 <SidebarItem
-                    icon={<CalendarRange size={20} />}
+                    icon={<CalendarRange size={20}/>}
                     text="Appointments"
                     
                     onClick={() => {

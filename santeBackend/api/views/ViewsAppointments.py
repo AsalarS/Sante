@@ -95,7 +95,7 @@ def get_schedule(request):
 
 
 class AppointmentView(APIView):
-    def get(self, request):
+    def get(self, request, appointment_id=None):
         if not request.user.is_authenticated:
             return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -105,26 +105,19 @@ class AppointmentView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         
+        if appointment_id:
+            try:
+                appointment = Appointment.objects.select_related('patient', 'doctor').get(id=appointment_id)
+                serializer = AppointmentWithUserSerializer(appointment)
+                return Response(serializer.data)
+            except Appointment.DoesNotExist:
+                return Response({"error": "Appointment not found"}, status=status.HTTP_404_NOT_FOUND)
+        
         appointments = Appointment.objects.select_related('patient', 'doctor').order_by('appointment_date', 'appointment_time').all()
         paginator = AdminPagination()
         result_page = paginator.paginate_queryset(appointments, request)
         serializer = AppointmentWithUserSerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
-    
-    # Get a specific appointments data
-    def get(self, request, appointment_id):
-        if not request.user.is_authenticated:
-            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
-
-        if request.user.role not in ["receptionist", "doctor", "admin", "nurse"]:
-            return Response(
-                {"error": "Forbidden: Only employees can access this resource."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        appointment = get_object_or_404(Appointment, id=appointment_id)
-        serializer = AppointmentWithUserSerializer(appointment)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         serializer = AppointmentSerializer(data=request.data)

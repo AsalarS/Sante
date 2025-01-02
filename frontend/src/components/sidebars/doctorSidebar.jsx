@@ -1,5 +1,6 @@
 import { DashboardIcon, HelpIcon, MessagesIcon, NotificationIcon, PatientsIcon, SettingsIcon } from "@/components/icons";
 import Sidebar, { SidebarItem } from "@/components/sidebar";
+import { CalendarRange } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 function DoctorSidebar() {
@@ -21,6 +22,15 @@ function DoctorSidebar() {
                     active={location.pathname === "/doctor/dashboard"}
                 />
                 <SidebarItem
+                    icon={<CalendarRange size={20} className="ml-1" />}
+                    text="schedule"
+                    onClick={() => {
+                        navigate("/doctor/schedule");
+                    }}
+                    path="/doctor/schedule"
+                    active={location.pathname.startsWith("/doctor/schedule")}
+                />
+                <SidebarItem
                     icon={<PatientsIcon size={20} />}
                     text="Patients"
                     onClick={() => {
@@ -29,6 +39,7 @@ function DoctorSidebar() {
                     path="/doctor/patients"
                     active={location.pathname.startsWith("/doctor/patients")}
                 />
+                {/* TODO: Implement functioanlity where any care plans or appointments made are shown here */}
                 <SidebarItem
                     icon={<NotificationIcon size={20} />}
                     text="Notifications"

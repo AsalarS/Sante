@@ -16,8 +16,12 @@ import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { CarePlanDialog } from "./Dialogs/carePlanDialog";
 import { format } from "date-fns";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from "@/components/ui/hover-card"
 
 function AppointmentPage() {
     const navigate = useNavigate();
@@ -41,6 +45,8 @@ function AppointmentPage() {
     const [carePlansDirty, setCarePlansDirty] = useState(false);
 
     const fetchAppointments = async () => {
+        if (!id) return;
+
         try {
             const response = await api.get(`/api/appointments/${id}/`);
             if (response.status === 200) {
@@ -58,7 +64,7 @@ function AppointmentPage() {
 
     const fetchPatientData = async () => {
         try {
-            const response = await api.get(`/api/user/${patientId}/`);
+            const response = await api.get(`/api/user/${patientId}/`);;
             if (response.status === 200) {
                 const patient = response.data;
                 setPatient(patient);
@@ -558,21 +564,72 @@ function AppointmentPage() {
                             <h3 className="text-lg font-semibold text-foreground line-clamp-1 break-all">{patient?.first_name} {patient?.last_name}</h3>
                         </div>
                         <div className="flex justify-center">
-                            <div className="flex h-5 items-center space-x-4 text-sm text-foreground font-bold">
-                                <div>{patient?.date_of_birth ? calculateAge(patient.date_of_birth) : ''}</div>
-                                <Separator orientation="vertical" />
-                                <div>{patient?.gender || ''}</div>
-                                <Separator orientation="vertical" />
-                                <div>{patient?.blood_type || ''}</div>
-                            </div>
+                            <HoverCard>
+                                <HoverCardTrigger>
+                                    {patient && (
+                                        <Badge className="flex h-5 items-center space-x-4 text-sm text-foreground font-bold">
+                                            <div>{patient?.date_of_birth ? calculateAge(patient.date_of_birth) : ''}</div>
+                                            {patient?.gender && (
+                                                <>
+                                                    <Separator orientation="vertical" className="bg-white" />
+                                                    <div>{patient?.gender || ''}</div>
+                                                </>
+                                            )}
+                                            {patient?.blood_type && (
+                                                <>
+                                                    <Separator orientation="vertical" className="bg-white" />
+                                                    <div>{patient?.blood_type || ''}</div>
+                                                </>
+                                            )}
+                                        </Badge>
+                                    )}
+                                </HoverCardTrigger>
+                                <HoverCardContent className="bg-background rounded-lg shadow-lg p-4 w-72">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="block text-gray-500 text-sm">Address</label>
+                                            <span>{patient?.address || "None"}</span>
+                                        </div>
+                                        <div>
+                                            <label className="block text-gray-500 text-sm">Age</label>
+                                            <span>{calculateAge(patient?.date_of_birth) || "None"}</span>
+                                        </div>
+                                        <div>
+                                            <label className="block text-gray-500 text-sm">DOB</label>
+                                            <span>{patient?.date_of_birth || "None"}</span>
+                                        </div>
+                                        <div>
+                                            <label className="block text-gray-500 text-sm">Blood Type</label>
+                                            <span>{patient?.blood_type || "None"}</span>
+                                        </div>
+                                        <div>
+                                            <label className="block text-gray-500 text-sm">CPR</label>
+                                            <span>{patient?.CPR_number || "None"}</span>
+                                        </div>
+                                        <div>
+                                            <label className="block text-gray-500 text-sm">Emergency Name</label>
+                                            <span>{patient?.emergency_contact_name || "None"}</span>
+                                        </div>
+                                        <div>
+                                            <label className="block text-gray-500 text-sm">Emergency Phone</label>
+                                            <span>{patient?.emergency_contact_phone || "None"}</span>
+                                        </div>
+                                        <div>
+                                            <label className="block text-gray-500 text-sm">Gender</label>
+                                            <span>{patient?.gender || "None"}</span>
+                                        </div>
+                                        <div>
+                                            <label className="block text-gray-500 text-sm">Birthplace</label>
+                                            <span>{patient?.place_of_birth || "None"}</span>
+                                        </div>
+                                        <div>
+                                            <label className="block text-gray-500 text-sm">Religion</label>
+                                            <span>{patient?.religion || "None"}</span>
+                                        </div>
+                                    </div>
+                                </HoverCardContent>
+                            </HoverCard>
                         </div>
-                        <Popover>
-                            <PopoverTrigger className="w-full" asChild>
-                                <Button className="w-full mt-6 text-white">View Profile</Button>
-                            </PopoverTrigger>
-                            <PopoverContent >Place content for the popover here.</PopoverContent>
-                        </Popover>
-
                     </div>
                 </div>
                 {/* Patient  Medical Information */}

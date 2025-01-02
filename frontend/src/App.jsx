@@ -63,6 +63,7 @@ function App() {
           >
             <Route path="dashboard" element={<DoctorHome />} />
             <Route index element={<Navigate to="dashboard" />} />
+            <Route path="schedule" element={<DoctorHome />} />
             <Route path="patients" element={<PatientsPage />} />
             <Route path="patients/:patientId" element={<PatientsPage />} />
             <Route path="patients/appointment/:id" element={<AppointmentPage />} />

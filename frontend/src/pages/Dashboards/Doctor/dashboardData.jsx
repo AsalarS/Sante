@@ -61,7 +61,7 @@ export const chartData = [
       gender: "Male",
       age: "35yrs",
       appointment: "2024/11/28 03:15PM",
-      status: "Canceled",
+      status: "Cancelled",
     },
     {
       id: 4,
@@ -101,7 +101,7 @@ export const chartData = [
       gender: "Male",
       age: "45yrs",
       appointment: "2024/11/29 04:00PM",
-      status: "Canceled",
+      status: "Cancelled",
     },
     {
       id: 8,
