@@ -73,7 +73,6 @@ class UserChatsView(APIView):
             "created_date": chat.created_date,
             "last_updated_date": chat.last_updated_date,
         })
-    # def delete(self, request, user_id):
 
 class ChatMessagesView(APIView):
     permission_classes = [IsAuthenticated]
@@ -93,6 +92,11 @@ class ChatMessagesView(APIView):
 
         # Get all messages in the chat
         messages = ChatMessage.objects.filter(chat=chat).order_by('timestamp')
+
+        # Mark all messages not from the current user as read
+        unread_messages = messages.exclude(sender=user).filter(is_read=False)
+        unread_messages.update(is_read=True)
+
         message_data = [
             {
                 "id": message.id,
