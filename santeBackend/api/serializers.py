@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
@@ -31,17 +32,18 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
-    
+
     def update(self, instance, validated_data):
         # Extract user data if present
         user_data = validated_data.pop('user', {})
-        
+
         # Update user first if data exists
         if user_data:
-            user_serializer = UserSerializer(instance.user, data=user_data, partial=True)
+            user_serializer = UserSerializer(
+                instance.user, data=user_data, partial=True)
             if user_serializer.is_valid():
                 user_serializer.save()
-        
+
         # Then update patient instance
         return super().update(instance, validated_data)
 
@@ -50,7 +52,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)  # Make user read-only
+    user = serializers.PrimaryKeyRelatedField(
+        read_only=True)  # Make user read-only
 
     class Meta:
         model = Employee
@@ -123,7 +126,8 @@ class RegisterEmployeeSerializer(serializers.ModelSerializer):
 
 
 class PatientSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)  # Make user read-only
+    user = serializers.PrimaryKeyRelatedField(
+        read_only=True)  # Make user read-only
 
     class Meta:
         model = Patient
@@ -131,14 +135,22 @@ class PatientSerializer(serializers.ModelSerializer):
 
 
 class RegisterPatientSerializer(serializers.ModelSerializer):
-    medical_record_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    emergency_contact_name = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    emergency_contact_phone = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    blood_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    family_history = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    CPR_number = serializers.CharField(required=False, allow_blank=True, allow_null=True)  # Ensure blank is allowed
-    place_of_birth = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    religion = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    medical_record_id = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True)
+    emergency_contact_name = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True)
+    emergency_contact_phone = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True)
+    blood_type = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True)
+    family_history = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True)
+    CPR_number = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True)  # Ensure blank is allowed
+    place_of_birth = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True)
+    religion = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True)
     allergies = serializers.JSONField(required=False, default=dict)
     past_surgeries = serializers.JSONField(required=False, default=dict)
     chronic_conditions = serializers.JSONField(required=False, default=dict)
@@ -173,7 +185,8 @@ class RegisterPatientSerializer(serializers.ModelSerializer):
 
         # Ensure role is valid for a patient
         if role != "patient":
-            raise serializers.ValidationError({"role": "Role must be 'patient'."})
+            raise serializers.ValidationError(
+                {"role": "Role must be 'patient'."})
 
         # Create user with the create_user method
         user = UserProfile.objects.create_user(
@@ -209,15 +222,17 @@ class RegisterPatientSerializer(serializers.ModelSerializer):
 
 # APPOINTMENT SERIALIZER
 
+
 class AppointmentSerializer(serializers.ModelSerializer):
     patient = PatientSerializer()
     doctor = EmployeeSerializer()
-    
+
     class Meta:
         model = Appointment
         fields = "__all__"
-        
+
 # Appointment view that returns the user object instead of the patient and doctor objects
+
 
 class AppointmentWithUserSerializer(serializers.ModelSerializer):
     patient = UserSerializer(source='patient.user')
@@ -227,10 +242,55 @@ class AppointmentWithUserSerializer(serializers.ModelSerializer):
         model = Appointment
         fields = '__all__'
 
+# Appointment serializer that returns an appointment object for a custom react scheduler
+
+
+class AppointmentSchedulerSerializer(serializers.ModelSerializer):
+    start = serializers.SerializerMethodField()
+    end = serializers.SerializerMethodField()
+    patient = serializers.SerializerMethodField()
+    doctor = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Appointment
+        fields = ['id', 'start', 'end', 'patient', 'doctor', 'status']
+
+    def get_start(self, obj):
+        appointment_datetime = datetime.combine(
+            obj.appointment_date, obj.appointment_time)
+        return appointment_datetime
+
+    def get_end(self, obj):
+        appointment_datetime = datetime.combine(
+            obj.appointment_date, obj.appointment_time)
+        end_datetime = appointment_datetime + timedelta(minutes=20)
+        return end_datetime
+
+    def get_patient(self, obj):
+        return {
+            'id': obj.patient.user.id,
+            'first_name': obj.patient.user.first_name,
+            'last_name': obj.patient.user.last_name,
+            'email': obj.patient.user.email,
+            'profile_image': obj.patient.user.profile_image,
+        }
+
+    def get_doctor(self, obj):
+        return {
+            'id': obj.doctor.user.id,
+            'first_name': obj.doctor.user.first_name,
+            'last_name': obj.doctor.user.last_name,
+            'email': obj.doctor.user.email,
+            'profile_image': obj.doctor.user.profile_image,
+        }
+
+
 # LOGS SERIALIZER
+
 
 class LogSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+
     class Meta:
         model = Log
         fields = "__all__"
@@ -244,40 +304,51 @@ class ChatSerializer(serializers.ModelSerializer):
         model = Chat
         fields = ['id', 'user1', 'user2', 'created_date', 'last_updated_date']
 
+
 class ChatMessageSerializer(serializers.ModelSerializer):
     sender = UserSerializer()
-    
+
     class Meta:
         model = ChatMessage
         fields = '__all__'
+
 
 class PrescriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Prescription
         fields = '__all__'
 
+
 class DiagnosisSerializer(serializers.ModelSerializer):
     class Meta:
         model = Diagnosis
         fields = '__all__'
-        
+
+
 class DiagnosisExtraDataSerializer(serializers.ModelSerializer):
-    date = serializers.DateField(source='appointment.appointment_date', read_only=True)
-    diagnosed_by = UserSerializer(source='appointment.doctor.user', read_only=True)
+    date = serializers.DateField(
+        source='appointment.appointment_date', read_only=True)
+    diagnosed_by = UserSerializer(
+        source='appointment.doctor.user', read_only=True)
 
     class Meta:
         model = Diagnosis
-        fields = ['id', 'appointment', 'diagnosis_name', 'diagnosis_type', 'date', 'diagnosed_by']
+        fields = ['id', 'appointment', 'diagnosis_name',
+                  'diagnosis_type', 'date', 'diagnosed_by']
+
 
 class CarePlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = CarePlan
         fields = '__all__'
-        
+
+
 class CarePlanExtraDataSerializer(serializers.ModelSerializer):
-    date = serializers.DateField(source='appointment.appointment_date', read_only=True)
+    date = serializers.DateField(
+        source='appointment.appointment_date', read_only=True)
     done_by = UserSerializer(source='done_by.user', read_only=True)
 
     class Meta:
         model = CarePlan
-        fields = ['id', 'appointment', 'care_plan_title', 'care_plan_type', 'date_of_completion', 'done_by', 'additional_instructions', 'date']
+        fields = ['id', 'appointment', 'care_plan_title', 'care_plan_type',
+                  'date_of_completion', 'done_by', 'additional_instructions', 'date']

@@ -30,7 +30,7 @@ import {
 import { Copy, Ellipsis, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "@/api";
-import { calculateAge } from "@/utility/generalUtility";
+import { apiRequest, calculateAge } from "@/utility/generalUtility";
 import { format } from "date-fns";
 import PatientProfileDialog from "@/components/Dialogs/patientProfileDialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -47,9 +47,10 @@ function PatientProfile({ patientId }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [patient, setPatient] = useState(null);
-  const [appointments, setAppointments] = useState(null);
-  const [carePlans, setCarePlans] = useState(null);
-  const [diagnoses, setDiagnoses] = useState(null);
+  const [appointments, setAppointments] = useState([]);
+  const [carePlans, setCarePlans] = useState([]);
+  const [diagnoses, setDiagnoses] = useState([]);
+  const [prescriptions, setPrescriptions] = useState({});
   const [dialogOpen, setDialogOpen] = useState(false);
   const userRole = localStorage.getItem("role");
 
@@ -103,15 +104,24 @@ function PatientProfile({ patientId }) {
 
     const fetchDiagnoses = async () => {
       try {
-        const response = await api.get(`/api/diagnoses/user/${patientId}/`);
+        const response = await apiRequest(`/api/diagnoses/user/${patientId}/`, "Error fetching diagnoses");
+        setDiagnoses(response);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchPrescriptions = async () => {
+      try {
+        const response = await api.get(`/api/prescriptions/user/${patientId}/`);
         if (response.status === 200) {
-          const diagnosesData = response.data;
-          setDiagnoses(diagnosesData);
+          const prescriptionsData = response.data;
+          setPrescriptions(prescriptionsData);
         } else {
-          console.error("Failed to fetch diagnoses:", response.statusText);
+          console.error("Failed to fetch prescriptions:", response.statusText);
         }
       } catch (error) {
-        console.error("Failed to fetch diagnoses:", error);
+        console.error("Failed to fetch prescriptions:", error);
       } finally {
         setLoading(false);
       }
@@ -121,6 +131,7 @@ function PatientProfile({ patientId }) {
     fetchDiagnoses();
     fetchAppointments();
     fetchCarePlans();
+    fetchPrescriptions();
     fetchPatientData();
   }, [patientId]);
 
@@ -538,31 +549,6 @@ function PatientProfile({ patientId }) {
         {/* Right Section (Sidebar) */}
         {userRole === "doctor" && (
           <div className="flex flex-col space-y-4 min-w-2/12 overflow-y-auto">
-            {/* Patient Card
-            <div className="max-w-64">
-              <div className="p-4 bg-background rounded-lg shadow-md cursor-pointer">
-                <h3 className="font-medium text-foreground mb-2">
-                  Patient Notes
-                </h3>
-                <Textarea
-                  placeholder="Enter notes..."
-                  className="w-full max-h-28 flex-grow bg-border resize-none text-foreground text-sm"
-                  value={patient?.patient_notes || ""}
-                />
-              </div>
-            </div>
-            <div className="max-w-64">
-              <div className="p-4 bg-background rounded-lg shadow-md cursor-pointer">
-                <h3 className="font-medium text-foreground mb-2">
-                  Family History
-                </h3>
-                <Textarea
-                  placeholder="Enter notes..."
-                  className="w-full min-h-28 flex-grow bg-border resize-none text-foreground text-sm"
-                  value={patient?.family_history || ""}
-                />
-              </div>
-            </div> */}
             {/* Patient  Medical Information */}
             <div className="max-w-64">
               <CompactListBox
@@ -578,7 +564,7 @@ function PatientProfile({ patientId }) {
               <CompactListBox
                 displayAsBadges={true}
                 title="Prescriptions"
-                data={["Medicine A", "23y", "23y", "Medicine B"]}
+                data={prescriptions}
                 onClickIcon={() =>
                   console.log("Current Medications icon clicked")
                 }

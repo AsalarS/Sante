@@ -29,6 +29,7 @@ import { ChatsAdminPage } from "./pages/Dashboards/Admin/chats"
 import { ChatMessagesPage } from "./pages/Dashboards/Admin/chatMessages"
 import { AppointmentsAdminPage } from "./pages/Dashboards/Admin/appointments"
 import { TooltipProvider } from "./components/ui/tooltip"
+import DoctorSchedule from "./pages/Dashboards/Doctor/doctorSchedule"
 
 function Logout() {
   localStorage.clear()
@@ -63,7 +64,7 @@ function App() {
           >
             <Route path="dashboard" element={<DoctorHome />} />
             <Route index element={<Navigate to="dashboard" />} />
-            <Route path="schedule" element={<DoctorHome />} />
+            <Route path="schedule" element={<DoctorSchedule />} />
             <Route path="patients" element={<PatientsPage />} />
             <Route path="patients/:patientId" element={<PatientsPage />} />
             <Route path="patients/appointment/:id" element={<AppointmentPage />} />

@@ -22,13 +22,15 @@ import {
     HoverCardContent,
     HoverCardTrigger,
 } from "@/components/ui/hover-card"
+import PatientHome from "@/pages/Dashboards/Patient/patientHome";
 
 function AppointmentPage() {
     const navigate = useNavigate();
     const { id } = useParams();
     const location = useLocation();
     const patientId = location.state?.patientId;
-
+    const [readOnly, setReadOnly] = useState(false);
+    const userRole = localStorage.getItem("role");
     const [appointment, setAppointment] = useState(null);
     const [patient, setPatient] = useState(null);
     const [carePlans, setCarePlans] = useState([]);
@@ -52,6 +54,10 @@ function AppointmentPage() {
             if (response.status === 200) {
                 const appointmentData = response.data;
                 setAppointment(appointmentData);
+                if (appointmentData?.status?.toLowerCase() != "scheduled") {
+                    setReadOnly(true);
+                }
+
             } else {
                 console.error("Failed to fetch appointments:", response.statusText);
             }
@@ -221,9 +227,14 @@ function AppointmentPage() {
         setCarePlansDirty(true);
     };
 
-    const saveAppointment = async () => {
+    const saveAppointment = async (complete = false) => {
         setLoading(true);
         try {
+            // Set status to Completed if complete is true
+            if (complete) {
+                appointment.status = 'Completed';
+            }
+
             // save/update the appointment
             const appointmentResponse = await api.patch(`/api/appointments/${id}/`, appointment);
 
@@ -318,7 +329,7 @@ function AppointmentPage() {
             if (window.history.length > 1) {
                 navigate(-1);
             } else {
-                navigate("/patients");
+                navigate(`/${userRole}/patients`);
             }
 
         } catch (error) {
@@ -351,7 +362,7 @@ function AppointmentPage() {
                                     navigate(-1);
                                 } else {
                                     // If there's no history, navigate to the /patients page
-                                    navigate('/patients');
+                                    navigate(`/${userRole}/patients`);
                                 }
                             }}>
                             <ChevronLeft size={24} />
@@ -359,11 +370,16 @@ function AppointmentPage() {
                         <div className="flex flex-row content-center self-center">
                             <h1 className="text-foreground font-bold text-xl">Appointment</h1>
                             <Badge className="text-white ml-2">
-                                {appointment ? appointment?.status : "New"}
+                                {appointment?.appointment_date ? appointment?.status : "New"}
                             </Badge>
+                            {readOnly && (
+                                <Badge className="text-white ml-2 bg-red-500">
+                                    Read Only
+                                </Badge>
+                            )}
                         </div>
                     </div>
-                    {appointment &&
+                    {appointment?.appointment_date &&
                         <div className="bg-background p-2 px-3 rounded-lg self-end">
                             <span className="text-foreground font-semibold">
                                 {/* Formatted Date and Time */}
@@ -379,7 +395,9 @@ function AppointmentPage() {
                     <Card className="bg-background p-4 rounded-lg inline-block border-none">
                         <div className="flex flex-row justify-between mb-2">
                             <span className="text-lg font-semibold mb-2 ml-1">Vitals</span>
-                            <Button className="size-8" variant={"secondary"} onClick={() => setVitalsDialogOpen(true)}><PenLine size={20} /></Button>
+                            {!readOnly && (
+                                <Button className="size-8" size="icon" variant={"secondary"} onClick={() => setVitalsDialogOpen(true)}><PenLine size={20} /></Button>
+                            )}
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                             {/* Heart Rate */}
@@ -428,13 +446,16 @@ function AppointmentPage() {
                     <Card className="bg-background p-4 rounded-lg shrink flex flex-col border-none">
                         <div className="flex flex-row justify-between mb-2">
                             <span className="text-lg font-semibold mb-2 ml-1">Diagnoses</span>
-                            <Button
-                                className="size-8"
-                                variant={"secondary"}
-                                onClick={() => { setSelectedDiagnosis(null); setDiagnosisDialogOpen(true); }}
-                            >
-                                <Plus size={20} />
-                            </Button>
+                            {!readOnly && (
+                                <Button
+                                    className="size-8"
+                                    size="icon"
+                                    variant={"secondary"}
+                                    onClick={() => { setSelectedDiagnosis(null); setDiagnosisDialogOpen(true); }}
+                                >
+                                    <Plus size={20} />
+                                </Button>
+                            )}
                         </div>
                         <div className="grid grid-cols-2 gap-4 overflow-y-auto max-h-32">
                             {diagnoses?.map((diagnosis) => (
@@ -477,13 +498,15 @@ function AppointmentPage() {
                     <Card className="bg-background p-4 rounded-lg shrink flex flex-col border-none">
                         <div className="flex flex-row justify-between mb-2">
                             <span className="text-lg font-semibold mb-2 ml-1">Care Plan</span>
-                            <Button
-                                className="size-8"
-                                variant={"secondary"}
-                                onClick={() => { setSelectedCarePlan(null); setCarePlanDialogOpen(true); }}
-                            >
-                                <Plus size={20} />
-                            </Button>
+                            {!readOnly && (
+                                <Button
+                                    className="size-8"
+                                    variant={"secondary"}
+                                    onClick={() => { setSelectedCarePlan(null); setCarePlanDialogOpen(true); }}
+                                >
+                                    <Plus size={20} />
+                                </Button>
+                            )}
                         </div>
                         {/* List of plans */}
                         <div className="grid grid-cols-2 gap-4 overflow-y-auto max-h-60">
@@ -532,6 +555,7 @@ function AppointmentPage() {
                     <Card className="bg-background p-4 rounded-lg flex flex-col border-none grow">
                         <span className="text-lg font-semibold mb-2 ml-1 text-foreground">Notes</span>
                         <Textarea
+                            readOnly={readOnly}
                             value={appointment?.notes || ""}
                             placeholder="Enter details..."
                             className="w-full flex-grow bg-muted dark:bg-border resize-none text-foreground"
@@ -563,25 +587,25 @@ function AppointmentPage() {
                             </Avatar>
                             <h3 className="text-lg font-semibold text-foreground line-clamp-1 break-all">{patient?.first_name} {patient?.last_name}</h3>
                         </div>
-                        <div className="flex justify-center">
+                        <div className="flex justify-center flex-col items-center">
                             <HoverCard>
                                 <HoverCardTrigger>
                                     {patient && (
-                                        <Badge className="flex h-5 items-center space-x-4 text-sm text-foreground font-bold">
-                                            <div>{patient?.date_of_birth ? calculateAge(patient.date_of_birth) : ''}</div>
+                                        <div className="flex h-5 items-center space-x-4 text-sm text-foreground font-bold">
+                                            <div className="hover:underline">{patient?.date_of_birth ? calculateAge(patient.date_of_birth) : ''}</div>
                                             {patient?.gender && (
                                                 <>
-                                                    <Separator orientation="vertical" className="bg-white" />
-                                                    <div>{patient?.gender || ''}</div>
+                                                    <Separator orientation="vertical" className="bg-white/30 h-4" />
+                                                    <div className="hover:underline">{patient?.gender || ''}</div>
                                                 </>
                                             )}
                                             {patient?.blood_type && (
                                                 <>
-                                                    <Separator orientation="vertical" className="bg-white" />
-                                                    <div>{patient?.blood_type || ''}</div>
+                                                    <Separator orientation="vertical" className="bg-white/30 h-4" />
+                                                    <div className="hover:underline">{patient?.blood_type || ''}</div>
                                                 </>
                                             )}
-                                        </Badge>
+                                        </div>
                                     )}
                                 </HoverCardTrigger>
                                 <HoverCardContent className="bg-background rounded-lg shadow-lg p-4 w-72">
@@ -629,6 +653,7 @@ function AppointmentPage() {
                                     </div>
                                 </HoverCardContent>
                             </HoverCard>
+                            <Button className="w-full mt-4" onClick={() => navigate(`/${userRole}/patients/${patient?.id}`)}>Open Profile</Button>
                         </div>
                     </div>
                 </div>
@@ -663,26 +688,40 @@ function AppointmentPage() {
                         className="flex-grow"
                     />
                 </div>
-                <div className="max-w-64 p-4 bg-background rounded-lg shadow-md flex flex-col">
-                    <div className="flex text-foreground justify-between mb-4">
-                        <label>Follow up</label>
-                        <Switch
-                            checked={appointment?.follow_up_required ?? false}
-                            onCheckedChange={(value) => handleAppointmentChange("follow_up_required", value)}
-                        />
+                {!readOnly && (
+                    <div className="max-w-64 p-4 bg-background rounded-lg shadow-md flex flex-col">
+                        <div className="flex text-foreground justify-between mb-4">
+                            <label>Follow up</label>
+                            <Switch
+                                readOnly={readOnly}
+                                checked={appointment?.follow_up_required ?? false}
+                                onCheckedChange={(value) => handleAppointmentChange("follow_up_required", value)}
+                            />
+                        </div>
+                        <Button
+                            className="w-full"
+                            onClick={saveAppointment}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <Loader2 className="animate-spin text-white w-6 h-6" />
+                            ) : (
+                                "Update"
+                            )}
+                        </Button>
+                        <Button
+                            className="w-full mt-2"
+                            onClick={() => saveAppointment(true)}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <Loader2 className="animate-spin text-white w-6 h-6" />
+                            ) : (
+                                "Complete"
+                            )}
+                        </Button>
                     </div>
-                    <Button
-                        className="w-full"
-                        onClick={saveAppointment}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <Loader2 className="animate-spin text-white w-6 h-6" />
-                        ) : (
-                            (appointment ? "Update" : "Complete") + " Appointment"
-                        )}
-                    </Button>
-                </div>
+                )}
             </div>
 
 

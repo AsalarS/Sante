@@ -1,3 +1,6 @@
+import api from "@/api";
+import { toast } from "sonner";
+
 export const calculateAge = (dateOfBirth) => {
     const dob = new Date(dateOfBirth);
     const ageDifMs = Date.now() - dob.getTime();
@@ -26,4 +29,20 @@ export const formatTimestamp = (timestamp) => {
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
   return `${day}/${month}/${year} ${hours}:${minutes}`;
+};
+
+export const apiRequest = async (url, errorMessage = 'Faile to fetch data', method = 'get', data = undefined) => {
+  try {
+    const response = await api({
+      url,
+      method,
+      data: ['post', 'put', 'patch'].includes(method.toLowerCase()) ? data : undefined,
+      params: method.toLowerCase() === 'get' ? data : undefined,
+    });
+
+    return response.data;
+  } catch (error) {
+    toast.error(errorMessage, error);
+    console.error(error);
+  }
 };

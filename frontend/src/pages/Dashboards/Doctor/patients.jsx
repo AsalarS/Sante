@@ -8,14 +8,14 @@ import PatientProfile from "./patientProfile";
 function PatientsPage() {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { patientId } = useParams(); 
+  const { patientId } = useParams();
   const userRole = localStorage.getItem('role');
   const navigate = useNavigate();
 
   const handlePatientSelect = (patientId) => {
     navigate(`/${userRole}/patients/${patientId}`);
   };
-  
+
   useEffect(() => {
     const fetchPatients = async () => {
       try {
@@ -36,6 +36,16 @@ function PatientsPage() {
     fetchPatients();
   }, []);
 
+  if (isNaN(patientId)) {
+    if (window.history.length > 1) {
+      // Go back to the previous page
+      navigate(-1);
+    } else {
+      // If there's no history, navigate to the /patients page
+      navigate(`/${userRole}/patients`);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -46,9 +56,9 @@ function PatientsPage() {
 
   return (
     <div className="flex overflow-y-auto">
-      <PatientList 
-        patients={patients} 
-        selectedPatientId={patientId ? parseInt(patientId) : null} 
+      <PatientList
+        patients={patients}
+        selectedPatientId={patientId ? parseInt(patientId) : null}
         handlePatientSelect={handlePatientSelect}
       />
       <div className="grow">

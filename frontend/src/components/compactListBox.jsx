@@ -1,8 +1,10 @@
-import React from "react";
-import { Maximize2, Plus } from "lucide-react";
+import React, { useState } from "react";
+import { CornerDownRight, Maximize2, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "./ui/dialog";
+
 
 function CompactListBox({
   title,
@@ -12,6 +14,7 @@ function CompactListBox({
   onClickSelf,
   displayAsBadges = false,
 }) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const maxItemsToShow = 8;
   const displayData = Object.entries(data).slice(0, maxItemsToShow);
 
@@ -28,7 +31,7 @@ function CompactListBox({
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold text-foreground">{title}</h3>
         <span
-          onClick={onClickIcon}
+          onClick={() => setIsDialogOpen(true)}
           className="cursor-pointer text-foreground hover:bg-darker-background p-2 rounded-md"
         >
           <Maximize2 size={18} />
@@ -78,6 +81,32 @@ function CompactListBox({
           <div className="text-muted-foreground">{emptyText}</div>
         )}
       </div>
+
+      {/* Dialog for full list */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <span className="hidden"></span>
+        </DialogTrigger>
+        <DialogContent className="text-foreground">
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            <div className="max-h-96 overflow-y-auto">
+              {Object.entries(data).map(([key, value]) => (
+                <ul key={key} className="mb-2 rounded-md">
+                  <div className="flex flex-row mb-1 hover:bg-background">
+                    <span className="font-semibold text-lg line-clamp-1 break-all text-foreground">{key}</span>
+                    <Badge className="text-white ml-4">{value}</Badge>
+                  </div>
+                  {/* {plan.additional_instructions && <div className="flex flex-row">
+                    <CornerDownRight className="" size={16} />
+                    <span className="text-sm ml-2 line-clamp-1 break-all">{plan.additional_instructions}</span>
+                  </div>} */}
+                </ul>
+              ))}
+            </div>
+          </DialogDescription>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

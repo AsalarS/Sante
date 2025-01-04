@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from ..serializers import AppointmentSerializer, AppointmentWithUserSerializer
+from ..serializers import AppointmentSchedulerSerializer, AppointmentSerializer, AppointmentWithUserSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +99,7 @@ class AppointmentView(APIView):
         if not request.user.is_authenticated:
             return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        if request.user.role != "admin":
+        if request.user.role not in ["admin", "doctor", "nurse"]:
             return Response(
                 {"error": "Forbidden: Only admins can access this resource."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -171,4 +171,24 @@ class PatientAppointmentsView(APIView):
 
         appointments = Appointment.objects.filter(patient=patient)
         serializer = AppointmentWithUserSerializer(appointments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class DoctorAppointmentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        # Ensure the user is a doctor
+        if user.role != 'doctor':
+            return Response(
+                {"error": "Only doctors can view their own schedule."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Fetch appointments assigned to the doctor
+        appointments = Appointment.objects.filter(doctor__user=user)
+
+        # Serialize and return the data
+        serializer = AppointmentSchedulerSerializer(appointments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -4,6 +4,7 @@ from .views.ViewsUsers import *
 from .views.ViewsAppointments import *
 from .views.ViewsChats import *
 from .views.ViewsDashboard import *
+from .views.ViewsMeta import *
 urlpatterns = [
     path('users/', get_users, name='get_users'),
     
@@ -18,6 +19,7 @@ urlpatterns = [
     
     # Schedule & Appointments
     path('schedule/', get_schedule, name='get_schedule'),
+    path('user/schedule/', DoctorAppointmentsView.as_view(), name='get_schedule'),
     
     path('patient/appointments/<int:patient_id>/', PatientAppointmentsView.as_view(), name='patient_appointments'),
     
@@ -32,6 +34,10 @@ urlpatterns = [
     # Diagnoses
     path('diagnoses/user/<int:user_id>/', DiagnosesByUserView.as_view(), name='diagnoses_by_user'),
     path('appointments/diagnoses/<uuid:appointment_id>/', DiagnosisByAppointmentView.as_view(), name='diagnosis_by_appointment'),
+    
+    # Prescriptions
+    path('prescriptions/user/<int:user_id>/', PrescriptionsByUserView.as_view(), name='prescriptions_by_user'),
+    path('appointments/prescriptions/<uuid:appointment_id>/', PrescriptionByAppointmentView.as_view(), name='prescription_by_appointment'),
     
     # Search
     path('search/patients/', search_patients, name='search_patients'),

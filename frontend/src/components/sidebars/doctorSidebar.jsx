@@ -23,7 +23,7 @@ function DoctorSidebar() {
                 />
                 <SidebarItem
                     icon={<CalendarRange size={20} className="ml-1" />}
-                    text="schedule"
+                    text="Schedule"
                     onClick={() => {
                         navigate("/doctor/schedule");
                     }}

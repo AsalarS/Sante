@@ -3,7 +3,8 @@ export default {
     darkMode: ["class"],
     content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}"
+    "./src/**/*.{js,ts,jsx,tsx}",
+	"./node_modules/mina-scheduler/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
 	fontFamily: {
@@ -101,11 +102,31 @@ export default {
 				  opacity: "1",
 				},
 			 },
+			 fadeInLeft: {
+				'0%': { opacity: '0', transform: 'translateX(-100%)' },
+				'100%': { opacity: '1', transform: 'translateX(0)' },
+			  },
+			  fadeOutLeft: {
+				'0%': { opacity: '1', transform: 'translateX(0)' },
+				'100%': { opacity: '0', transform: 'translateX(-100%)' },
+			  },
+			  fadeInRight: {
+				'0%': { opacity: '0', transform: 'translateX(100%)' },
+				'100%': { opacity: '1', transform: 'translateX(0)' },
+			  },
+			  fadeOutRight: {
+				'0%': { opacity: '1', transform: 'translateX(0)' },
+				'100%': { opacity: '0', transform: 'translateX(100%)' },
+			  },
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out',
 			appear: "appear 0.5s ease-in-out",
+			'fade-in-left': 'fadeInLeft 0.3s ease-out',
+			'fade-out-left': 'fadeOutLeft 0.3s ease-out',
+			'fade-in-right': 'fadeInRight 0.3s ease-out',
+			'fade-out-right': 'fadeOutRight 0.3s ease-out',
   		}
   	}
   },
