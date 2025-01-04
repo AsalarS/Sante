@@ -30,7 +30,7 @@ export default function Calendar({
         <CalendarHeaderDate />
         <CalendarHeaderActions>
           <CalendarHeaderActionsMode />
-          {localStorage.getItem('role') === 'receptionist' && (
+          {localStorage.getItem('role') != 'receptionist' && (
             <CalendarHeaderActionsAdd />
           )}
         </CalendarHeaderActions>
