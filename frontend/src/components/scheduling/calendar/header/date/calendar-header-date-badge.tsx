@@ -7,7 +7,7 @@ export default function CalendarHeaderDateBadge() {
 
   if (!monthEvents.length) return null
   return (
-    <div className="whitespace-nowrap rounded-sm border px-1.5 py-0.5 ml-2 text-xs">
+    <div className="whitespace-nowrap rounded-sm border border-border px-1.5 py-0.5 ml-2 text-xs">
       {monthEvents.length} Total
     </div>
   )

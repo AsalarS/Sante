@@ -15,6 +15,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { isEmail } from "@/utility/validators";
 
+// TODO: change this so that only a patien can register before submission
 const Register = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -41,7 +42,7 @@ const Register = () => {
 
         // Check email validation before submitting
         if (emailError) {
-            toast.error("Please fix errors before submitting.");
+            toast.error("Invalid Email.");
             return;
         }
 
@@ -78,7 +79,7 @@ const Register = () => {
             <div className="flex flex-col min-h-screen">
                 <Navbar />
                 <div className="flex flex-grow justify-center items-center bg-background">
-                    <Card className="mx-auto max-w-lg bg-background">
+                    <Card className="mx-auto max-w-lg bg-background border-foreground/50">
                         <CardHeader>
                             <CardTitle className="text-2xl">Register</CardTitle>
                             <CardDescription>Enter your details below to register.</CardDescription>
@@ -96,7 +97,6 @@ const Register = () => {
                                         onChange={(e) => handleEmailChange(e.target.value)}
                                         required
                                     />
-                                    {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
                                 </div>
                                 {/* PASSWORD */}
                                 <div className="grid gap-2">

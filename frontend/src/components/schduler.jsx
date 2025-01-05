@@ -150,7 +150,7 @@ const Scheduler = ({ scheduleData, date }) => {
                 {scheduleData.map((schedule, rowIndex) => (
                   <td
                     key={rowIndex}
-                    className={`border border-border px-3 py-2 text-center text-sm cursor-pointer relative h-24`}
+                    className={`border-y border-border/50 px-3 py-2 text-center text-sm cursor-pointer relative h-24`}
                     onMouseEnter={() => handleCellHover(rowIndex, colIndex)}
                     onMouseLeave={handleCellLeave}
                     onDoubleClick={(event) =>

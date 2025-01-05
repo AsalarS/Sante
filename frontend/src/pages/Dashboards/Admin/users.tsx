@@ -223,7 +223,7 @@ export const columns = (
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel onClick={() => setIsAlertOpen(false)}>
-                    Cancel xz
+                    Cancel
                   </AlertDialogCancel>
                   <AlertDialogAction
                     className="bg-red-600 hover:bg-red-500"
@@ -378,8 +378,8 @@ export function UserAdminPage() {
           />
         </div>
       </div>
-      <div className="rounded-md border">
-        <Table>
+      <div className="rounded-md border border-border">
+        <Table className="border-border">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

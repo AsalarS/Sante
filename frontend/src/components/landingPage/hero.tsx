@@ -23,9 +23,11 @@ export const Hero = () => {
     <section
       style={{
         backgroundImage: `url(${heroBackground})`,
-        backgroundSize: "110%",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
-      className="w-full min-h-screen max-w-full flex items-center bg-cover bg-center object-cover sm:max-h-full md:max-h-full lg:max-h-full xl:max-h-full"
+      className="w-full min-h-screen max-w-full flex items-center"
       id="hero"
     >
       <div className="container grid lg:grid-cols-2 place-items-center py-20 md:py-32 gap-10 ">
@@ -71,5 +73,3 @@ export const Hero = () => {
     </section>
   );
 };
-
-//TODO: Make the background responsive

@@ -1,5 +1,6 @@
-import { DashboardIcon, HelpIcon, MessagesIcon, PatientsIcon, SettingsIcon } from "@/components/icons";
+import { AppointmentIcon, CalendarIcon, DashboardIcon, HelpIcon, MessagesIcon, PatientsIcon, SettingsIcon } from "@/components/icons";
 import Sidebar, { SidebarItem } from "@/components/sidebar";
+import { CalendarRange } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 function PatientSidebar() {
@@ -21,13 +22,13 @@ function PatientSidebar() {
                     active={location.pathname === "/patient/dashboard"}
                 />
                 <SidebarItem
-                    icon={<PatientsIcon size={20} />}
-                    text="Labs"
+                    icon={<CalendarIcon />}
+                    text="Appointments"
                     onClick={() => {
-                        navigate("/patient/labs");
+                        navigate("/patient/appointments");
                     }}
-                    path="/patient/labs"
-                    active={location.pathname === "/patient/labs"}
+                    path="/patient/appointments"
+                    active={location.pathname === "/patient/appointments"}
                 />
                 <SidebarItem
                     icon={<MessagesIcon size={20} />}

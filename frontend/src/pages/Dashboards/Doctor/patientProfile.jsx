@@ -59,7 +59,7 @@ function PatientProfile({ patientId }) {
       try {
         const response = await api.get(`/api/user/${patientId}/`);
         if (response.status === 200) {
-          const patient = response.data;         
+          const patient = response.data;
           setPatient(patient);
         } else {
           console.error("Failed to fetch users:", response.statusText);
@@ -216,55 +216,133 @@ function PatientProfile({ patientId }) {
               <div className="grid grid-cols-3 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div>
                   <label className="block text-gray-500 text-sm">Address</label>
-                  <span>{patient?.address || "None"}</span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <span className="line-clamp-1 break-all">{patient?.address || "None"}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{patient?.address || "None"}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div>
                   <label className="block text-gray-500 text-sm">Age</label>
-                  <span>{calculateAge(patient?.date_of_birth) || "None"}</span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <span className="line-clamp-1 break-all">{calculateAge(patient?.date_of_birth) || "None"}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{calculateAge(patient?.date_of_birth) || "None"}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div>
-                  <label className="block text-gray-500 text-sm">
-                    Date of Birth
-                  </label>
-                  <span>{patient?.date_of_birth || "None"}</span>
+                  <label className="block text-gray-500 text-sm">Date of Birth</label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <span className="line-clamp-1 break-all">{patient?.date_of_birth || "None"}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{patient?.date_of_birth || "None"}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div>
-                  <label className="block text-gray-500 text-sm">
-                    Blood Type
-                  </label>
-                  <span>{patient?.blood_type || "None"}</span>
+                  <label className="block text-gray-500 text-sm">Blood Type</label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <span className="line-clamp-1 break-all">{patient?.blood_type || "None"}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{patient?.blood_type || "None"}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div>
                   <label className="block text-gray-500 text-sm">CPR</label>
-                  <span>{patient?.CPR_number || "None"}</span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <span className="line-clamp-1 break-all">{patient?.CPR_number || "None"}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{patient?.CPR_number || "None"}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div>
-                  <label className="block text-gray-500 text-sm">
-                    Emergency Contact Name
-                  </label>
-                  <span>{patient?.emergency_contact_name || "None"}</span>
+                  <label className="block text-gray-500 text-sm">Emergency Contact Name</label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <span className="line-clamp-1 break-all">{patient?.emergency_contact_name || "None"}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{patient?.emergency_contact_name || "None"}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div>
-                  <label className="block text-gray-500 text-sm">
-                    Emergency Contact Number
-                  </label>
-                  <span>{patient?.emergency_contact_phone || "None"}</span>
+                  <label className="block text-gray-500 text-sm">Emergency Contact Number</label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <span className="line-clamp-1 break-all">{patient?.emergency_contact_phone || "None"}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{patient?.emergency_contact_phone || "None"}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div>
                   <label className="block text-gray-500 text-sm">Gender</label>
-                  <span>{patient?.gender || "None"}</span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <span className="line-clamp-1 break-all">{patient?.gender || "None"}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{patient?.gender || "None"}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div>
-                  <label className="block text-gray-500 text-sm">
-                    Place of Birth
-                  </label>
-                  <span>{patient?.place_of_birth || "None"}</span>
+                  <label className="block text-gray-500 text-sm">Place of Birth</label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <span className="line-clamp-1 break-all">{patient?.place_of_birth || "None"}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{patient?.place_of_birth || "None"}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <div>
-                  <label className="block text-gray-500 text-sm">
-                    Religion
-                  </label>
-                  <span>{patient?.religion || "None"}</span>
+                  <label className="block text-gray-500 text-sm">Religion</label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <span className="line-clamp-1 break-all">{patient?.religion || "None"}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{patient?.religion || "None"}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
             </CardContent>
@@ -280,7 +358,6 @@ function PatientProfile({ patientId }) {
 
               {/* Appointment Tab */}
               <TabsContent value="appointments">
-                {/* TODO: Make this scroll infinitly and have strict number of rows to scroll */}
                 <div className="overflow-y-auto max-h-[31rem] rounded-md">
                   <Table className="w-full">
                     <TableHeader>
@@ -339,11 +416,17 @@ function PatientProfile({ patientId }) {
                                   Copy ID <Copy />
                                 </DropdownMenuItem>
                                 {/* TODO: Add edit functioanlity */}
-                                {/* Open the appointment and pass user id */}
-                                {userRole.toLowerCase() === "doctor" && (appointment.status === "Scheduled" || appointment.status === "Completed") && (
-                                  <DropdownMenuItem onClick={() => navigate(`/doctor/patients/appointment/${appointment.id}`, {
-                                    state: { patientId: patient?.id }
-                                  })}>
+                                {/* Open the appointment and pass user id and if the user is a nurse pass readonly*/}
+                                {(userRole.toLowerCase() === "doctor" || userRole.toLowerCase() === "nurse") && (appointment.status === "Scheduled" || appointment.status === "Completed") && (
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      const state = { patientId: patient?.id };
+                                      if (userRole.toLowerCase() === "nurse") {
+                                        state.paramReadOnly = true;
+                                      }
+                                      navigate(`/${userRole}/patients/appointment/${appointment.id}`, { state });
+                                    }}
+                                  >
                                     Open
                                   </DropdownMenuItem>
                                 )}
@@ -515,7 +598,7 @@ function PatientProfile({ patientId }) {
                     </h3>
                     <Textarea
                       placeholder="Enter notes..."
-                      className="w-full min-h-28 flex-grow bg-border resize-none text-foreground text-sm"
+                      className="w-full min-h-28 flex-grow bg-border/50 resize-none text-foreground text-sm"
                       value={patient?.patient_notes || ""}
                       onChange={(e) => handleNotesChange("patient_notes", e.target.value)}
                       readOnly={userRole !== "doctor"}
@@ -527,7 +610,7 @@ function PatientProfile({ patientId }) {
                     </h3>
                     <Textarea
                       placeholder="Enter notes..."
-                      className="w-full min-h-28 flex-grow bg-border resize-none text-foreground text-sm"
+                      className="w-full min-h-28 flex-grow bg-border/50 resize-none text-foreground text-sm"
                       value={patient?.family_history || ""}
                       onChange={(e) => handleNotesChange("family_history", e.target.value)}
                       readOnly={userRole !== "doctor"}

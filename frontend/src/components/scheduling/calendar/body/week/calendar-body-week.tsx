@@ -17,7 +17,7 @@ export default function CalendarBodyWeek() {
             {weekDays.map((day) => (
               <div
                 key={day.toISOString()}
-                className="flex flex-1 divide-x md:divide-x-0"
+                className="flex flex-1 divide-x md:divide-x-0 border-border"
               >
                 <CalendarBodyMarginDayMargin className="block md:hidden" />
                 <CalendarBodyDayContent date={day} />

@@ -6,15 +6,13 @@ import errorPage from "./pages/errorPage"
 import Dashboard from "./pages/Dashboards/Dashboard"
 import ProtectedRoute from "./components/ProtectedRoute"
 import PatientsPage from "./pages/Dashboards/Doctor/patients"
-import NotificationsPage from "./pages/Dashboards/Doctor/notifications"
 import MessagesPage from "./pages/Dashboards/messages"
 import ProfilePage from "./pages/Dashboards/profile"
 import HelpPage from "./pages/Dashboards/help"
 import Landing from "./pages/Landing"
-import LabsPage from "./pages/Dashboards/Patient/labs"
+import PatientAppointments from "./pages/Dashboards/Patient/patientAppointments.jsx"
 import DoctorHome from "./pages/Dashboards/Doctor/doctorHome"
 import PatientHome from "./pages/Dashboards/Patient/patientHome"
-import NurseHome from "./pages/Dashboards/Nurse/nurseHome"
 import ReceptionistHome from "./pages/Dashboards/Receptionist/receptionistHome"
 import AdminHome from "./pages/Dashboards/Admin/adminHome"
 import { DarkModeProvider } from "./components/darkMode"
@@ -23,13 +21,13 @@ import ErrorPage from "./pages/errorPage"
 import { UserAdminPage } from "./pages/Dashboards/Admin/users"
 import { LogAdminPage } from "./pages/Dashboards/Admin/logs"
 import AppointmentPage from "./components/appointmentPage"
-import { ReceptionistAppointment } from "./pages/Dashboards/Receptionist/receptionistAppointment"
 import { Toaster } from "sonner"
 import { ChatsAdminPage } from "./pages/Dashboards/Admin/chats"
 import { ChatMessagesPage } from "./pages/Dashboards/Admin/chatMessages"
 import { AppointmentsAdminPage } from "./pages/Dashboards/Admin/appointments"
 import { TooltipProvider } from "./components/ui/tooltip"
 import DoctorSchedule from "./pages/Dashboards/Doctor/doctorSchedule"
+import ReceptionistAppointment from "./pages/Dashboards/Receptionist/receptionistAppointment"
 
 function Logout() {
   localStorage.clear()
@@ -69,7 +67,6 @@ function App() {
             <Route path="patients/:patientId" element={<PatientsPage />} />
             <Route path="patients/appointment/:id" element={<AppointmentPage />} />
             <Route path="patients/appointment" element={<AppointmentPage />} />
-            <Route path="notifications" element={<NotificationsPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="messages/:chatID" element={<MessagesPage />} />
             <Route path="help" element={<HelpPage />} />
@@ -86,7 +83,7 @@ function App() {
           >
             <Route index path="dashboard" element={<PatientHome />} />
             <Route index element={<Navigate to="dashboard" />} />
-            <Route path="labs" element={<LabsPage />} />
+            <Route path="appointments" element={<PatientAppointments />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="messages/:chatID" element={<MessagesPage />} />
             <Route path="help" element={<HelpPage />} />
@@ -101,10 +98,10 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="dashboard" element={<NurseHome />} />
-            <Route index element={<Navigate to="dashboard" />} />
+            <Route index element={<Navigate to="patients" />} />
             <Route path="patients" element={<PatientsPage />} />
             <Route path="patients/:patientId" element={<PatientsPage />} />
+            <Route path="patients/appointment/:id" element={<AppointmentPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="messages/:chatID" element={<MessagesPage />} />
             <Route path="help" element={<HelpPage />} />

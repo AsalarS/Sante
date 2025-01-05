@@ -36,15 +36,17 @@ function PatientsPage() {
     fetchPatients();
   }, []);
 
-  if (isNaN(patientId)) {
-    if (window.history.length > 1) {
-      // Go back to the previous page
-      navigate(-1);
-    } else {
-      // If there's no history, navigate to the /patients page
-      navigate(`/${userRole}/patients`);
+  useEffect(() => {
+    if (patientId && (patientId === "undefined" || isNaN(patientId))) {
+      if (window.history.length > 1) {
+        // Go back to the previous page
+        navigate(-1);
+      } else {
+        // If there's no history, navigate to the /patients page
+        navigate(`/${userRole}/patients`);
+      }
     }
-  }
+  }, [patientId]);
 
   if (loading) {
     return (

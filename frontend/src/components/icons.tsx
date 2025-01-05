@@ -731,3 +731,44 @@ export const LogoAndText = () => {
 
   );
 };
+
+export const NotepadIcon = () => {
+  return (
+    <svg width="24" height="24" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 3.75V9.375" stroke="#6C89FE" strokeWidth="3" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M30 3.75V9.375" stroke="#6C89FE" strokeWidth="3" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M39.375 15.9375V31.875C39.375 37.5 36.5625 41.25 30 41.25H15C8.4375 41.25 5.625 37.5 5.625 31.875V15.9375C5.625 10.3125 8.4375 6.5625 15 6.5625H30C36.5625 6.5625 39.375 10.3125 39.375 15.9375Z" stroke="#6C89FE" strokeWidth="3" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15 20.625H30" stroke="#6C89FE" strokeWidth="3" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15 30H22.5" stroke="#6C89FE" strokeWidth="3" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+};
+
+export const CalendarIcon = () => {
+  return (
+    <svg width="24" height="24" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 3.75V9.375" stroke="currentColor" strokeWidth="3" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M30 3.75V9.375" stroke="currentColor" strokeWidth="3" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6.5625 17.0437H38.4375" stroke="currentColor" strokeWidth="3" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M39.375 15.9375V31.875C39.375 37.5 36.5625 41.25 30 41.25H15C8.4375 41.25 5.625 37.5 5.625 31.875V15.9375C5.625 10.3125 8.4375 6.5625 15 6.5625H30C36.5625 6.5625 39.375 10.3125 39.375 15.9375Z" stroke="currentColor" strokeWidth="3" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M29.4277 25.6875H29.4445" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M29.4277 31.3125H29.4445" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M22.4917 25.6875H22.5085" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M22.4917 31.3125H22.5085" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15.5517 25.6875H15.5686" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15.5517 31.3125H15.5686" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+
+  );
+};
+
+export const AppointmentIcon = () => {
+  return (
+    <svg width="24" height="24" viewBox="0 0 45 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M39.375 11.9584V29.0417C39.375 34.1667 36.5625 37.5834 30 37.5834H15C8.4375 37.5834 5.625 34.1667 5.625 29.0417V11.9584C5.625 6.83335 8.4375 3.41669 15 3.41669H30C36.5625 3.41669 39.375 6.83335 39.375 11.9584Z" stroke="currentColor" strokeWidth="3" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M27.1875 7.6875V11.1042C27.1875 12.9833 28.875 14.5208 30.9375 14.5208H34.6875" stroke="currentColor" strokeWidth="3" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M14.0251 26.462C13.4064 24.7024 14.1376 22.5329 16.1438 21.935C17.2126 21.6275 18.5251 21.8836 19.2563 22.8232C19.9501 21.8495 21.3189 21.6275 22.3689 21.935C24.3939 22.5329 25.1064 24.7024 24.5064 26.462C23.5501 29.2466 20.1938 30.6986 19.2563 30.6986C18.3376 30.6815 15.0189 29.2637 14.0251 26.462Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+
+  );
+};

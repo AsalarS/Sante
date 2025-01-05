@@ -20,6 +20,15 @@ function Login() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Email validation regex
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(email)) {
+            toast.error('Please enter a valid email address.');
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -58,7 +67,7 @@ function Login() {
             <div className="flex flex-col min-h-screen">
                 <Navbar />
                 <div className="flex flex-grow justify-center items-center bg-background">
-                    <Card className="mx-auto max-w-sm w-96 bg-background">
+                    <Card className="mx-auto max-w-sm w-96 bg-background border-foreground/50">
                         <CardHeader>
                             <CardTitle className="text-2xl">Login</CardTitle>
                             <CardDescription>Enter your details below to login.</CardDescription>

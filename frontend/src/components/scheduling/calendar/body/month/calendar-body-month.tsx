@@ -57,7 +57,7 @@ export default function   CalendarBodyMonth() {
             <div
               key={day.toISOString()}
               className={cn(
-                'relative flex flex-col border-b border-r p-2 aspect-square text-foreground cursor-pointer',
+                'relative flex flex-col border-b border-r border-border p-2 aspect-square text-foreground cursor-pointer',
                 !isSameMonth(day, date) && 'bg-muted/50 hidden md:flex'
               )}
               onClick={(e) => {

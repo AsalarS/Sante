@@ -200,7 +200,7 @@ export function ChatMessagesPage() {
           </Button>
         </div>
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-md border border-border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

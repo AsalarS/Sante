@@ -26,38 +26,47 @@ interface RouteProps {
 
 const routeList: RouteProps[] = [
   {
-    href: "/#hero",
+    href: "hero",
     label: "Home",
   },
   {
-    href: "/#features",
+    href: "features",
     label: "About",
   },
   {
-    href: "/#team",
+    href: "team",
     label: "Staff",
   },
   {
-    href: "/#testimonials",
+    href: "testimonials",
     label: "Reviews",
   },
   {
-    href: "/#footer",
+    href: "footer",
     label: "Contact",
   },
 ];
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext); //Dark mode
+  const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
+
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, elementId: string) => {
+    e.preventDefault();
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <header className="sticky border-b-[1px] top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">
       <NavigationMenu className="mx-auto">
         <NavigationMenuList className="container h-14 px-4 w-screen flex justify-between ">
           <NavigationMenuItem className="font-bold flex items-center">
             <a
-              rel="noreferrer noopener"
-              href="/"
+              onClick={(e) => handleScroll(e, 'hero')}
+              href="#hero"
               className="ml-2 font-extrabold text-3xl flex items-center text-primary font-logo"
             >
               <LogoIcon />
@@ -67,8 +76,6 @@ export const Navbar = () => {
 
           {/* mobile */}
           <span className="flex md:hidden">
-            {/* <ModeToggle /> */}
-
             <Sheet
               open={isOpen}
               onOpenChange={setIsOpen}
@@ -91,19 +98,21 @@ export const Navbar = () => {
                 <nav className="flex flex-col justify-center items-center gap-2 mt-4">
                   {routeList.map(({ href, label }: RouteProps) => (
                     <a
-                      rel="noreferrer noopener"
                       key={label}
-                      href={href}
-                      onClick={() => setIsOpen(false)}
+                      href={`#${href}`}
+                      onClick={(e) => {
+                        handleScroll(e, href);
+                        setIsOpen(false);
+                      }}
                       className={`${buttonVariants({ variant: "ghost" })} text-foreground`}
                     >
                       {label}
                     </a>
                   ))}
                   <Button>Login</Button>
-                  <Button //Darkmode toggle button
+                  <Button
                     onClick={toggleDarkMode}
-                    className="p-3 rounded-md transition-colors "
+                    className="p-3 rounded-md transition-colors"
                     aria-label="Toggle Dark Mode"
                   >
                     {isDarkMode ? (
@@ -119,11 +128,11 @@ export const Navbar = () => {
 
           {/* desktop */}
           <nav className="hidden md:flex gap-2">
-            {routeList.map((route: RouteProps, i) => (
+            {routeList.map((route: RouteProps) => (
               <a
-                rel="noreferrer noopener"
-                href={route.href}
-                key={i}
+                key={route.label}
+                href={`#${route.href}`}
+                onClick={(e) => handleScroll(e, route.href)}
                 className={`${buttonVariants({ variant: "ghost" })} text-foreground`}
               >
                 {route.label}
@@ -135,9 +144,9 @@ export const Navbar = () => {
             <Button asChild className="w-20">
               {localStorage.getItem(ACCESS_TOKEN) ? <Link to="/logout">Logout</Link> : <Link to="/login">Login</Link>}
             </Button>
-            <Button //Darkmode toggle button
+            <Button
               onClick={toggleDarkMode}
-              className="p-3 rounded-md transition-colors "
+              className="p-3 rounded-md transition-colors"
               aria-label="Toggle Dark Mode"
             >
               {isDarkMode ? (

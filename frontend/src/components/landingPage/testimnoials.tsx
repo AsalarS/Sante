@@ -84,7 +84,7 @@ export const Testimonials = () => {
           ({ image, name, userName, comment }: TestimonialProps) => (
             <Card
               key={userName}
-              className="max-w-md md:break-inside-avoid overflow-hidden bg-background"
+              className="max-w-md md:break-inside-avoid overflow-hidden bg-background border border-border"
             >
               <CardHeader className="flex flex-row items-center gap-4 pb-2">
                 <Avatar>

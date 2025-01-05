@@ -17,16 +17,17 @@ import { Button } from "./ui/button";
 import { CarePlanDialog } from "./Dialogs/carePlanDialog";
 import { format } from "date-fns";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
     HoverCard,
     HoverCardContent,
     HoverCardTrigger,
 } from "@/components/ui/hover-card"
-import PatientHome from "@/pages/Dashboards/Patient/patientHome";
 
 function AppointmentPage() {
     const navigate = useNavigate();
     const { id } = useParams();
+    const { paramReadOnly } = useParams();
     const location = useLocation();
     const patientId = location.state?.patientId;
     const [readOnly, setReadOnly] = useState(false);
@@ -149,6 +150,13 @@ function AppointmentPage() {
             fetchCarePlans();
         }
     }, [appointment?.id]);
+
+    // Set read only state when paramReadOnly is passed as a parameter
+    useEffect(() => {
+        if (paramReadOnly && paramReadOnly.toLowerCase() === 'true') {
+            setReadOnly(true);
+        }
+    }, [paramReadOnly]);
 
     const handleAppointmentChange = (field, value) => {
         setAppointment((prev) => ({ ...prev, [field]: value }));
@@ -373,7 +381,7 @@ function AppointmentPage() {
                                 {appointment?.appointment_date ? appointment?.status : "New"}
                             </Badge>
                             {readOnly && (
-                                <Badge className="text-white ml-2 bg-red-500">
+                                <Badge className="text-white ml-2 bg-red-500 hover:bg-red-600">
                                     Read Only
                                 </Badge>
                             )}
@@ -401,44 +409,54 @@ function AppointmentPage() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                             {/* Heart Rate */}
-                            <div className="bg-red-300 dark:bg-red-300/20 text-white rounded-md  p-4 flex flex-col items-center">
+                            <div className="bg-red-100 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-white rounded-md  p-4 flex flex-col items-center">
                                 <div className="flex flex-col items-center gap-2 mb-2">
-                                    <Heart className="text-white bg-red-500 rounded-full p-2 w-10 h-10" />
-                                    <h3 className="font-semibold">Heart Rate</h3>
+                                    <Heart className="text-white bg-red-500 rounded-lg p-2 w-10 h-10" />
+                                    <h3 className="font-semibold text-gray-700 dark:text-white">Heart Rate</h3>
                                 </div>
-                                <h1 className="text-4xl font-bold flex flex-col items-center">{appointment?.heart_rate || "0"} <span className="text-white/40 text-lg">BPM</span></h1>
+                                <h1 className="text-4xl font-bold flex flex-col items-center text-foreground">{appointment?.heart_rate || "0"}
+                                    <span className="text-gray-500 dark:text-gray-400 text-lg">BPM</span>
+                                </h1>
                             </div>
                             {/* Blood Pressure */}
-                            <div className="bg-blue-300 dark:bg-blue-300/20 text-white rounded-md p-4 flex flex-col items-center">
+                            <div className="bg-blue-100 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-white rounded-md p-4 flex flex-col items-center">
                                 <div className="flex flex-col items-center gap-2 mb-2">
-                                    <CircleGauge className="text-white bg-blue-500 rounded-full p-2 w-10 h-10" />
-                                    <h3 className="font-semibold">Blood Pressure</h3>
+                                    <CircleGauge className="text-white bg-blue-500 rounded-lg p-2 w-10 h-10" />
+                                    <h3 className="font-semibold text-gray-700 dark:text-white">Blood Pressure</h3>
                                 </div>
-                                <h1 className="text-3xl font-bold flex flex-col items-center ">{appointment?.blood_pressure || "0/0"}<span className="text-white/40 text-lg">mmHg</span></h1>
+                                <h1 className="text-3xl font-bold flex flex-col items-center text-foreground">{appointment?.blood_pressure || "0/0"}
+                                    <span className="text-gray-500 dark:text-gray-400 text-lg">mmHg</span>
+                                </h1>
                             </div>
                             {/* Temperature */}
-                            <div className="bg-green-300 dark:bg-green-300/20 text-white rounded-md p-4 flex flex-col items-center">
+                            <div className="bg-green-100 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 text-white rounded-md p-4 flex flex-col items-center">
                                 <div className="flex flex-col items-center gap-2 mb-2">
-                                    <Thermometer className="text-white bg-green-500 rounded-full p-2 w-10 h-10" />
-                                    <h3 className="font-semibold">Temperature</h3>
+                                    <Thermometer className="text-white bg-green-500 rounded-lg p-2 w-10 h-10" />
+                                    <h3 className="font-semibold text-gray-700 dark:text-white">Temperature</h3>
                                 </div>
-                                <h1 className="text-4xl font-bold flex flex-col items-center">{appointment?.temperature || "0.0"}°<span className="text-white/40 text-lg">Celsius</span></h1>
+                                <h1 className="text-4xl font-bold flex flex-col items-center text-foreground">{appointment?.temperature || "0.0"}°
+                                    <span className="text-gray-500 dark:text-gray-400 text-lg">Celsius</span>
+                                </h1>
                             </div>
                             {/* Oxygen Saturation */}
-                            <div className="bg-yellow-400/60 dark:bg-yellow-300/20 text-white rounded-md p-4 flex flex-col items-center">
+                            <div className="bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-white rounded-md p-4 flex flex-col items-center">
                                 <div className="flex flex-col items-center gap-2 mb-2">
-                                    <Wind className="text-white bg-yellow-500 rounded-full p-2 w-10 h-10" />
-                                    <h3 className="font-semibold line-clamp-2 break-words">O₂ Saturation</h3>
+                                    <Wind className="text-white bg-amber-500 rounded-lg p-2 w-10 h-10" />
+                                    <h3 className="font-semibold line-clamp-2 break-words text-gray-700 dark:text-white">O₂ Saturation</h3>
                                 </div>
-                                <h1 className="text-4xl font-bold flex flex-col items-center">{appointment?.o2_sat || "0"}%<span className="text-white/40 text-lg">Percent</span></h1>
+                                <h1 className="text-4xl font-bold flex flex-col items-center text-foreground">{appointment?.o2_sat || "0"}%
+                                    <span className="text-gray-500 dark:text-gray-400 text-lg">Percent</span>
+                                </h1>
                             </div>
                             {/* Respiratory Rate */}
-                            <div className="bg-purple-300 dark:bg-purple-300/20 text-white rounded-md p-4 flex flex-col items-center">
+                            <div className="bg-purple-100 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/20 text-white rounded-md p-4 flex flex-col items-center">
                                 <div className="flex flex-col items-center gap-2 mb-2">
-                                    <Activity className="text-white bg-purple-500 rounded-full p-2 w-10 h-10" />
-                                    <h3 className="font-semibold line-clamp-2 break-words">Respiratory Rate</h3>
+                                    <Activity className="text-white bg-purple-500 rounded-lg p-2 w-10 h-10" />
+                                    <h3 className="font-semibold line-clamp-2 break-words text-gray-700 dark:text-white">Respiratory Rate</h3>
                                 </div>
-                                <h1 className="text-3xl font-bold flex flex-col items-center">{appointment?.resp_rate || "0"} <span className="text-white/40 text-lg">BPM</span></h1>
+                                <h1 className="text-3xl font-bold flex flex-col items-center text-foreground">{appointment?.resp_rate || "0"}
+                                    <span className="text-gray-500 dark:text-gray-400 text-lg">BPM</span>
+                                </h1>
                             </div>
                         </div>
                     </Card>
@@ -462,7 +480,15 @@ function AppointmentPage() {
                                 <div key={diagnosis.key} className="bg-background-hover rounded-md p-4 flex flex-row justify-between">
                                     <div className="self-center">
                                         <div className="flex flex-row mb-1 self-center">
-                                            <span className="font-semibold line-clamp-1 break-all">{diagnosis?.diagnosis_name}</span>
+
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <span className="font-semibold line-clamp-1 break-all">{diagnosis?.diagnosis_name}</span>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>{diagnosis?.diagnosis_name}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
                                             {/* Primary or secondary diagnosis */}
                                             <Badge className="text-white ml-4">{diagnosis?.diagnosis_type}</Badge>
                                         </div>
@@ -510,18 +536,32 @@ function AppointmentPage() {
                         </div>
                         {/* List of plans */}
                         <div className="grid grid-cols-2 gap-4 overflow-y-auto max-h-60">
-                            {/* TODO: Add tooltip for instructions*/}
                             {carePlans?.map((plan) => (
                                 <div key={plan.key} className="bg-background-hover rounded-md p-4 flex flex-row justify-between mb-2">
                                     <div className="self-center">
                                         <div className="flex flex-row mb-1">
-                                            <span className="font-semibold line-clamp-1 break-all">{plan.care_plan_title}</span>
+
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <span className="font-semibold line-clamp-1 break-all">{plan.care_plan_title}</span>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>{plan.care_plan_title}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
                                             {/* Type of consult */}
                                             <Badge className="text-white ml-4">{plan.care_plan_type}</Badge>
                                         </div>
                                         {plan.additional_instructions && <div className="flex flex-row">
                                             <CornerDownRight className="" size={16} />
-                                            <span className="text-sm ml-2 line-clamp-1 break-all">{plan.additional_instructions}</span>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <span className="text-sm ml-2 line-clamp-1 break-all">{plan.additional_instructions}</span>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>{plan.additional_instructions}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
                                         </div>}
                                     </div>
                                     <DropdownMenu>

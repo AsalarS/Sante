@@ -1,123 +1,91 @@
-import { useEffect, useMemo, useState } from "react";
-import StatBox from "@/components/statBox";
-import { Loader2 } from "lucide-react";
-import api from "@/api";
 import { Button } from "@/components/ui/button";
-import { DatePickerWithRange } from "@/components/datePicker";
+import { DatePicker } from "@/components/ui/datePicker";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Bar, BarChart, CartesianGrid, Label, Pie, PieChart, XAxis } from "recharts";
-import { chartData, chartConfig, patientDummyData, BarChartConfig, BarChartData } from '@/pages/Dashboards/Doctor/dashboardData'
-import { ChatBubbleAvatar } from "@/components/ui/chat/chat-bubble";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useEffect, useState } from "react";
+import api from "@/api";
 import Scheduler from "@/components/schduler";
 
-function ReceptionistHome() {
-  const [patients, setPatients] = useState([]);
+export default function ReceptionistHome() {
+  const [schedule, setSchedule] = useState();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [appointmentDate, setAppointmentDate] = useState(new Date().toISOString().split("T")[0]);
 
-  const fetchPatients = async () => {
-    try {
-      const response = await api.get("/api/users/patients/");
-      if (response.status === 200) {
-        setPatients(response.data);
-        console.log(response.data);
-      } else {
-        console.error("Failed to fetch patient data:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error fetching patient data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleDateChange = (date) => setAppointmentDate(date);
 
   useEffect(() => {
-    fetchPatients();
-  }, []);
+    const fetchSchedule = async () => {
+      if (!appointmentDate) return;
 
-  const statusColors = {
-    Scheduled: "bg-primary/20 text-primary font-semibold",
-    Completed: "bg-green-400/20 text-green-400 font-semibold",
-    Canceled: "bg-red-400/20 text-red-400 font-semibold",
-  };
+      setLoading(true);
+      setError(null);
 
-  const [activeChart, setActiveChart] = useState("desktop")
+      try {
+        const response = await api.get("/api/schedule/", {
+          params: { date: appointmentDate },
+        });
 
-  const totalBar = useMemo(
-    () => ({
-      desktop: BarChartData.reduce((acc, curr) => acc + curr.desktop, 0),
-      mobile: BarChartData.reduce((acc, curr) => acc + curr.mobile, 0),
-    }),
-    []
-  )
+        if (response.status === 200) {
+          setSchedule(response.data.schedule);
+        } else {
+          console.error("Failed to fetch schedule:", response.statusText);
+        }
+      } catch (err) {
+        setError("Failed to fetch schedule. Please try again.");
+        console.error("Error fetching schedule:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Calculate total visitors
-  const totalPie = useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.visitors, 0);
-  }, []);
+    fetchSchedule();
+  }, [appointmentDate]); 
 
   return (
     <>
-      <div className="p-6 grid grid-cols-12 md:grid-cols-12 lg:grid-cols-8 gap-6 h-dvh">
-        {/* Row 1 - Stat Boxes */}
-        <div className="col-span-12 lg:col-span-6 ">
-          {/*  Scheduler */}
-          <Card className="p-4 bg-background rounded-lg mb-6 text-foreground border-none">
-
-            </Card>
+      <div className="flex flex-col p-4 gap-6 max-w-full">
+        <div className="bg-background rounded-md w-full h-16 flex justify-between items-center p-4">
+          <div className="flex justify-between">
+            <Input placeholder="Search patients" />
+          </div>
+          <div className="flex justify-end gap-4">
+            <Select>
+              <SelectTrigger className="w-[180px] text-foreground">
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="dep1">dep1</SelectItem>
+                <SelectItem value="dep2">dep2</SelectItem>
+              </SelectContent>
+            </Select>
+            <DatePicker
+              className="h-12"
+              initialValue={appointmentDate}
+              onDateChange={handleDateChange}
+            />
+            <Button
+              className="mt-1"
+              onClick={() => setAppointmentDate(new Date().toISOString().split("T")[0])}
+            >
+              Today
+            </Button>
+            <Button className="mt-1">Book Appointment</Button>
+          </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="col-span-12 lg:col-span-2 flex flex-col">
-          <div>
-          <div className="grid grid-cols-2 grid-rows-2 gap-6">
-            <div className="col-span-12 md:col-span-6 lg:col-span-2">
-              <StatBox title="Todays Patients" number="34" />
-            </div>
-            <div className="col-span-12 md:col-span-6 lg:col-span-2">
-              <StatBox title="Appt. Done" number="10" />
-            </div>
-            <div className="col-span-12 md:col-span-6 lg:col-span-2">
-              <StatBox title="New Patients" number="15" />
-            </div>
-            <div className="col-span-12 md:col-span-6 lg:col-span-2">
-              <StatBox title="Returning Patients" number="20" />
-            </div>
-          </div>
-          </div>
-          <div className="bg-background rounded-lg flex-grow text-foreground mb-6 border-none h-96 overflow-y-auto mt-6">
-            <div className="text-lg font-semibold p-4 sticky top-0 bg-background w-full z-50 rounded-lg">
-              Available Doctors
-            </div>
-            <div className="flex flex-col p-4 overflow-y-auto">
-              <ul className="flex flex-col">
-                {Array.from({ length: 12 }, (_, index) => (
-                  <li key={index} className="flex items-center p-4 border-b hover:bg-background-hover cursor-pointer border-border">
-                    <ChatBubbleAvatar src="" className="w-12 h-12 mr-3 text-foreground bg-muted" fallback={index} />
-                    <div>
-                      <div className="font-semibold text-lg text-foreground line-clamp-1 break-all">Dr. Ali Alfardan</div>
-                      <div className="text-sm text-muted-foreground line-clamp-1 break-all">Radiology</div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
+        {/* Apply overflow-x-auto here to make the table scrollable */}
+        <div className="overflow-x-auto max-w-full">
+          <Scheduler scheduleData={schedule ? schedule : []} date={appointmentDate}/>
         </div>
       </div>
     </>
   );
 }
-
-export default ReceptionistHome;

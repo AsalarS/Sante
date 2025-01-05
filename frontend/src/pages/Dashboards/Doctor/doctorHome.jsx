@@ -88,7 +88,7 @@ function DoctorHome() {
           <div className="flex flex-col">
             {/* Bar Chart */}
             <Card className="p-4 bg-background rounded-lg mb-6 text-foreground mt-6 border-none">
-              <CardHeader className="flex flex-col items-stretch space-y-0 border-b border-border p-0 sm:flex-row">
+              <CardHeader className="flex flex-col items-stretch space-y-0 border-b border-border/30 p-0 sm:flex-row">
                 <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
                   <CardTitle>Bar Chart - Interactive</CardTitle>
                   <CardDescription>
@@ -97,7 +97,7 @@ function DoctorHome() {
                 </div>
                 <div className="flex">
                       <div
-                        className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l border-border sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
+                        className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l border-border/30 sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
                       >
                         <span className="text-xs text-muted-foreground">
                           Total Appointments
@@ -171,7 +171,7 @@ function DoctorHome() {
               <div className="overflow-y-auto max-h-96 rounded-md">
                 <Table className="w-full">
                   <TableHeader>
-                    <TableRow className="border-border">
+                    <TableRow className="border-border/30">
                       <TableHead className="sticky top-0 z-10 text-center"></TableHead>
                       <TableHead className="sticky top-0 z-10 text-left">Name</TableHead>
                       <TableHead className="sticky top-0 z-10 text-left">Gender</TableHead>
@@ -182,7 +182,7 @@ function DoctorHome() {
                   </TableHeader>
                   <TableBody>
                     {patientDummyData.map((patient) => (
-                      <TableRow key={patient.id} className="border-border">
+                      <TableRow key={patient.id} className="border-border/30">
                         {/* Avatar */}
                         <TableCell className="text-center">
                           <Avatar className="w-12 h-12">

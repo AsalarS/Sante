@@ -110,7 +110,7 @@ function MessageInbox({ onSelectConversation, userId }) {
             <li
                 key={user.id}
                 style={style}
-                className="flex items-center p-4 border-b hover:bg-background-hover cursor-pointer border-border"
+                className="flex items-center p-4 border-b hover:bg-background-hover cursor-pointer border-border/30"
                 onClick={() => {
                     createAndSelectConversation(user.id); // Trigger WebSocket on user select
                     setIsDialogOpen(false); // Close the dialog
@@ -134,9 +134,9 @@ function MessageInbox({ onSelectConversation, userId }) {
     };
 
     return (
-        <div className="w-1/4 h-full border-r bg-background shadow-md flex flex-col border-border sticky top-0">
+        <div className="w-1/4 h-full border-r bg-background shadow-md flex flex-col border-border/30 sticky top-0">
             {/* Header Section */}
-            <div className="flex items-center justify-between p-4 border-b border-border">
+            <div className="flex items-center justify-between p-4 border-b border-border/30">
                 <div className="relative flex items-center rounded-lg bg-gray-100 dark:bg-gray-800 w-full mr-4">
                     <Input
                         type="text"
@@ -153,7 +153,7 @@ function MessageInbox({ onSelectConversation, userId }) {
                             <Edit size={16} className="text-foreground" />
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-background border-border text-foreground">
+                    <DialogContent className="bg-background border-border/30 text-foreground">
                         <DialogHeader>
                             <DialogTitle>Start a conversation</DialogTitle>
                             <DialogDescription>Choose a person to start a conversation with.</DialogDescription>
@@ -200,7 +200,7 @@ function MessageInbox({ onSelectConversation, userId }) {
                         return (
                             <li
                                 key={chat.id}
-                                className={`flex items-center p-4 border-b cursor-pointer border-border bg-background hover:bg-btn-hover/50 ${isSelected && 'bg-background-hover/50'}`}
+                                className={`flex items-center p-4 border-b cursor-pointer border-border/30 bg-background hover:bg-btn-hover/50 ${isSelected && 'bg-background-hover/50'}`}
                                 onClick={() => onSelectConversation(chat.id, otherUser.id)}
                             >
                                 <ChatBubbleAvatar

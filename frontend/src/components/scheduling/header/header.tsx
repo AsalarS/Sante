@@ -3,7 +3,7 @@ import { HeaderThemeToggle } from './header-theme-toggle'
 
 export default function Header() {
   return (
-    <div className="flex items-center justify-between p-2 w-full border-b">
+    <div className="flex items-center justify-between p-2 w-full border-b border-border">
       <div>
         <h1 className="text-lg font-bold">
           React, Tailwind and Shadcn Full Calendar

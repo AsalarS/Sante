@@ -9,7 +9,7 @@ export default function CalendarBodyDayEvents() {
   const userRole = localStorage.getItem('role')
   const dayEvents = events.filter((event) => isSameDay(event.start, date))
   return !!dayEvents.length ? (
-    <div className="flex flex-col gap-2 pl-2 pr-2">
+    <div className="flex flex-col gap-2 pl-2 pr-2 border-border">
       <p className="font-medium p-2 pb-0 font-heading text-foreground">Appointments</p>
       <div className="flex flex-col gap-2">
 
@@ -39,6 +39,6 @@ export default function CalendarBodyDayEvents() {
       </div>
     </div>
   ) : (
-    <div className="p-2 text-muted-foreground">No appointments today...</div>
+    <div className="p-2 text-muted-foreground border-border">No appointments today...</div>
   )
 }

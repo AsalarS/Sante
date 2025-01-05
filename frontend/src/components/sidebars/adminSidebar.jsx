@@ -1,4 +1,4 @@
-import { DashboardIcon, HelpIcon, MessagesIcon, SettingsIcon } from "@/components/icons";
+import { CalendarIcon, DashboardIcon, HelpIcon, MessagesIcon, SettingsIcon } from "@/components/icons";
 import Sidebar, { SidebarItem } from "@/components/sidebar";
 import { Calendar, Calendar1, MessagesSquare, NotebookTabs, User2 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -22,7 +22,7 @@ function AdminSidebar() {
                     active={location.pathname === "/admin/dashboard"}
                 />
                 <SidebarItem
-                    icon={<User2 size={20} />}
+                    icon={<User2 size={24}/>}
                     text="Users"
                     
                     onClick={() => {
@@ -32,7 +32,7 @@ function AdminSidebar() {
                     active={location.pathname === "/admin/users"}
                 />
                 <SidebarItem
-                    icon={<Calendar size={20} />}
+                    icon={<CalendarIcon />}
                     text="Appointments"
                     
                     onClick={() => {
@@ -42,7 +42,7 @@ function AdminSidebar() {
                     active={location.pathname === "/admin/appointments"}
                 />
                 <SidebarItem
-                    icon={<MessagesSquare size={20} />}
+                    icon={<MessagesSquare size={24} />}
                     text="Chats"
                     
                     onClick={() => {
@@ -52,7 +52,7 @@ function AdminSidebar() {
                     active={location.pathname === "/admin/chat"}
                 />
                 <SidebarItem
-                    icon={<NotebookTabs size={20} />}
+                    icon={<NotebookTabs size={24} />}
                     text="Logs"
                     
                     onClick={() => {

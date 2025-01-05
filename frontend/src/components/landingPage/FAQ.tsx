@@ -69,7 +69,7 @@ import { Sponsors } from "./Sponsors";
               value={value}
               className="text-foreground"
             >
-              <AccordionTrigger className="text-left">
+              <AccordionTrigger className="text-left hover:underline">
                 {question}
               </AccordionTrigger>
   

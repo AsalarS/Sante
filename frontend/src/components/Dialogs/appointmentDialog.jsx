@@ -227,9 +227,8 @@ export function AppointmentDialog({
             <DialogTitle>
               {isExistingAppointment ? "Edit Appointment" : "Add Appointment"}
             </DialogTitle>
-            {/* TODO: Change logic vvvvvvv */}
             <Badge className="text-white ml-2">
-              {dialogData?.status ? dialogData?.status : "New"}
+            {dialogData?.appointment_date ? dialogData?.status : "New"}
             </Badge>
           </div>
         </DialogHeader>
