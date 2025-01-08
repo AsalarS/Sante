@@ -40,15 +40,17 @@ function Login() {
 
             const decodedPayload = jwtDecode<JwtPayload>(accessToken);
             const userId = decodedPayload.sub;
-            if (userId) {
-                localStorage.setItem("user_id", userId);
-            }
 
             localStorage.setItem(ACCESS_TOKEN, accessToken);
             localStorage.setItem(REFRESH_TOKEN, refreshToken);
 
             const userInfoResponse = await api.get("/api/user-info/");
             localStorage.setItem("user_info", JSON.stringify(userInfoResponse.data));
+            if (userId) {
+                localStorage.setItem("user_id", userId);
+            } else {
+                localStorage.setItem("user_id", userInfoResponse.data.id);
+            }
             const role = userInfoResponse.data.role;
             localStorage.setItem("role", role);
             navigate(`/${role}`);

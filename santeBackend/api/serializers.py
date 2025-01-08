@@ -235,12 +235,36 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
 
 class AppointmentWithUserSerializer(serializers.ModelSerializer):
-    patient = UserSerializer(source='patient.user')
-    doctor = UserSerializer(source='doctor.user')
+    patient = serializers.SerializerMethodField()
+    doctor = serializers.SerializerMethodField()
 
     class Meta:
         model = Appointment
         fields = '__all__'
+        
+    def get_patient(self, obj):
+        return {
+            'id': obj.patient.user.id,
+            'first_name': obj.patient.user.first_name,
+            'last_name': obj.patient.user.last_name,
+            'email': obj.patient.user.email,
+            'profile_image': obj.patient.user.profile_image,
+            'CPR_number': obj.patient.CPR_number,
+            'blood_type': obj.patient.blood_type,
+            'phone_number': obj.patient.user.phone_number,
+            'allergies': obj.patient.allergies,
+        }
+
+    def get_doctor(self, obj):
+        return {
+            'id': obj.doctor.user.id,
+            'first_name': obj.doctor.user.first_name,
+            'last_name': obj.doctor.user.last_name,
+            'email': obj.doctor.user.email,
+            'profile_image': obj.doctor.user.profile_image,
+            'specialization': obj.doctor.specialization,
+            'office_number': obj.doctor.office_number,
+        }
 
 # Appointment serializer that returns an appointment object for a custom react scheduler
 
@@ -273,6 +297,10 @@ class AppointmentSchedulerSerializer(serializers.ModelSerializer):
             'last_name': obj.patient.user.last_name,
             'email': obj.patient.user.email,
             'profile_image': obj.patient.user.profile_image,
+            'CPR_number': obj.patient.CPR_number,
+            'blood_type': obj.patient.blood_type,
+            'phone_number': obj.patient.user.phone_number,
+            'allergies': obj.patient.allergies,
         }
 
     def get_doctor(self, obj):
@@ -282,6 +310,8 @@ class AppointmentSchedulerSerializer(serializers.ModelSerializer):
             'last_name': obj.doctor.user.last_name,
             'email': obj.doctor.user.email,
             'profile_image': obj.doctor.user.profile_image,
+            'specialization' : obj.doctor.specialization,
+            'office_number' : obj.doctor.office_number,
         }
 
 

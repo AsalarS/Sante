@@ -9,6 +9,7 @@ from ..utilities import log_to_db
 from rest_framework.decorators import api_view, permission_classes
 from django.utils import timezone
 
+
 class PrescriptionsByUserView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -71,16 +72,22 @@ class PrescriptionsByUserView(APIView):
 
 class PrescriptionByAppointmentView(APIView):
     permission_classes = [IsAuthenticated]
-
+    
     def get(self, request, appointment_id):
         user = request.user
-
-        # Check if the logged-in user has the appropriate role
-        if user.role not in ['admin', 'nurse', 'doctor']:
-            return Response({"error": "You do not have permission to view these prescriptions."}, status=status.HTTP_403_FORBIDDEN)
-
+        
         appointment = get_object_or_404(Appointment, id=appointment_id)
-
+        
+        # Check if user is the patient assigned to this appointment
+        is_patient = hasattr(user, 'patient') and user.patient == appointment.patient
+        
+        # Check if user has staff role or is the patient
+        if not (user.role in ['admin', 'nurse', 'doctor'] or is_patient):
+            return Response(
+                {"error": "You do not have permission to view these prescriptions."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+            
         prescriptions = Prescription.objects.filter(appointment=appointment)
         serializer = PrescriptionSerializer(prescriptions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -150,16 +157,22 @@ class DiagnosesByUserView(APIView):
 
 class DiagnosisByAppointmentView(APIView):
     permission_classes = [IsAuthenticated]
-
+    
     def get(self, request, appointment_id):
         user = request.user
-
-        # Check if the logged-in user has the appropriate role
-        if user.role not in ['receptionist', 'admin', 'nurse', 'doctor']:
-            return Response({"error": "You do not have permission to view these diagnoses."}, status=status.HTTP_403_FORBIDDEN)
-
+        
         appointment = get_object_or_404(Appointment, id=appointment_id)
-
+        
+        # Check if user is the patient assigned to this appointment
+        is_patient = hasattr(user, 'patient') and user.patient == appointment.patient
+        
+        # Check if user has staff role or is the patient
+        if not (user.role in ['receptionist', 'admin', 'nurse', 'doctor'] or is_patient):
+            return Response(
+                {"error": "You do not have permission to view these diagnoses."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+            
         diagnoses = Diagnosis.objects.filter(appointment=appointment)
         serializer = DiagnosisSerializer(diagnoses, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -176,7 +189,7 @@ class DiagnosisByAppointmentView(APIView):
         # Check if the appointment status is "Scheduled"
         if appointment.status != "Scheduled":
             return Response({"error": "Only scheduled appointments can be edited."}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Get the diagnosis ID from the request data (if exists)
         diagnosis_id = request.data.get('id', None)
 
@@ -223,7 +236,7 @@ class DiagnosisByAppointmentView(APIView):
         # Check if the appointment status is "Scheduled"
         if appointment.status != "Scheduled":
             return Response({"error": "Only scheduled appointments can be edited."}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             diagnosis = Diagnosis.objects.get(
                 id=diagnosis_id, appointment=appointment)
@@ -264,14 +277,21 @@ class CarePlanByAppointmentView(APIView):
     def get(self, request, appointment_id):
         user = request.user
 
-        # Check if the logged-in user has the appropriate role
-        if user.role not in ['receptionist', 'admin', 'nurse', 'doctor']:
-            return Response({"error": "You do not have permission to view these care plans."}, status=status.HTTP_403_FORBIDDEN)
-
         try:
             appointment = Appointment.objects.get(id=appointment_id)
         except Appointment.DoesNotExist:
             return Response({"error": "Appointment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if user is the patient assigned to this appointment
+        is_patient = hasattr(
+            user, 'patient') and user.patient == appointment.patient
+
+        # Check if user has staff role or is the patient
+        if not (user.role in ['receptionist', 'admin', 'nurse', 'doctor'] or is_patient):
+            return Response(
+                {"error": "You do not have permission to view these care plans."},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         care_plans = CarePlan.objects.filter(appointment=appointment)
         serializer = CarePlanSerializer(care_plans, many=True)
@@ -375,6 +395,8 @@ class CarePlanByAppointmentView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 # Complete Careplan and adding details for completion
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def completeCareplan(request, careplan_id):

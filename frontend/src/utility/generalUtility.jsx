@@ -31,7 +31,7 @@ export const formatTimestamp = (timestamp) => {
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 };
 
-export const apiRequest = async (url, errorMessage = 'Faile to fetch data', method = 'get', data = undefined) => {
+export const apiRequest = async (url, errorMessage = 'Failed to fetch data', method = 'get', data = undefined) => {
   try {
     const response = await api({
       url,
@@ -45,4 +45,28 @@ export const apiRequest = async (url, errorMessage = 'Faile to fetch data', meth
     toast.error(errorMessage, error);
     console.error(error);
   }
+};
+
+// Format any 24-hour or 12-hour time to its respective time format without the seconds
+export const formatTimeNoSeconds = (time) => {
+  const [hour, minutePart] = time.split(":");
+  const [minute, period] = minutePart ? minutePart.split(" ") : [minutePart, null];
+  let hour24 = parseInt(hour, 10);
+
+  if (period) {
+    // 12-hour format
+    if (period.toUpperCase() === "PM" && hour24 !== 12) {
+      hour24 += 12;
+    } else if (period.toUpperCase() === "AM" && hour24 === 12) {
+      hour24 = 0;
+    }
+  }
+
+  const hour12 = hour24 % 12 || 12;
+  const ampm = hour24 >= 12 ? "PM" : "AM";
+
+  return {
+    "24-hour": `${hour24.toString().padStart(2, "0")}:${minute}`,
+    "12-hour": `${hour12.toString().padStart(2, "0")}:${minute} ${ampm}`
+  };
 };
