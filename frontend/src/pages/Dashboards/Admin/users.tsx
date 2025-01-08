@@ -302,7 +302,6 @@ export function UserAdminPage() {
 
   const handleRegisterUser = async (registerData: User) => { // Register a new user
     try {
-      console.log(registerData);
 
       const response = await api.post(`api/user/register/admin`, registerData);
 

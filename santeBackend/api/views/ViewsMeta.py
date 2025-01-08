@@ -2,11 +2,12 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from ..models import CarePlan, Diagnosis, Prescription, Patient, Appointment
+from ..models import CarePlan, Diagnosis, Employee, Prescription, Patient, Appointment
 from ..serializers import CarePlanExtraDataSerializer, CarePlanSerializer, DiagnosisExtraDataSerializer, DiagnosisSerializer, PrescriptionSerializer
 from rest_framework.response import Response
 from ..utilities import log_to_db
-
+from rest_framework.decorators import api_view, permission_classes
+from django.utils import timezone
 
 class PrescriptionsByUserView(APIView):
     permission_classes = [IsAuthenticated]
@@ -372,3 +373,26 @@ class CarePlanByAppointmentView(APIView):
         # Delete the care plan
         care_plan.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+# Complete Careplan and adding details for completion
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def completeCareplan(request, careplan_id):
+    user = request.user
+
+    # Ensure the user role is either "nurse" or "admin"
+    if user.role not in ['nurse', 'admin']:
+        return Response({"detail": "Permission denied. Only nurses and admins can complete care plans."}, status=status.HTTP_403_FORBIDDEN)
+
+    # Fetch the CarePlan object
+    careplan = get_object_or_404(CarePlan, id=careplan_id)
+
+    # Update the completion time and the nurse who completed it
+    careplan.date_of_completion = timezone.now()
+    if user.role == 'nurse':
+        nurse = get_object_or_404(Employee, user=user)
+        careplan.done_by = nurse
+
+    careplan.save()
+
+    return Response({"detail": "Care plan completed successfully."}, status=status.HTTP_200_OK)

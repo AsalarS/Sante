@@ -23,13 +23,14 @@ import {
     HoverCardContent,
     HoverCardTrigger,
 } from "@/components/ui/hover-card"
+import PatientProfileList from "./patientProfileList";
 
 function AppointmentPage() {
     const navigate = useNavigate();
     const { id } = useParams();
     const { paramReadOnly } = useParams();
     const location = useLocation();
-    const patientId = location.state?.patientId;
+    const [patientId, setPatientId] = useState(location.state?.patientId);
     const [readOnly, setReadOnly] = useState(false);
     const userRole = localStorage.getItem("role");
     const [appointment, setAppointment] = useState(null);
@@ -43,6 +44,8 @@ function AppointmentPage() {
     const [diagnosisDialogOpen, setDiagnosisDialogOpen] = useState(false);
     const [carePlanDialogOpen, setCarePlanDialogOpen] = useState(false);
     const [idCounter, setIdCounter] = useState(1);
+    const [showList, setShowList] = useState(false);
+    const [activeListType, setActiveListType] = useState(null);
     // Add a state to track whether diagnoses or careplans have been modified
     const [diagnosesDirty, setDiagnosesDirty] = useState(false);
     const [carePlansDirty, setCarePlansDirty] = useState(false);
@@ -57,6 +60,9 @@ function AppointmentPage() {
                 setAppointment(appointmentData);
                 if (appointmentData?.status?.toLowerCase() != "scheduled") {
                     setReadOnly(true);
+                }
+                if (!patientId || patientId === "undefined" || isNaN(patientId)) {
+                    setPatientId(appointmentData?.patient.id);
                 }
 
             } else {
@@ -133,8 +139,10 @@ function AppointmentPage() {
 
     // Patient Data Fetch
     useEffect(() => {
-        fetchPatientData();
-    }, [id]);
+        if (patientId) {
+            fetchPatientData();
+        }
+    }, [patientId]);
 
     // Vitals Data Refresh on dialog close
     useEffect(() => {
@@ -153,7 +161,7 @@ function AppointmentPage() {
 
     // Set read only state when paramReadOnly is passed as a parameter
     useEffect(() => {
-        if (paramReadOnly && paramReadOnly.toLowerCase() === 'true') {
+        if (paramReadOnly && paramReadOnly.toLowerCase() === 'true' || userRole !== 'doctor') {
             setReadOnly(true);
         }
     }, [paramReadOnly]);
@@ -348,6 +356,55 @@ function AppointmentPage() {
         }
     };
 
+
+    const handleIconClick = (type) => {
+        // If a list is already showing, close it first to ensure clean state
+        if (showList) {
+            setShowList(false);
+            // Small delay to allow state to clear
+            setTimeout(() => {
+                setActiveListType(type);
+                setShowList(true);
+            }, 100);
+        } else {
+            setActiveListType(type);
+            setShowList(true);
+        }
+    };
+
+    const handleMinimizeClick = () => {
+        setShowList(false);
+    };
+
+    const handleListSave = async (type, data) => {
+
+        try {
+            // Create the update object with the correct field
+            const updateData = {
+                [type]: data
+            };
+
+            const response = await api.patch(`/api/user/${patientId}/`, updateData);
+            if (response.status === 200) {
+                // Update local state based on type
+                setPatient(prev => ({
+                    ...prev,
+                    [type]: data
+                }));
+
+                // If it's prescriptions, update that state separately
+                if (type === 'prescriptions') {
+                    setPrescriptions(data);
+                }
+
+                toast.success(`${type.replace(/^./, char => char.toUpperCase())} updated successfully`);
+            }
+        } catch (error) {
+            toast.error("Failed to update data:", error);
+        }
+    };
+
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-full">
@@ -455,153 +512,182 @@ function AppointmentPage() {
                                     <h3 className="font-semibold line-clamp-2 break-words text-gray-700 dark:text-white">Respiratory Rate</h3>
                                 </div>
                                 <h1 className="text-3xl font-bold flex flex-col items-center text-foreground">{appointment?.resp_rate || "0"}
-                                    <span className="text-gray-500 dark:text-gray-400 text-lg">BPM</span>
+                                    <span className="text-gray-500 dark:text-gray-400 text-lg">BrPM</span>
                                 </h1>
                             </div>
                         </div>
                     </Card>
-                    {/* Diagnoses */}
-                    <Card className="bg-background p-4 rounded-lg shrink flex flex-col border-none">
-                        <div className="flex flex-row justify-between mb-2">
-                            <span className="text-lg font-semibold mb-2 ml-1">Diagnoses</span>
-                            {!readOnly && (
-                                <Button
-                                    className="size-8"
-                                    size="icon"
-                                    variant={"secondary"}
-                                    onClick={() => { setSelectedDiagnosis(null); setDiagnosisDialogOpen(true); }}
-                                >
-                                    <Plus size={20} />
-                                </Button>
-                            )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 overflow-y-auto max-h-32">
-                            {diagnoses?.map((diagnosis) => (
-                                <div key={diagnosis.key} className="bg-background-hover rounded-md p-4 flex flex-row justify-between">
-                                    <div className="self-center">
-                                        <div className="flex flex-row mb-1 self-center">
-
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <span className="font-semibold line-clamp-1 break-all">{diagnosis?.diagnosis_name}</span>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>{diagnosis?.diagnosis_name}</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                            {/* Primary or secondary diagnosis */}
-                                            <Badge className="text-white ml-4">{diagnosis?.diagnosis_type}</Badge>
-                                        </div>
-                                    </div>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button
-                                                variant={"ghost"}
-                                                className="self-center w-10 h-10 ml-2"
-                                            >
-                                                <Ellipsis />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuItem
-                                                onClick={() => handleEditDiagnosis(diagnosis)}
-                                            >
-                                                Edit
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                className="text-red-500 focus:text-red-500"
-                                                onClick={() => handleDeleteDiagnosis(diagnosis)}
-                                            >
-                                                Delete
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                    {!showList ? (
+                        <>
+                            {/* Diagnoses */}
+                            <Card className="bg-background p-4 rounded-lg shrink flex flex-col border-none">
+                                <div className="flex flex-row justify-between mb-2">
+                                    <span className="text-lg font-semibold mb-2 ml-1">Diagnoses</span>
+                                    {!readOnly && (
+                                        <Button
+                                            className="size-8"
+                                            size="icon"
+                                            variant="secondary"
+                                            onClick={() => {
+                                                setSelectedDiagnosis(null);
+                                                setDiagnosisDialogOpen(true);
+                                            }}
+                                        >
+                                            <Plus size={20} />
+                                        </Button>
+                                    )}
                                 </div>
-                            ))}
-                        </div>
-                    </Card>
-                    {/* Care Plan */}
-                    <Card className="bg-background p-4 rounded-lg shrink flex flex-col border-none">
-                        <div className="flex flex-row justify-between mb-2">
-                            <span className="text-lg font-semibold mb-2 ml-1">Care Plan</span>
-                            {!readOnly && (
-                                <Button
-                                    className="size-8"
-                                    variant={"secondary"}
-                                    onClick={() => { setSelectedCarePlan(null); setCarePlanDialogOpen(true); }}
-                                >
-                                    <Plus size={20} />
-                                </Button>
-                            )}
-                        </div>
-                        {/* List of plans */}
-                        <div className="grid grid-cols-2 gap-4 overflow-y-auto max-h-60">
-                            {carePlans?.map((plan) => (
-                                <div key={plan.key} className="bg-background-hover rounded-md p-4 flex flex-row justify-between mb-2">
-                                    <div className="self-center">
-                                        <div className="flex flex-row mb-1">
 
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <span className="font-semibold line-clamp-1 break-all">{plan.care_plan_title}</span>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>{plan.care_plan_title}</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                            {/* Type of consult */}
-                                            <Badge className="text-white ml-4">{plan.care_plan_type}</Badge>
+                                <div className="grid grid-cols-2 gap-4 overflow-y-auto max-h-32">
+                                    {diagnoses?.map((diagnosis) => (
+                                        <div key={diagnosis.key} className="bg-background-hover rounded-md p-4 flex flex-row justify-between">
+                                            <div className="self-center">
+                                                <div className="flex flex-row mb-1 self-center">
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <span className="font-semibold line-clamp-1 break-all">
+                                                                {diagnosis?.diagnosis_name}
+                                                            </span>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>{diagnosis?.diagnosis_name}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                    {/* Primary or secondary diagnosis */}
+                                                    <Badge className="text-white ml-4">{diagnosis?.diagnosis_type}</Badge>
+                                                </div>
+                                            </div>
+
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" className="self-center w-10 h-10 ml-2">
+                                                        <Ellipsis />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent>
+                                                    <DropdownMenuItem onClick={() => handleEditDiagnosis(diagnosis)}>
+                                                        Edit
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        className="text-red-500 focus:text-red-500"
+                                                        onClick={() => handleDeleteDiagnosis(diagnosis)}
+                                                    >
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
-                                        {plan.additional_instructions && <div className="flex flex-row">
-                                            <CornerDownRight className="" size={16} />
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <span className="text-sm ml-2 line-clamp-1 break-all">{plan.additional_instructions}</span>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>{plan.additional_instructions}</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </div>}
-                                    </div>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button
-                                                variant={"ghost"}
-                                                className="self-center w-10 h-10 ml-2"
-                                            >
-                                                <Ellipsis />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuItem
-                                                onClick={() => handleEditCarePlan(plan)}
-                                            >
-                                                Edit
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                className="text-red-500 focus:text-red-500"
-                                                onClick={() => handleDeleteCarePlan(plan)}
-                                            >
-                                                Delete
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    </Card>
-                    {/* Observations */}
-                    <Card className="bg-background p-4 rounded-lg flex flex-col border-none grow">
-                        <span className="text-lg font-semibold mb-2 ml-1 text-foreground">Notes</span>
-                        <Textarea
-                            readOnly={readOnly}
-                            value={appointment?.notes || ""}
-                            placeholder="Enter details..."
-                            className="w-full flex-grow bg-muted dark:bg-border resize-none text-foreground"
-                            onChange={(e) => handleAppointmentChange("notes", e.target.value)}
-                        />
-                    </Card>
+                            </Card>
+
+                            {/* Care Plan */}
+                            <Card className="bg-background p-4 rounded-lg shrink flex flex-col border-none">
+                                <div className="flex flex-row justify-between mb-2">
+                                    <span className="text-lg font-semibold mb-2 ml-1">Care Plan</span>
+                                    {!readOnly && (
+                                        <Button
+                                            className="size-8"
+                                            variant="secondary"
+                                            onClick={() => {
+                                                setSelectedCarePlan(null);
+                                                setCarePlanDialogOpen(true);
+                                            }}
+                                        >
+                                            <Plus size={20} />
+                                        </Button>
+                                    )}
+                                </div>
+
+                                {/* List of plans */}
+                                <div className="grid grid-cols-2 gap-4 overflow-y-auto max-h-60">
+                                    {carePlans?.map((plan) => (
+                                        <div key={plan.key} className="bg-background-hover rounded-md p-4 flex flex-row justify-between mb-2">
+                                            <div className="self-center">
+                                                <div className="flex flex-row mb-1">
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <span className="font-semibold line-clamp-1 break-all">
+                                                                {plan.care_plan_title}
+                                                            </span>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>{plan.care_plan_title}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                    {/* Type of consult */}
+                                                    <Badge className="text-white ml-4">{plan.care_plan_type}</Badge>
+                                                </div>
+                                                {plan.additional_instructions && (
+                                                    <div className="flex flex-row">
+                                                        <CornerDownRight className="" size={16} />
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <span className="text-sm ml-2 line-clamp-1 break-all">
+                                                                    {plan.additional_instructions}
+                                                                </span>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <p>{plan.additional_instructions}</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" className="self-center w-10 h-10 ml-2">
+                                                        <Ellipsis />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent>
+                                                    <DropdownMenuItem onClick={() => handleEditCarePlan(plan)}>
+                                                        Edit
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        className="text-red-500 focus:text-red-500"
+                                                        onClick={() => handleDeleteCarePlan(plan)}
+                                                    >
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card>
+
+                            {/* Observations */}
+                            <Card className="bg-background p-4 rounded-lg flex flex-col border-none grow">
+                                <span className="text-lg font-semibold mb-2 ml-1 text-foreground">Notes</span>
+                                <Textarea
+                                    readOnly={readOnly}
+                                    value={appointment?.notes || ""}
+                                    placeholder="Enter details..."
+                                    className="w-full flex-grow bg-muted dark:bg-border resize-none text-foreground"
+                                    onChange={(e) => handleAppointmentChange("notes", e.target.value)}
+                                />
+                            </Card>
+                        </>
+                    ) : (
+                        <Card className="bg-background p-4 rounded-lg flex-grow flex flex-col border-none">
+                            <PatientProfileList
+                                readOnly={userRole !== "doctor"}
+                                onClickMinimize={handleMinimizeClick}
+                                title={activeListType === 'allergies' ? 'Allergies' :
+                                    activeListType === 'prescriptions' ? 'Prescriptions' :
+                                        activeListType === 'past_surgeries' ? 'Surgeries' :
+                                            'Chronic Conditions'}
+                                initialData={activeListType === 'prescriptions' ? prescriptions :
+                                    activeListType === 'allergies' ? patient?.allergies :
+                                        activeListType === 'past_surgeries' ? patient?.past_surgeries :
+                                            patient?.chronic_conditions || {}}
+                                onSave={handleListSave}
+                                type={activeListType}
+                            />
+                        </Card>
+                    )}
                 </div>
             </div>
 
@@ -704,17 +790,6 @@ function AppointmentPage() {
                         title="Allergies"
                         data={patient?.allergies || {}}
                         onClickIcon={() => console.log("Allergies icon clicked")}
-                        onClickSelf={() => console.log("Allergies clicked")}
-                        className="flex-grow"
-                    />
-                </div>
-                <div className="max-w-64">
-                    <CompactListBox
-                        displayAsBadges={true}
-                        title="Prescriptions"
-                        data={["Medicine A", "23y", "23y", "Medicine B"]}
-                        onClickIcon={() => console.log("Current Medications icon clicked")}
-                        onClickSelf={() => console.log("Current Medications clicked")}
                         className="flex-grow"
                     />
                 </div>
@@ -722,9 +797,17 @@ function AppointmentPage() {
                     <CompactListBox
                         displayAsBadges={true}
                         title="Surgeries"
-                        data={["F", "23y", "23y", "O+"]}
-                        onClickIcon={() => console.log("Surgeries icon clicked")}
-                        onClickSelf={() => console.log("Surgeries clicked")}
+                        data={patient?.past_surgeries || {}}
+                        onClickIcon={() => handleIconClick('past_surgeries')}
+                        className="flex-grow"
+                    />
+                </div>
+                <div className="max-w-64">
+                    <CompactListBox
+                        displayAsBadges={true}
+                        title="Chronic Conditions"
+                        data={patient?.chronic_conditions || {}}
+                        onClickIcon={() => handleIconClick('chronic_conditions')}
                         className="flex-grow"
                     />
                 </div>
@@ -740,7 +823,7 @@ function AppointmentPage() {
                         </div>
                         <Button
                             className="w-full"
-                            onClick={saveAppointment}
+                            onClick={() => saveAppointment(false)}
                             disabled={loading}
                         >
                             {loading ? (

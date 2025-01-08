@@ -417,7 +417,7 @@ function PatientAppointments() {
                           {appointment?.resp_rate || "0"}
                         </span>
                         <span className="text-sm text-gray-500 dark:text-gray-400">
-                          BPM
+                          BrPM
                         </span>
                       </div>
                     </div>

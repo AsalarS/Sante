@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from 'react-router-dom';
 import { Loader2 } from "lucide-react";
 import api from "@/api";
@@ -11,28 +11,29 @@ function PatientsPage() {
   const { patientId } = useParams();
   const userRole = localStorage.getItem('role');
   const navigate = useNavigate();
+  const refreshRef = useRef(null);
 
   const handlePatientSelect = (patientId) => {
     navigate(`/${userRole}/patients/${patientId}`);
   };
 
-  useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        const response = await api.get('/api/users/patients/');
-        if (response.status === 200) {
-          const users = response.data;
-          setPatients(users);
-        } else {
-          console.error('Failed to fetch users:', response.statusText);
-        }
-      } catch (error) {
-        console.error('Failed to fetch users:', error);
-      } finally {
-        setLoading(false);
+  const fetchPatients = async () => {
+    try {
+      const response = await api.get('/api/users/patients/');
+      if (response.status === 200) {
+        const users = response.data;
+        setPatients(users);
+      } else {
+        console.error('Failed to fetch users:', response.statusText);
       }
-    };
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchPatients();
   }, []);
 
@@ -62,6 +63,7 @@ function PatientsPage() {
         patients={patients}
         selectedPatientId={patientId ? parseInt(patientId) : null}
         handlePatientSelect={handlePatientSelect}
+        fetchPatients={fetchPatients}
       />
       <div className="grow">
         {patientId ? (

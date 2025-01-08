@@ -141,7 +141,7 @@ export function AppointmentVitalsDialog({
             step={1}
             allowNegative={false}
             prefix=""
-            suffix=" BPM"
+            suffix=" BrPM"
           />
         </div>
 

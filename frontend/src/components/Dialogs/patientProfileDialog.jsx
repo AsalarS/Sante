@@ -11,8 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import PhoneInput from "../ui/phoneInput";
-import api from "@/api";
-import { toast } from "sonner";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../ui/select";
 
 const PatientProfileDialog = ({ open, onClose, patientData, onSave }) => {
     const [formData, setFormData] = useState(patientData || {});
@@ -78,10 +77,27 @@ const PatientProfileDialog = ({ open, onClose, patientData, onSave }) => {
                     </div>
                     <div>
                         <Label>Blood Type</Label>
-                        <Input
+                        <Select
                             value={formData.blood_type || ""}
-                            onChange={(e) => handleChange("blood_type", e.target.value)}
-                        />
+                            onValueChange={(value) => handleChange("blood_type", value)}
+                        >
+                            <SelectTrigger className="">
+                                <SelectValue placeholder="Select Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectLabel>Blood Types</SelectLabel>
+                                    <SelectItem value="A+">A+</SelectItem>
+                                    <SelectItem value="A-">A-</SelectItem>
+                                    <SelectItem value="B+">B+</SelectItem>
+                                    <SelectItem value="B-">B-</SelectItem>
+                                    <SelectItem value="AB+">AB+</SelectItem>
+                                    <SelectItem value="AB-">AB-</SelectItem>
+                                    <SelectItem value="O+">O+</SelectItem>
+                                    <SelectItem value="O-">O-</SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div>
                         <Label>E.C. Name</Label>
@@ -101,7 +117,8 @@ const PatientProfileDialog = ({ open, onClose, patientData, onSave }) => {
                         <Label>CPR Number</Label>
                         <Input
                             value={formData.CPR_number || ""}
-                            readOnly
+                            onChange={(e) => handleChange("CPR_number", e.target.value.replace(/\D/g, ''))}
+                            maxLength={9}
                         />
                     </div>
                     <div>

@@ -1,47 +1,24 @@
 import CompactListBox from "@/components/compactListBox";
-import PatientList from "@/components/patientList";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Copy, Ellipsis, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "@/api";
 import { apiRequest, calculateAge } from "@/utility/generalUtility";
-import { format } from "date-fns";
 import PatientProfileDialog from "@/components/Dialogs/patientProfileDialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
+import PatientProfileTables from "@/components/patientProfileTables";
+import PatientList from "@/components/patientList";
+import PatientProfileList from "@/components/patientProfileList";
 
-const statusColors = {
-  Scheduled: "bg-primary/20 text-primary font-semibold",
-  Completed: "bg-green-400/20 text-green-400 font-semibold",
-  Cancelled: "bg-red-400/20 text-red-400 font-semibold",
-  "No Show": "bg-orange-400/20 text-orange-400 font-semibold",
-};
 
 function PatientProfile({ patientId }) {
   const navigate = useNavigate();
@@ -52,86 +29,90 @@ function PatientProfile({ patientId }) {
   const [diagnoses, setDiagnoses] = useState([]);
   const [prescriptions, setPrescriptions] = useState({});
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [activeListType, setActiveListType] = useState(null);
+  const [showProfileList, setShowProfileList] = useState(false);
   const userRole = localStorage.getItem("role");
 
+  const fetchPatientData = async () => {
+    try {
+      const response = await api.get(`/api/user/${patientId}/`);
+      if (response.status === 200) {
+        const patient = response.data;
+        setPatient(patient);
+      } else {
+        console.error("Failed to fetch users:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const fetchAppointments = async () => {
+    try {
+      const response = await api.get(`/api/patient/appointments/${patientId}/`);
+      if (response.status === 200) {
+        const appointmentData = response.data;
+        setAppointments(appointmentData);
+      } else {
+        console.error("Failed to fetch appointments:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Failed to fetch appointments:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCarePlans = async () => {
+    try {
+      const response = await api.get(`/api/careplans/user/${patientId}/`);
+      if (response.status === 200) {
+        const carePlanData = response.data;
+        setCarePlans(carePlanData);
+      } else {
+        console.error("Failed to fetch care plans:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Failed to fetch care plans:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDiagnoses = async () => {
+    try {
+      const response = await apiRequest(`/api/diagnoses/user/${patientId}/`, "Error fetching diagnoses");
+      setDiagnoses(response);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPrescriptions = async () => {
+    try {
+      const response = await api.get(`/api/prescriptions/user/${patientId}/`);
+      if (response.status === 200) {
+        const prescriptionsData = response.data;
+        setPrescriptions(prescriptionsData);
+      } else {
+        console.error("Failed to fetch prescriptions:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Failed to fetch prescriptions:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchPatientData = async () => {
-      try {
-        const response = await api.get(`/api/user/${patientId}/`);
-        if (response.status === 200) {
-          const patient = response.data;
-          setPatient(patient);
-        } else {
-          console.error("Failed to fetch users:", response.statusText);
-        }
-      } catch (error) {
-        console.error("Failed to fetch users:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    const fetchAppointments = async () => {
-      try {
-        const response = await api.get(`/api/patient/appointments/${patientId}/`);
-        if (response.status === 200) {
-          const appointmentData = response.data;
-          setAppointments(appointmentData);
-        } else {
-          console.error("Failed to fetch appointments:", response.statusText);
-        }
-      } catch (error) {
-        console.error("Failed to fetch appointments:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const fetchCarePlans = async () => {
-      try {
-        const response = await api.get(`/api/careplans/user/${patientId}/`);
-        if (response.status === 200) {
-          const carePlanData = response.data;
-          setCarePlans(carePlanData);
-        } else {
-          console.error("Failed to fetch care plans:", response.statusText);
-        }
-      } catch (error) {
-        console.error("Failed to fetch care plans:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const fetchDiagnoses = async () => {
-      try {
-        const response = await apiRequest(`/api/diagnoses/user/${patientId}/`, "Error fetching diagnoses");
-        setDiagnoses(response);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const fetchPrescriptions = async () => {
-      try {
-        const response = await api.get(`/api/prescriptions/user/${patientId}/`);
-        if (response.status === 200) {
-          const prescriptionsData = response.data;
-          setPrescriptions(prescriptionsData);
-        } else {
-          console.error("Failed to fetch prescriptions:", response.statusText);
-        }
-      } catch (error) {
-        console.error("Failed to fetch prescriptions:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     // Fetch data
     fetchDiagnoses();
     fetchAppointments();
     fetchCarePlans();
-    fetchPrescriptions();
+    if (userRole === "doctor") {
+      fetchPrescriptions();
+    }
     fetchPatientData();
   }, [patientId]);
 
@@ -188,6 +169,67 @@ function PatientProfile({ patientId }) {
 
   const handleNotesChange = (field, value) => {
     setPatient((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleCompleteCareplan = async (careplanId) => {
+    try {
+      const response = await api.post(`/api/careplans/${careplanId}/complete/`);
+      if (response.status === 200) {
+        toast.success("Care plan completed successfully");
+        fetchCarePlans();
+      } else {
+        toast.error("Failed to complete care plan");
+      }
+    } catch (error) {
+      console.error("Failed to complete care plan:", error);
+      toast.error("An error occurred while completing the care plan");
+    }
+  }
+
+  const handleIconClick = (type) => {
+    // If a list is already showing, close it first to ensure clean state
+    if (showProfileList) {
+      setShowProfileList(false);
+      // Small delay to allow state to clear
+      setTimeout(() => {
+        setActiveListType(type);
+        setShowProfileList(true);
+      }, 100);
+    } else {
+      setActiveListType(type);
+      setShowProfileList(true);
+    }
+  };
+  const handleMinimizeClick = () => {
+    setShowProfileList(false);
+  };
+
+  const handleListSave = async (type, data) => {
+
+    try {
+      // Create the update object with the correct field
+      const updateData = {
+        [type]: data
+      };
+
+      const response = await api.patch(`/api/user/${patientId}/`, updateData);
+      if (response.status === 200) {
+        // Update local state based on type
+        setPatient(prev => ({
+          ...prev,
+          [type]: data
+        }));
+
+        // If it's prescriptions, update that state separately
+        if (type === 'prescriptions') {
+          setPrescriptions(data);
+        }
+
+        toast.success(`${type.replace(/^./, char => char.toUpperCase())} updated successfully`);
+      }
+    } catch (error) {
+      toast.error("Failed to update data:", error);
+    }
   };
 
   return (
@@ -348,289 +390,39 @@ function PatientProfile({ patientId }) {
             </CardContent>
           </Card>
           <Card className="bg-background p-4 rounded-lg flex-grow flex flex-col border-none">
-            <Tabs defaultValue={userRole != "nurse" ? "appointments" : "care_plans"}>
-              <TabsList className="w-full grid grid-cols-4 mb-4">
-                <TabsTrigger value="appointments">Appointments</TabsTrigger>
-                <TabsTrigger value="care_plans">Care Plans</TabsTrigger>
-                <TabsTrigger value="diagnoses">Diagnoses</TabsTrigger>
-                <TabsTrigger value="Information">Information</TabsTrigger>
-              </TabsList>
-
-              {/* Appointment Tab */}
-              <TabsContent value="appointments">
-                <div className="overflow-y-auto max-h-[31rem] rounded-md">
-                  <Table className="w-full">
-                    <TableHeader>
-                      <TableRow className="border-border">
-                        <TableHead className="sticky top-0 z-10 text-left">
-                          Doctor Name
-                        </TableHead>
-                        <TableHead className="sticky top-0 z-10 text-left">
-                          Date
-                        </TableHead>
-                        <TableHead className="sticky top-0 z-10 text-left">
-                          Time
-                        </TableHead>
-                        <TableHead className="sticky top-0 z-10 text-center">
-                          Status
-                        </TableHead>
-                        <TableHead className="sticky top-0 z-10 text-center">
-                          Follow Up
-                        </TableHead>
-                        <TableHead className="sticky top-0 z-10">
-                          Actions
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {appointments?.map((appointment) => (
-                        <TableRow
-                          key={appointment.id}
-                          className="border-border"
-                        >
-                          <TableCell>{appointment.doctor?.first_name} {appointment.doctor?.last_name}</TableCell>
-                          <TableCell>{appointment.appointment_date}</TableCell>
-                          <TableCell>{format(new Date(`1970-01-01T${appointment.appointment_time}`), "HH:mm")}</TableCell>
-                          <TableCell>
-                            <div
-                              className={`px-2 py-1 text-sm  text-center rounded-md ${statusColors[appointment.status]
-                                }`}
-                            >
-                              {appointment.status}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {appointment.follow_up_required ? "Yes" : "No"}
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                >
-                                  <Ellipsis className="text-foreground" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent>
-                                <DropdownMenuItem className="flex flex-row justify-between" onClick={() => handleCopyId(appointment.id)}>
-                                  Copy ID <Copy />
-                                </DropdownMenuItem>
-                                {/* TODO: Add edit functioanlity */}
-                                {/* Open the appointment and pass user id and if the user is a nurse pass readonly*/}
-                                {(userRole.toLowerCase() === "doctor" || userRole.toLowerCase() === "nurse") && (appointment.status === "Scheduled" || appointment.status === "Completed") && (
-                                  <DropdownMenuItem
-                                    onClick={() => {
-                                      const state = { patientId: patient?.id };
-                                      if (userRole.toLowerCase() === "nurse") {
-                                        state.paramReadOnly = true;
-                                      }
-                                      navigate(`/${userRole}/patients/appointment/${appointment.id}`, { state });
-                                    }}
-                                  >
-                                    Open
-                                  </DropdownMenuItem>
-                                )}
-                                {appointment.status != "Cancelled" &&
-                                  (
-                                    <>
-                                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                                      <DropdownMenuItem className="text-red-500 focus:text-red-500" onClick={() => handleCancelAppointment(appointment.id)}>
-                                        Cancel
-                                      </DropdownMenuItem>
-                                    </>)
-                                }
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </TabsContent>
-
-              {/* Care Plan Tab */}
-              <TabsContent value="care_plans">
-                <div className="overflow-y-auto max-h-[31rem] rounded-md">
-                  <Table className="w-full">
-                    <TableHeader>
-                      <TableRow className="border-border">
-                        <TableHead>Title</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Done By</TableHead>
-                        <TableHead>Date Done</TableHead>
-                        <TableHead>Instructions</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {carePlans?.map((plan) => (
-                        <TableRow key={plan.id} className="border-border">
-                          <TableCell className="line-clamp-2 break-words">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div>
-                                  {plan.care_plan_title}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{plan.care_plan_title}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TableCell>
-                          <TableCell>
-                            <div
-                              className={`px-2 py-1 text-sm text-center rounded-md ${{
-                                Immediate: "bg-primary/20 text-primary",
-                                "Long-term": "bg-chart-5/20 text-chart-5",
-                              }[plan.care_plan_type]
-                                }`}>
-                              {plan.care_plan_type}
-                            </div></TableCell>
-                          <TableCell>{plan.date}</TableCell>
-                          <TableCell>{plan.done_by?.first_name} {plan.done_by?.last_name}</TableCell>
-                          <TableCell>{plan.date_of_completion}</TableCell>
-                          <TableCell className="line-clamp-2 break-words max-w-44">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div>
-                                  {plan.additional_instructions}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{plan.additional_instructions}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                >
-                                  <Ellipsis className="text-foreground" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent>
-                                <DropdownMenuItem className="flex flex-row justify-between" onClick={() => handleCopyId(plan.id)}>
-                                  Copy ID <Copy />
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-green-500 focus:text-green-600">Complete</DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </TabsContent>
-
-              {/* Diagnoses Tab */}
-              <TabsContent value="diagnoses">
-                <div className="overflow-y-auto max-h-[31rem] rounded-md">
-                  <Table className="w-full">
-                    <TableHeader>
-                      <TableRow className="border-border">
-                        <TableHead>Diagnosis</TableHead>
-                        <TableHead className="text-center">Type</TableHead>
-                        <TableHead>Diagnosed By</TableHead>
-                        <TableHead>Diagnosis Date</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {diagnoses?.map((diagnosis) => (
-                        <TableRow key={diagnosis.id} className="border-border">
-                          <TableCell className="line-clamp-1 break-words">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div>
-                                  {diagnosis.diagnosis_name}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{diagnosis.diagnosis_name}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TableCell>
-                          <TableCell>
-                            <div
-                              className={`px-2 py-1 text-sm text-center rounded-md ${{
-                                Primary: "bg-primary/20 text-primary",
-                                Secondary: "bg-chart-5/20 text-chart-5",
-                              }[diagnosis.diagnosis_type]
-                                }`}
-                            >
-                              {diagnosis.diagnosis_type}
-                            </div>
-                          </TableCell>
-                          <TableCell>{diagnosis.diagnosed_by?.first_name} {diagnosis.diagnosed_by?.last_name}</TableCell>
-                          <TableCell>
-                            {diagnosis.date}
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost">
-                                  <Ellipsis className="text-foreground" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent>
-                                <DropdownMenuItem className="flex flex-row justify-between" onClick={() => handleCopyId(diagnosis.id)}>
-                                  Copy ID <Copy />
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </TabsContent>
-              <TabsContent value="Information">
-                <div className="p-4 flex flex-col gap-4 grow h-full">
-                  <div className="">
-                    <h3 className="font-medium text-foreground mb-2 ">
-                      Patient Notes
-                    </h3>
-                    <Textarea
-                      placeholder="Enter notes..."
-                      className="w-full min-h-28 flex-grow bg-border/50 resize-none text-foreground text-sm"
-                      value={patient?.patient_notes || ""}
-                      onChange={(e) => handleNotesChange("patient_notes", e.target.value)}
-                      readOnly={userRole !== "doctor"}
-                    />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-foreground mb-2">
-                      Family History
-                    </h3>
-                    <Textarea
-                      placeholder="Enter notes..."
-                      className="w-full min-h-28 flex-grow bg-border/50 resize-none text-foreground text-sm"
-                      value={patient?.family_history || ""}
-                      onChange={(e) => handleNotesChange("family_history", e.target.value)}
-                      readOnly={userRole !== "doctor"}
-                    />
-                  </div>
-                  {
-                    userRole === "doctor" && (
-                      <Button className="w-32 self-end mt-2" onClick={() => handleSave(patient)}>
-                        Update
-                      </Button>
-                    )
-                  }
-                </div>
-              </TabsContent>
-            </Tabs>
+            {showProfileList ? (
+              <PatientProfileList
+                readOnly={userRole !== "doctor"}
+                onClickMinimize={handleMinimizeClick}
+                title={activeListType === 'allergies' ? 'Allergies' :
+                  activeListType === 'prescriptions' ? 'Prescriptions' :
+                    activeListType === 'past_surgeries' ? 'Surgeries' :
+                      'Chronic Conditions'}
+                initialData={activeListType === 'prescriptions' ? prescriptions :
+                  activeListType === 'allergies' ? patient?.allergies :
+                    activeListType === 'past_surgeries' ? patient?.past_surgeries :
+                      patient?.chronic_conditions || {}}
+                onSave={handleListSave}
+                type={activeListType}
+              />
+            ) : (
+              <PatientProfileTables
+                appointments={appointments}
+                patient={patient}
+                carePlans={carePlans}
+                diagnoses={diagnoses}
+                handleCopyId={handleCopyId}
+                handleCancelAppointment={handleCancelAppointment}
+                handleNotesChange={handleNotesChange}
+                handleSave={handleSave}
+                handleCompleteCareplan={handleCompleteCareplan}
+              />
+            )}
           </Card>
         </div>
 
         {/* Right Section (Sidebar) */}
-        {userRole === "doctor" && (
+        {(userRole === "doctor" || userRole === "nurse") && (
           <div className="flex flex-col space-y-4 min-w-2/12 overflow-y-auto">
             {/* Patient  Medical Information */}
             <div className="max-w-64">
@@ -638,30 +430,25 @@ function PatientProfile({ patientId }) {
                 displayAsBadges={true}
                 title="Allergies"
                 data={patient?.allergies || {}}
-                onClickIcon={() => console.log("Allergies icon clicked")}
-                onClickSelf={() => console.log("Allergies clicked")}
+                onClickIcon={() => handleIconClick('allergies')}
                 className="flex-grow"
               />
             </div>
-            <div className="max-w-64">
+            {/* <div className="max-w-64">
               <CompactListBox
                 displayAsBadges={true}
                 title="Prescriptions"
                 data={prescriptions}
-                onClickIcon={() =>
-                  console.log("Current Medications icon clicked")
-                }
-                onClickSelf={() => console.log("Current Medications clicked")}
+                onClickIcon={() => handleIconClick('prescriptions')}
                 className="flex-grow"
               />
-            </div>
+            </div> */}
             <div className="max-w-64">
               <CompactListBox
                 displayAsBadges={true}
                 title="Surgeries"
                 data={patient?.past_surgeries || {}}
-                onClickIcon={() => console.log("Surgeries icon clicked")}
-                onClickSelf={() => console.log("Surgeries clicked")}
+                onClickIcon={() => handleIconClick('past_surgeries')}
                 className="flex-grow"
               />
             </div>
@@ -670,22 +457,23 @@ function PatientProfile({ patientId }) {
                 displayAsBadges={true}
                 title="Chronic Conditions"
                 data={patient?.chronic_conditions || {}}
-                onClickIcon={() => console.log("Surgeries icon clicked")}
-                onClickSelf={() => console.log("Surgeries clicked")}
+                onClickIcon={() => handleIconClick('chronic_conditions')}
                 className="flex-grow"
               />
             </div>
-            <div className="max-w-64 p-4 bg-background rounded-lg shadow-md flex flex-col gap-4">
-              <Button className="w-full">Generate Documents</Button>
-              <Button
-                className="w-full"
-                onClick={() => navigate("/doctor/patients/appointment/", {
-                  state: { patientId: patient?.id },
-                })}
-              >
-                New Appointment
-              </Button>
-            </div>
+            {userRole === "doctor" && (
+              <div className="max-w-64 p-4 bg-background rounded-lg shadow-md flex flex-col gap-4">
+                <Button className="w-full">Generate Documents</Button>
+                <Button
+                  className="w-full"
+                  onClick={() => navigate("/doctor/patients/appointment/", {
+                    state: { patientId: patient?.id },
+                  })}
+                >
+                  New Appointment
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>

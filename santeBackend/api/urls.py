@@ -30,6 +30,7 @@ urlpatterns = [
     # Careplans
     path('careplans/user/<int:user_id>/', CarePlansByUserView.as_view(), name='careplans_by_user'),
     path('appointments/careplans/<uuid:appointment_id>/', CarePlanByAppointmentView.as_view(), name='careplan_by_appointment'),
+    path('careplans/<uuid:careplan_id>/complete/', completeCareplan, name='complete_careplan'),
 
     # Diagnoses
     path('diagnoses/user/<int:user_id>/', DiagnosesByUserView.as_view(), name='diagnoses_by_user'),
