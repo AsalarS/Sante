@@ -142,6 +142,10 @@ function App() {
             <Route path="chat" element={<ChatsAdminPage />} />
             <Route path="chat/messages/:chatID" element={<ChatMessagesPage />} />
             <Route path="logs" element={<LogAdminPage />} />
+            <Route path="patients" element={<PatientsPage />} />
+            <Route path="patients/:patientId" element={<PatientsPage />} />
+            <Route path="patients/appointment/:id" element={<AppointmentPage />} />
+            <Route path="patients/appointment" element={<AppointmentPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="messages/:chatID" element={<MessagesPage />} />
             <Route path="help" element={<HelpPage />} />

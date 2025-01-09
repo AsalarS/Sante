@@ -50,6 +50,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useNavigate } from "react-router-dom";
 
 export const statusColors = {
   Scheduled: "bg-primary/20 text-primary font-semibold",
@@ -185,6 +186,7 @@ export const columns: ColumnDef<Appointment>[] = [
     id: "actions",
     cell: ({ row }) => {
       const appointment = row.original;
+      const navigate = useNavigate();
       const [isAlertOpen, setIsAlertOpen] = useState(false);
 
       return (
@@ -200,8 +202,8 @@ export const columns: ColumnDef<Appointment>[] = [
             <DropdownMenuContent>
               <DropdownMenuItem
                 onClick={() => {
-                  // Handle view details
-                }}
+                  navigate(`/admin/patients/appointment/${appointment.id}`);
+              }}
               >
                 View Details
               </DropdownMenuItem>
@@ -254,6 +256,7 @@ export function AppointmentsAdminPage() {
   const [rowSelection, setRowSelection] = useState({});
   const [currentPage, setCurrentPage] = useState(1); // Track current page
   const [totalPages, setTotalPages] = useState(1); // Track total pages
+  const navigate = useNavigate();
 
   const fetchAppointments = async (page = 1) => { // Fetch all appointments from the API
     try {
@@ -346,6 +349,7 @@ export function AppointmentsAdminPage() {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  onClick={() => navigate(`/admin/patients/appointment/${row.original.id}`)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="text-foreground">

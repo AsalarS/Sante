@@ -27,48 +27,6 @@ class PrescriptionsByUserView(APIView):
         serializer = PrescriptionSerializer(prescriptions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def patch(self, request, user_id):
-        user = request.user
-
-        # Check if the logged-in user has the appropriate role
-        if user.role not in ['admin', 'nurse', 'doctor']:
-            return Response({"error": "You do not have permission to update these prescriptions."}, status=status.HTTP_403_FORBIDDEN)
-
-        patient = get_object_or_404(Patient, user__id=user_id)
-        prescriptions = Prescription.objects.filter(
-            appointment__patient=patient)
-        data = request.data
-
-        for prescription in prescriptions:
-            serializer = PrescriptionSerializer(
-                prescription, data=data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                log_to_db(request, "UPDATE: Prescription",
-                          f"Prescription {prescription.id} updated for patient {patient.user.email}")
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response({"message": "Prescriptions updated successfully"}, status=status.HTTP_200_OK)
-
-    def delete(self, request, user_id):
-        user = request.user
-
-        # Check if the logged-in user has the appropriate role
-        if user.role not in ['admin', 'nurse', 'doctor']:
-            return Response({"error": "You do not have permission to delete these prescriptions."}, status=status.HTTP_403_FORBIDDEN)
-
-        patient = get_object_or_404(Patient, user__id=user_id)
-        prescriptions = Prescription.objects.filter(
-            appointment__patient=patient)
-
-        for prescription in prescriptions:
-            log_to_db(request, "DELETE: Prescription",
-                      f"Prescription {prescription.id} deleted for patient {patient.user.email}")
-            prescription.delete()
-
-        return Response({"message": "Prescriptions deleted successfully"}, status=status.HTTP_200_OK)
-
 
 class PrescriptionByAppointmentView(APIView):
     permission_classes = [IsAuthenticated]
@@ -91,46 +49,57 @@ class PrescriptionByAppointmentView(APIView):
         prescriptions = Prescription.objects.filter(appointment=appointment)
         serializer = PrescriptionSerializer(prescriptions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def patch(self, request, appointment_id):
+    
+    def post(self, request, appointment_id):
         user = request.user
 
         # Check if the logged-in user has the appropriate role
-        if user.role not in ['admin', 'nurse', 'doctor']:
-            return Response({"error": "You do not have permission to update these prescriptions."}, status=status.HTTP_403_FORBIDDEN)
+        if user.role not in ['admin', 'doctor']:
+            return Response({"error": "You do not have permission to create these prescriptions."}, status=status.HTTP_403_FORBIDDEN)
 
         appointment = get_object_or_404(Appointment, id=appointment_id)
-        prescriptions = Prescription.objects.filter(appointment=appointment)
         data = request.data
+        data['appointment'] = appointment.id
 
-        for prescription in prescriptions:
-            serializer = PrescriptionSerializer(
-                prescription, data=data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                log_to_db(request, "UPDATE: Prescription",
-                          f"Prescription {prescription.id} updated for appointment {appointment.id}")
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = PrescriptionSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            log_to_db(request, "CREATE: Prescription", f"Prescription created for appointment {appointment.id}")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"message": "Prescriptions updated successfully"}, status=status.HTTP_200_OK)
+class PrescriptionView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    def delete(self, request, appointment_id):
+    def delete(self, request, prescription_id):
         user = request.user
 
         # Check if the logged-in user has the appropriate role
-        if user.role not in ['admin', 'nurse', 'doctor']:
+        if user.role not in ['admin', 'doctor']:
             return Response({"error": "You do not have permission to delete these prescriptions."}, status=status.HTTP_403_FORBIDDEN)
 
-        appointment = get_object_or_404(Appointment, id=appointment_id)
-        prescriptions = Prescription.objects.filter(appointment=appointment)
+        prescription = get_object_or_404(Prescription, id=prescription_id)
+        log_to_db(request, "DELETE: Prescription", f"Prescription {prescription.id} deleted")
+        prescription.delete()
 
-        for prescription in prescriptions:
-            log_to_db(request, "DELETE: Prescription",
-                      f"Prescription {prescription.id} deleted for appointment {appointment.id}")
-            prescription.delete()
+        return Response({"message": "Prescription deleted successfully"}, status=status.HTTP_200_OK)
+    
+    def patch(self, request, prescription_id):
+        user = request.user
 
-        return Response({"message": "Prescriptions deleted successfully"}, status=status.HTTP_200_OK)
+        if user.role not in ['admin', 'doctor']:
+            return Response({"error": "You do not have permission to update prescriptions."}, status=status.HTTP_403_FORBIDDEN)
+
+        prescription = get_object_or_404(Prescription, id=prescription_id)
+
+        serializer = PrescriptionSerializer(prescription, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            log_to_db(request, "PATCH: Prescription", f"Prescription {prescription.id} updated")
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Diagnoses Views
 

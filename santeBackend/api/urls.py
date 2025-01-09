@@ -39,6 +39,7 @@ urlpatterns = [
     # Prescriptions
     path('prescriptions/user/<int:user_id>/', PrescriptionsByUserView.as_view(), name='prescriptions_by_user'),
     path('appointments/prescriptions/<uuid:appointment_id>/', PrescriptionByAppointmentView.as_view(), name='prescription_by_appointment'),
+    path('prescriptions/<uuid:prescription_id>/', PrescriptionView.as_view(), name='delete_prescription'),
     
     # Search
     path('search/patients/', search_patients, name='search_patients'),

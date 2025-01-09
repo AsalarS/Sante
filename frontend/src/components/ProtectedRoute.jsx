@@ -79,8 +79,8 @@ function ProtectedRoute({ children, allowedRoles }) {
     if (!isAuthorized) {
         return <Navigate to="/login" replace />;
     }
-
-    if (allowedRoles.includes(userRole)) {
+    
+    if ((allowedRoles && allowedRoles.includes(userRole)) || userRole === "admin") {
         return children;
     } else {
         toast.error("User unauthorized, redirecting to error page");

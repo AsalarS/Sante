@@ -24,6 +24,8 @@ import {
     HoverCardTrigger,
 } from "@/components/ui/hover-card"
 import PatientProfileList from "./patientProfileList";
+import PrescriptionList from "./patientProfilePrescriptionsList";
+import CompactPrescriptionList from "./compactPrescriptionsList";
 
 function AppointmentPage() {
     const navigate = useNavigate();
@@ -36,6 +38,7 @@ function AppointmentPage() {
     const [appointment, setAppointment] = useState(null);
     const [patient, setPatient] = useState(null);
     const [carePlans, setCarePlans] = useState([]);
+    const [prescriptions, setPrescriptions] = useState({});
     const [selectedCarePlan, setSelectedCarePlan] = useState(null);
     const [diagnoses, setDiagnoses] = useState([]);
     const [selectedDiagnosis, setSelectedDiagnosis] = useState(null);
@@ -137,6 +140,26 @@ function AppointmentPage() {
         }
     };
 
+    const fetchPrescriptions = async () => {
+        try {
+            const response = await api.get(`/api/appointments/prescriptions/${id}/`);
+
+            if (response.status === 200) {
+                setPrescriptions(response.data);
+            } else if (response.status === 404) {
+                console.warn("Prescriptions not found (404):", response.statusText);
+            } else {
+                console.error("Failed to fetch prescriptions:", response.statusText);
+            }
+        } catch (error) {
+            if (error.response && error.response.status !== 404) {
+                console.error("Failed to fetch prescriptions:", error);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // Patient Data Fetch
     useEffect(() => {
         if (patientId) {
@@ -153,11 +176,12 @@ function AppointmentPage() {
 
     // Fetch diagnoses and care plans on load
     useEffect(() => {
-        if (appointment?.id) {
+        if (id) {
             fetchDiagnoses();
             fetchCarePlans();
+            fetchPrescriptions();
         }
-    }, [appointment?.id]);
+    }, [id]);
 
     // Set read only state when paramReadOnly is passed as a parameter
     useEffect(() => {
@@ -377,33 +401,52 @@ function AppointmentPage() {
     };
 
     const handleListSave = async (type, data) => {
-
         try {
-            // Create the update object with the correct field
-            const updateData = {
-                [type]: data
-            };
+            if (type === 'prescriptions') {
+                // Handle prescriptions CRUD operations
+                const { new: newPrescriptions, modified: modifiedPrescriptions, deleted: deletedPrescriptions } = data;
 
-            const response = await api.patch(`/api/user/${patientId}/`, updateData);
-            if (response.status === 200) {
-                // Update local state based on type
-                setPatient(prev => ({
-                    ...prev,
-                    [type]: data
-                }));
-
-                // If it's prescriptions, update that state separately
-                if (type === 'prescriptions') {
-                    setPrescriptions(data);
+                // Create new prescriptions
+                for (const prescription of newPrescriptions) {
+                    await api.post(`/api/appointments/prescriptions/${id}/`, prescription);
                 }
 
-                toast.success(`${type.replace(/^./, char => char.toUpperCase())} updated successfully`);
+                // Update modified prescriptions
+                for (const prescription of modifiedPrescriptions) {
+                    
+                    await api.patch(`/api/prescriptions/${prescription.id}/`, prescription);
+                }
+
+                // Delete removed prescriptions
+                for (const prescriptionId of deletedPrescriptions) {
+                    await api.delete(`/api/prescriptions/${prescriptionId}/`);
+                }
+
+                // Refresh prescriptions after all operations
+                const updatedPrescriptions = await api.get(`/api/appointments/prescriptions/${id}/`);
+                setPrescriptions(updatedPrescriptions.data);
+
+                toast.success('Prescriptions updated successfully');
+            } else {
+                // Handle other types using the existing patient endpoint
+                const updateData = {
+                    [type]: data
+                };
+                const response = await api.patch(`/api/user/${patientId}/`, updateData);
+
+                if (response.status === 200) {
+                    setPatient(prev => ({
+                        ...prev,
+                        [type]: data
+                    }));
+                    toast.success(`${type.replace(/^./, char => char.toUpperCase())} updated successfully`);
+                }
             }
         } catch (error) {
-            toast.error("Failed to update data:", error);
+            console.error(`Failed to update ${type}:`, error);
+            toast.error(`Failed to update ${type}`);
         }
     };
-
 
     if (loading) {
         return (
@@ -671,22 +714,34 @@ function AppointmentPage() {
                             </Card>
                         </>
                     ) : (
-                        <Card className="bg-background p-4 rounded-lg flex-grow flex flex-col border-none">
-                            <PatientProfileList
-                                readOnly={userRole !== "doctor"}
-                                onClickMinimize={handleMinimizeClick}
-                                title={activeListType === 'allergies' ? 'Allergies' :
-                                    activeListType === 'prescriptions' ? 'Prescriptions' :
-                                        activeListType === 'past_surgeries' ? 'Surgeries' :
-                                            'Chronic Conditions'}
-                                initialData={activeListType === 'prescriptions' ? prescriptions :
-                                    activeListType === 'allergies' ? patient?.allergies :
-                                        activeListType === 'past_surgeries' ? patient?.past_surgeries :
-                                            patient?.chronic_conditions || {}}
-                                onSave={handleListSave}
-                                type={activeListType}
-                            />
-                        </Card>
+                        activeListType === 'prescriptions' ? (
+                            <Card className="bg-background p-4 rounded-lg flex-grow flex flex-col border-none">
+                                <PrescriptionList
+                                    readOnly={userRole !== "doctor"}
+                                    onClickMinimize={handleMinimizeClick}
+                                    initialData={prescriptions}
+                                    onSave={(updatedPrescriptions) => handleListSave('prescriptions', updatedPrescriptions)}
+                                    appointmentId={id}
+                                />
+                            </Card>
+                        ) : (
+                            <Card className="bg-background p-4 rounded-lg flex-grow flex flex-col border-none">
+                                <PatientProfileList
+                                    readOnly={userRole !== "doctor"}
+                                    onClickMinimize={handleMinimizeClick}
+                                    title={activeListType === 'allergies' ? 'Allergies' :
+                                        activeListType === 'prescriptions' ? 'Prescriptions' :
+                                            activeListType === 'past_surgeries' ? 'Surgeries' :
+                                                'Chronic Conditions'}
+                                    initialData={activeListType === 'prescriptions' ? prescriptions :
+                                        activeListType === 'allergies' ? patient?.allergies :
+                                            activeListType === 'past_surgeries' ? patient?.past_surgeries :
+                                                patient?.chronic_conditions || {}}
+                                    onSave={handleListSave}
+                                    type={activeListType}
+                                />
+                            </Card>
+                        )
                     )}
                 </div>
             </div>
@@ -790,6 +845,14 @@ function AppointmentPage() {
                         title="Allergies"
                         data={patient?.allergies || {}}
                         onClickIcon={() => console.log("Allergies icon clicked")}
+                        className="flex-grow"
+                    />
+                </div>
+                <div className="max-w-64">
+
+                    <CompactPrescriptionList
+                        prescriptions={prescriptions}
+                        onClickIcon={() => handleIconClick('prescriptions')}
                         className="flex-grow"
                     />
                 </div>

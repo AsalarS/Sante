@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import PatientProfileTables from "@/components/patientProfileTables";
 import PatientList from "@/components/patientList";
 import PatientProfileList from "@/components/patientProfileList";
+import PrescriptionList from "@/components/patientProfilePrescriptionsList";
+import CompactPrescriptionList from "@/components/compactPrescriptionsList";
 
 
 function PatientProfile({ patientId }) {
@@ -205,30 +207,41 @@ function PatientProfile({ patientId }) {
   };
 
   const handleListSave = async (type, data) => {
-
     try {
-      // Create the update object with the correct field
-      const updateData = {
-        [type]: data
-      };
+      if (type === 'prescriptions') {
+        // Use the dedicated prescriptions endpoint
+        
+        const response = await api.patch(
+          `/api/prescriptions/user/${patientId}/`,
+          { prescriptions: data }
+        );
 
-      const response = await api.patch(`/api/user/${patientId}/`, updateData);
-      if (response.status === 200) {
-        // Update local state based on type
-        setPatient(prev => ({
-          ...prev,
-          [type]: data
-        }));
-
-        // If it's prescriptions, update that state separately
-        if (type === 'prescriptions') {
+        if (response.status === 200) {
           setPrescriptions(data);
+          toast.success('Prescriptions updated successfully');
         }
+      } else {
+        // Handle other types using the existing patient endpoint
+        const updateData = {
+          [type]: data
+        };
 
-        toast.success(`${type.replace(/^./, char => char.toUpperCase())} updated successfully`);
+        const response = await api.patch(
+          `/api/user/${patientId}/`,
+          updateData
+        );
+
+        if (response.status === 200) {
+          setPatient(prev => ({
+            ...prev,
+            [type]: data
+          }));
+          toast.success(`${type.replace(/^./, char => char.toUpperCase())} updated successfully`);
+        }
       }
     } catch (error) {
-      toast.error("Failed to update data:", error);
+      console.error(`Failed to update ${type}:`, error);
+      toast.error(`Failed to update ${type}`);
     }
   };
 
@@ -391,20 +404,27 @@ function PatientProfile({ patientId }) {
           </Card>
           <Card className="bg-background p-4 rounded-lg flex-grow flex flex-col border-none">
             {showProfileList ? (
-              <PatientProfileList
-                readOnly={userRole !== "doctor"}
-                onClickMinimize={handleMinimizeClick}
-                title={activeListType === 'allergies' ? 'Allergies' :
-                  activeListType === 'prescriptions' ? 'Prescriptions' :
+              activeListType === 'prescriptions' ? (
+                <PrescriptionList
+                  readOnly
+                  onClickMinimize={handleMinimizeClick}
+                  initialData={prescriptions}
+                  onSave={(updatedPrescriptions) => handleListSave('prescriptions', updatedPrescriptions)}
+                />
+              ) : (
+                <PatientProfileList
+                  readOnly={userRole !== "doctor"}
+                  onClickMinimize={handleMinimizeClick}
+                  title={activeListType === 'allergies' ? 'Allergies' :
                     activeListType === 'past_surgeries' ? 'Surgeries' :
                       'Chronic Conditions'}
-                initialData={activeListType === 'prescriptions' ? prescriptions :
-                  activeListType === 'allergies' ? patient?.allergies :
+                  initialData={activeListType === 'allergies' ? patient?.allergies :
                     activeListType === 'past_surgeries' ? patient?.past_surgeries :
                       patient?.chronic_conditions || {}}
-                onSave={handleListSave}
-                type={activeListType}
-              />
+                  onSave={handleListSave}
+                  type={activeListType}
+                />
+              )
             ) : (
               <PatientProfileTables
                 appointments={appointments}
@@ -434,15 +454,13 @@ function PatientProfile({ patientId }) {
                 className="flex-grow"
               />
             </div>
-            {/* <div className="max-w-64">
-              <CompactListBox
-                displayAsBadges={true}
-                title="Prescriptions"
-                data={prescriptions}
+            <div className="max-w-64">
+              <CompactPrescriptionList
+                prescriptions={prescriptions}
                 onClickIcon={() => handleIconClick('prescriptions')}
                 className="flex-grow"
               />
-            </div> */}
+            </div>
             <div className="max-w-64">
               <CompactListBox
                 displayAsBadges={true}
