@@ -6,9 +6,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import image from "../../assets/growth.png";
-import image3 from "../../assets/reflecting.png";
-import image4 from "../../assets/looking-ahead.png";
+import imageRecord from "../../assets/nurseStanding.png";
+import imageCommunication from "../../assets/receptionistImage.png";
+import imageReceptionist from "../../assets/communcationImage.png";
 
 interface FeatureProps {
   title: string;
@@ -18,36 +18,33 @@ interface FeatureProps {
 
 const features: FeatureProps[] = [
   {
-    title: "Responsive Design",
+    title: "Patient Records Management",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi nesciunt est nostrum omnis ab sapiente.",
-    image: image4,
+      "Easily store, access, and manage patient records securely with real-time updates and robust data protection.",
+    image: imageRecord,
   },
   {
-    title: "Intuitive user interface",
+    title: "Appointment Scheduling",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi nesciunt est nostrum omnis ab sapiente.",
-    image: image3,
+      "A streamlined system for booking and managing appointments, ensuring efficient time management for patients and staff.",
+    image: imageReceptionist,
   },
   {
-    title: "AI-Powered insights",
+    title: "Secure Communication",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi nesciunt est nostrum omnis ab sapiente.",
-    image: image,
+      "Facilitate safe and encrypted communication between patients and healthcare providers.",
+    image: imageCommunication,
   },
 ];
 
 const featureList: string[] = [
-  "Dark/Light theme",
-  "Reviews",
-  "Features",
-  "Pricing",
-  "Contact form",
-  "Our team",
+  "Patient dashboard",
+  "Appointment management",
   "Responsive design",
-  "Newsletter",
-  "Minimalist",
+  "Multi-user roles",
+  "Encrypted communication",
 ];
+
 
 export const Features = () => {
   return (
@@ -88,7 +85,7 @@ export const Features = () => {
               <img
                 src={image}
                 alt="About feature"
-                className="w-[200px] lg:w-[300px] mx-auto"
+                className=" h-[300px] mx-auto"
               />
             </CardFooter>
           </Card>

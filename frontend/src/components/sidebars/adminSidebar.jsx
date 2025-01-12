@@ -69,7 +69,7 @@ function AdminSidebar() {
                         navigate("/admin/messages");
                     }}
                     path="/admin/messages"
-                    active={location.pathname === "/admin/messages"}
+                    active={location.pathname.startsWith("/admin/messages")}
                 />
                 <hr className="my-3 border-border" />
                 {/* <SidebarItem

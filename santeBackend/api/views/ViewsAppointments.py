@@ -23,17 +23,16 @@ logger = logging.getLogger(__name__)
 @api_view(["GET"])
 def get_schedule(request):
     """
-    View to fetch the schedule of doctors and their appointments for a given day.
+    View to fetch doctors' schedules for a given day.
+    Shows all available doctors and their appointments if any.
     Expects a 'date' parameter in the GET request (YYYY-MM-DD format).
-    Filters doctors based on their available days.
     """
     date_str = request.GET.get('date')
     if not date_str:
         return JsonResponse({'success': False, 'message': 'Date parameter is required.'}, status=400)
-
+   
     try:
         selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        # Get the day name (e.g., 'Thursday')
         day_name = selected_date.strftime('%A').lower()
     except ValueError:
         return JsonResponse({'success': False, 'message': 'Invalid date format. Use YYYY-MM-DD.'}, status=400)
@@ -42,57 +41,49 @@ def get_schedule(request):
     doctors = Employee.objects.filter(
         user__role='doctor',
         available_days__icontains=day_name
-    )
+    ).select_related('user')
 
-    # Prepare schedule data
     schedule = []
     for doctor in doctors:
-        # Get doctor's shift hours
-        shift_start = doctor.shift_start or time(9, 0)  # Default to 9:00 AM
-        shift_end = doctor.shift_end or time(17, 0)  # Default to 5:00 PM
-
-        available_hours = [
-            (datetime.combine(selected_date, shift_start) +
-             timedelta(minutes=30 * i)).time()
-            for i in range(int((datetime.combine(selected_date, shift_end) - datetime.combine(selected_date, shift_start)).seconds / 1800))
-        ]
-
         # Get appointments for the doctor on the selected date
         appointments = Appointment.objects.filter(
             doctor=doctor,
             appointment_date=selected_date
-        )
-        booked_slots = {appt.appointment_time: appt for appt in appointments}
+        ).select_related('patient', 'patient__user')
 
-        # Build the doctor's schedule
+        # Include doctor in schedule regardless of appointments
         doctor_schedule = {
             'doctor': {
                 'id': doctor.user.id,
                 'name': f"{doctor.user.first_name} {doctor.user.last_name}",
                 'specialization': doctor.specialization,
                 'office_number': doctor.office_number,
+                'available_days': doctor.available_days,
+                'shift_start': doctor.shift_start.strftime('%H:%M'),
+                'shift_end': doctor.shift_end.strftime('%H:%M'),
             },
-            'slots': [
+            'appointments': [
                 {
-                    'time': hour.strftime('%H:%M'),
-                    'status': booked_slots[hour].status if hour in booked_slots else 'Available',
-                    'appointment': {
-                        'id': booked_slots[hour].id,
-                        'patient_id': booked_slots[hour].patient.user.id,
-                        'patient_first_name': booked_slots[hour].patient.user.first_name,
-                        'patient_last_name': booked_slots[hour].patient.user.last_name,
-                        'patient_cpr': booked_slots[hour].patient.CPR_number,
-                        'patient_email': booked_slots[hour].patient.user.email,
-                        'status': booked_slots[hour].status,
-                    } if hour in booked_slots else None,
+                    'date': appointment.appointment_date.strftime('%Y-%m-%d'),
+                    'time': appointment.appointment_time.strftime('%H:%M'),
+                    'id': appointment.id,
+                    'patient_id': appointment.patient.user.id,
+                    'patient_first_name': appointment.patient.user.first_name,
+                    'patient_last_name': appointment.patient.user.last_name,
+                    'patient_cpr': appointment.patient.CPR_number,
+                    'patient_email': appointment.patient.user.email,
+                    'status': appointment.status,
                 }
-                for hour in available_hours
+                for appointment in appointments.order_by('appointment_time')
             ]
         }
         schedule.append(doctor_schedule)
 
-    return JsonResponse({'success': True, 'schedule': schedule})
-
+    return JsonResponse({
+        'success': True,
+        'date': date_str,
+        'schedule': schedule
+    })
 
 class AppointmentView(APIView):
     def get(self, request, appointment_id=None):
@@ -176,18 +167,28 @@ class PatientAppointmentsView(APIView):
 class DoctorAppointmentsView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request, user_id=None):
         user = request.user
 
-        # Ensure the user is a doctor
-        if user.role != 'doctor':
+        # Ensure the user is a doctor or an admin
+        if user.role not in ['doctor', 'admin', 'receptionist']:
             return Response(
-                {"error": "Only doctors can view their own schedule."},
+                {"error": "Only doctors, receptionists or, admins can view the schedule."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        # If user_id is provided, fetch appointments for that specific doctor
+        if user_id:
+            try:
+                doctor_user = UserProfile.objects.get(id=user_id, role='doctor')
+            except UserProfile.DoesNotExist:
+                return Response({"error": "Doctor not found."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            # If no user_id is provided, fetch appointments for the logged-in doctor
+            doctor_user = user
+
         # Fetch appointments assigned to the doctor
-        appointments = Appointment.objects.filter(doctor__user=user)
+        appointments = Appointment.objects.filter(doctor__user=doctor_user)
 
         # Serialize and return the data
         serializer = AppointmentSchedulerSerializer(appointments, many=True)

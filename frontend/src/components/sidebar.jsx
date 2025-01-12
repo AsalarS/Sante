@@ -156,4 +156,4 @@ export function SidebarItem({ icon, text, active, alert, onClick }) {
   );
 }
 
-//TODO: Expanded  context tags are under the avatars in the messages tab  FIX IT!
+// source https://www.youtube.com/watch?v=NFrFhBJPTmI

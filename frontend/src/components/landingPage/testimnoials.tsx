@@ -16,48 +16,43 @@ interface TestimonialProps {
 
 const testimonials: TestimonialProps[] = [
   {
-    image: "https://github.com/shadcn.png",
-    name: "John Doe React",
-    userName: "@john_Doe",
-    comment: "This landing page is awesome!",
+    image: "https://i.pravatar.cc/150?img=68",
+    name: "Sophia Johnson",
+    userName: "@sophia_johnson",
+    comment: "The online appointment scheduling feature is a game-changer! It saved me so much time and hassle.",
   },
   {
-    image: "https://github.com/shadcn.png",
-    name: "John Doe React",
-    userName: "@john_Doe1",
-    comment:
-      "Lorem ipsum dolor sit amet,empor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud.",
-  },
-
-  {
-    image: "https://github.com/shadcn.png",
-    name: "John Doe React",
-    userName: "@john_Doe2",
-    comment:
-      "Lorem ipsum dolor sit amet,exercitation. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.",
+    image: "https://i.pravatar.cc/150?img=69",
+    name: "Michael Brown",
+    userName: "@michael_brown",
+    comment: "I’ve never felt more cared for. The doctors are attentive, and the platform is so easy to use.",
   },
   {
-    image: "https://github.com/shadcn.png",
-    name: "John Doe React",
-    userName: "@john_Doe3",
-    comment:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.",
+    image: "https://i.pravatar.cc/150?img=70",
+    name: "Emily Davis",
+    userName: "@emily_davis",
+    comment: "The live chat allowed me to consult a specialist from the comfort of my home. Highly recommend!",
   },
   {
-    image: "https://github.com/shadcn.png",
-    name: "John Doe React",
-    userName: "@john_Doe4",
-    comment:
-      "Lorem ipsum dolor sit amet, tempor incididunt  aliqua. Ut enim ad minim veniam, quis nostrud.",
+    image: "https://i.pravatar.cc/150?img=3",
+    name: "James Wilson",
+    userName: "@james_wilson",
+    comment: "From booking appointments to accessing my health records, everything is seamless and secure. Great job!",
   },
   {
-    image: "https://github.com/shadcn.png",
-    name: "John Doe React",
-    userName: "@john_Doe5",
-    comment:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+    image: "https://i.pravatar.cc/150?img=34",
+    name: "Olivia Martinez",
+    userName: "@olivia_martinez",
+    comment: "The system is intuitive and user-friendly. It made managing my health so much easier.",
+  },
+  {
+    image: "https://i.pravatar.cc/150?img=12",
+    name: "Liam Anderson",
+    userName: "@liam_anderson",
+    comment: "The level of care and attention from the healthcare providers is unmatched. Highly satisfied!",
   },
 ];
+
 
 export const Testimonials = () => {
   return (
@@ -69,14 +64,13 @@ export const Testimonials = () => {
         Discover Why
         <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
           {" "}
-          People Love{" "}
+          Users Love{" "}
         </span>
-        This Landing Page
+        Santé
       </h2>
 
       <p className="text-xl text-muted-foreground pt-4 pb-8">
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Non unde error
-        facere hic reiciendis illo
+        Hear what our patients have to say about their experiences with our healthcare system. We take pride in delivering top-notch services that make a difference.
       </p>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-4 sm:block columns-2  lg:columns-3 lg:gap-6 mx-auto space-y-4 lg:space-y-6">

@@ -1,4 +1,4 @@
-import { Radar } from "lucide-react";
+import { Instagram, Linkedin, Mail, Phone } from "lucide-react";
 
 interface SponsorProps {
   icon: JSX.Element;
@@ -7,28 +7,20 @@ interface SponsorProps {
 
 const sponsors: SponsorProps[] = [
   {
-    icon: <Radar size={34} />,
-    name: "Contact 1",
+    icon: <Mail size={34} />,
+    name: "support@sante.com",
   },
   {
-    icon: <Radar size={34} />,
-    name: "Contact 2",
+    icon: <Phone size={34} />,
+    name: "+123 456 7890",
   },
   {
-    icon: <Radar size={34} />,
-    name: "Contact 3",
+    icon: <Instagram size={34} />,
+    name: "@health_system_official",
   },
   {
-    icon: <Radar size={34} />,
-    name: "Contact 4",
-  },
-  {
-    icon: <Radar size={34} />,
-    name: "Contact 5",
-  },
-  {
-    icon: <Radar size={34} />,
-    name: "Contact 6",
+    icon: <Linkedin size={34} />,
+    name: "HealthSystem Official",
   },
 ];
 
@@ -49,7 +41,7 @@ export const Sponsors = () => {
             className="flex items-center gap-1 text-muted-foreground/60"
           >
             <span>{icon}</span>
-            <h3 className="text-xl  font-bold">{name}</h3>
+            <h3 className="text-xl  font-bold ml-2">{name}</h3>
           </div>
         ))}
       </div>

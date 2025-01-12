@@ -14,36 +14,42 @@ import { Sponsors } from "./Sponsors";
   
   const FAQList: FAQProps[] = [
     {
-      question: "Is this template free?",
-      answer: "Yes. It is a free ChadcnUI template.",
+      question: "Is this system HIPAA compliant?",
+      answer: "Yes. Our platform is fully HIPAA compliant to ensure your health data remains secure and private.",
       value: "item-1",
     },
     {
-      question: "Lorem ipsum dolor sit amet consectetur adipisicing elit?",
-      answer:
-        "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sint labore quidem quam? Consectetur sapiente iste rerum reiciendis animi nihil nostrum sit quo, modi quod.",
+      question: "How do I access my medical records?",
+      answer: "You can easily access your medical records by logging into your account and navigating to the 'Appointments' section.",
       value: "item-2",
     },
     {
-      question:
-        "Lorem ipsum dolor sit amet  Consectetur natus dolores minus quibusdam?",
-      answer:
-        "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Labore qui nostrum reiciendis veritatis necessitatibus maxime quis ipsa vitae cumque quo?",
+      question: "Can I schedule appointments with any doctor?",
+      answer: "Yes, you can schedule appointments with any available doctor through our receptionists.",
       value: "item-3",
     },
     {
-      question: "Lorem ipsum dolor sit amet, consectetur adipisicing elit?",
-      answer: "Lorem ipsum dolor sit amet consectetur, adipisicing elit.",
+      question: "How do I update my personal information?",
+      answer: "To update your personal information, click on your profile icon.",
       value: "item-4",
     },
     {
-      question:
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Consectetur natus?",
-      answer:
-        "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sint labore quidem quam? Consectetur sapiente iste rerum reiciendis animi nihil nostrum sit quo, modi quod.",
+      question: "Is there a mobile app for this platform?",
+      answer: "Currently, the platform is web-based. However, we are working on releasing a mobile app for both iOS and Android soon.",
       value: "item-5",
     },
+    {
+      question: "How do I contact support if I have an issue?",
+      answer: "You can reach our support team through the 'Contact Us' page, or directly by emailing support@sante.com.",
+      value: "item-6",
+    },
+    {
+      question: "Are my health records shared with other healthcare providers?",
+      answer: "Your health records are shared with authorized providers only, based on your consent and the regulations of your healthcare plan.",
+      value: "item-7",
+    },
   ];
+  
   
   export const FAQ = () => {
     return (

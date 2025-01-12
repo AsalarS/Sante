@@ -47,6 +47,7 @@ const formSchema = z
       message: 'Invalid end date',
     }),
     color: z.string(),
+    status: z.string(),
   })
   .refine(
     (data) => {
@@ -80,7 +81,8 @@ export default function CalendarManageEventDialog() {
       title: '',
       start: '',
       end: '',
-      color: 'blue',
+      color: 'indigo',
+      status: 'cheduled',
     },
   })
 
@@ -91,6 +93,7 @@ export default function CalendarManageEventDialog() {
         start: format(selectedEvent.start, "yyyy-MM-dd'T'HH:mm"),
         end: format(selectedEvent.end, "yyyy-MM-dd'T'HH:mm"),
         color: selectedEvent.color,
+        status: selectedEvent.status,
       })
     }
   }, [selectedEvent, form])
@@ -104,6 +107,7 @@ export default function CalendarManageEventDialog() {
       start: new Date(values.start),
       end: new Date(values.end),
       color: values.color,
+      status: selectedEvent.status,
     }
 
     setEvents(

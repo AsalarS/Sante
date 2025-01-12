@@ -1,6 +1,6 @@
 import { Card, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { MagnifierIcon, WalletIcon, ChartIcon } from "../icons";
-import cubeLeg from "../../assets/cube-leg.png"; 
+import doctor from "../../assets/doctorStanding.png";
+import { Archive, CalendarCheck2, ChartNoAxesCombined } from "lucide-react";
 
 interface ServiceProps {
   title: string;
@@ -8,24 +8,25 @@ interface ServiceProps {
   icon: JSX.Element;
 }
 
+
 const serviceList: ServiceProps[] = [
   {
-    title: "Code Collaboration",
+    title: "Electronic Health Records",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi nesciunt est nostrum omnis ab sapiente.",
-    icon: <ChartIcon />,
+      "Securely store and access comprehensive patient health records, ensuring accurate and up-to-date information for providers.",
+    icon: <Archive />,
   },
   {
-    title: "Project Management",
+    title: "Appointment Scheduling",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi nesciunt est nostrum omnis ab sapiente.",
-    icon: <WalletIcon />,
+      "Simplify booking, rescheduling, and managing appointments with an intuitive and efficient system.",
+    icon: <CalendarCheck2 />,
   },
   {
-    title: "Task Automation",
+    title: "Health Analytics",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi nesciunt est nostrum omnis ab sapiente.",
-    icon: <MagnifierIcon />,
+      "Analyze patient data to generate actionable insights and improve care outcomes with advanced analytics tools.",
+    icon: <ChartNoAxesCombined />,
   },
 ];
 
@@ -36,21 +37,20 @@ export const Services = () => {
         <div>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground">
             <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
-              Client-Centric{" "}
+              User-Centric{" "}
             </span>
             Services
           </h2>
 
           <p className="text-muted-foreground text-xl mt-4 mb-8 ">
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Veritatis
-            dolor.
+            Our services are designed to streamline healthcare operations, ensuring efficiency, security, and better patient outcomes.
           </p>
 
           <div className="flex flex-col gap-8">
             {serviceList.map(({ icon, title, description }: ServiceProps) => (
               <Card key={title} className="bg-background">
                 <CardHeader className="space-y-1 flex md:flex-row justify-start items-start gap-4">
-                  <div className="mt-1 bg-primary/20 p-1 rounded-2xl">
+                  <div className="mt-1 bg-primary/10 p-8 rounded-2xl text-foreground/70">
                     {icon}
                   </div>
                   <div>
@@ -66,8 +66,8 @@ export const Services = () => {
         </div>
 
         <img
-          src={cubeLeg}
-          className="w-[300px] md:w-[500px] lg:w-[600px] object-contain"
+          src={doctor}
+          className="w-[100px] md:w-[200px] lg:w-[300px] object-contain"
           alt="About services"
         />
       </div>

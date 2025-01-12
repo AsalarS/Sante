@@ -1,7 +1,9 @@
 from datetime import datetime
 import sys
+import os
 from sqlite3 import IntegrityError
 from django.shortcuts import get_object_or_404
+from django.http import FileResponse, HttpResponse
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -10,18 +12,14 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from ..models import UserProfile, Patient, Employee
 from django.db import transaction
-from rest_framework.decorators import authentication_classes, permission_classes
 from ..serializers import *
 import logging
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from django.db.models import Q, F, Value
-from django.db.models.functions import Concat
+from django.db.models import Q
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
-from ..utilities import log_to_db
+from ..utilities import AdminSystemReportGenerator, get_client_ip, log_to_db
 
 logger = logging.getLogger(__name__)
 
@@ -203,3 +201,22 @@ def search_patients(request):
             'message': 'An error occurred during the search.'
         }, status=500)
         
+@api_view(["GET"])
+def generate_admin_report(request):
+    # Check if user is admin
+    if not request.user.is_authenticated:
+        return HttpResponse(status=401)  # 401 Unauthorized
+
+    if request.user.role != 'admin':
+        return HttpResponse(status=403)  # 403 Forbidden
+    
+    # Generate PDF
+    pdf_file = AdminSystemReportGenerator.generate_pdf_report()
+    
+    # Create response
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="system_report.pdf"'
+    
+    log_to_db(request, 'Generated system report', "Generated a system report")
+    
+    return response

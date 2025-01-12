@@ -28,6 +28,7 @@ import { AppointmentsAdminPage } from "./pages/Dashboards/Admin/appointments"
 import { TooltipProvider } from "./components/ui/tooltip"
 import DoctorSchedule from "./pages/Dashboards/Doctor/doctorSchedule"
 import ReceptionistAppointment from "./pages/Dashboards/Receptionist/receptionistAppointment"
+import ReceptionistDoctors from "./pages/Dashboards/Receptionist/receptionistDoctors"
 
 function Logout() {
   localStorage.clear()
@@ -120,6 +121,8 @@ function App() {
             <Route index element={<Navigate to="dashboard" />} />
             <Route path="patients" element={<PatientsPage />} />
             <Route path="patients/:patientId" element={<PatientsPage />} />
+            <Route path="schedule" element={<ReceptionistDoctors />} />
+            <Route path="schedule/:doctorId" element={<DoctorSchedule />} />
             <Route path="appointments" element={<ReceptionistAppointment />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="messages/:chatID" element={<MessagesPage />} />

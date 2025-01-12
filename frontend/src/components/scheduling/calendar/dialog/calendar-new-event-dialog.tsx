@@ -55,7 +55,7 @@ export default function CalendarNewEventDialog() {
       title: '',
       start: format(date, "yyyy-MM-dd'T'HH:mm"),
       end: format(date, "yyyy-MM-dd'T'HH:mm"),
-      color: 'blue',
+      color: 'Scheduled',
     },
   })
 
@@ -151,7 +151,7 @@ export default function CalendarNewEventDialog() {
               name="color"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold">Color</FormLabel>
+                  <FormLabel className="font-bold">Status</FormLabel>
                   <FormControl>
                     <ColorPicker field={field} />
                   </FormControl>

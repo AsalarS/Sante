@@ -25,10 +25,13 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, Label, Pie, PieChart, XAxis } from "recharts";
 import { chartData, chartConfig, patientDummyData, BarChartConfig, BarChartData } from '../Doctor/dashboardData'
+import { apiRequest } from "@/utility/generalUtility";
+import { toast } from "sonner";
 
 function AdminHome() {
     const [patients, setPatients] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [reportLoading, setReportLoading] = useState(false);
 
     const fetchPatients = async () => {
         try {
@@ -70,6 +73,38 @@ function AdminHome() {
     const totalPie = useMemo(() => {
         return chartData.reduce((acc, curr) => acc + curr.visitors, 0);
     }, []);
+
+
+    const handleGenerateReport = async () => {
+        try {
+            setReportLoading(true);
+            const response = await api.get('/api/admin/system-report/')
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `system_report_${new Date().toISOString().split('T')[0]}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            toast.success('Report generated successfully');
+        } catch (error) {
+            // If the PDF downloaded successfully despite the error, don't show error message
+            if (error.name === 'AxiosError' && error.code === 'ERR_NETWORK' && error.message === 'Network Error') {
+                const contentType = error.request?.getResponseHeader('content-type');
+                if (contentType?.includes('application/pdf')) {
+                    return; // PDF downloaded successfully, ignore the error
+                }
+            } else {
+                console.error('Error generating report:', error);
+                toast.error('Error generating report. Please try again.');
+            }
+        } finally {
+            setReportLoading(false);
+        }
+    };
 
     return (
         <>
@@ -233,8 +268,21 @@ function AdminHome() {
                         <div className="col-span-12 md:col-span-6 lg:col-span-2">
                             <StatBox title="Todays Patients" number="34" />
                         </div>
-                        <div className="col-span-12 md:col-span-6 lg:col-span-2">
-                            <StatBox title="Appt. Done" number="10" />
+                        <div className="col-span-12 md:col-span-6 lg:col-span-2 bg-background rounded-lg p-4 text-foreground">
+                            <div className="flex flex-row items-center justify-between text-center">
+                                <h1 className="text-lg font-semibold">Generate Report</h1>
+                                <Button
+                                    className="w-1/2"
+                                    onClick={handleGenerateReport}
+                                    disabled={reportLoading}
+                                >
+                                    {
+                                        reportLoading ? <Loader2 className="animate-spin text-primary" /> : (
+                                            "Generate"
+                                        )
+                                    }
+                                </Button>
+                            </div>
                         </div>
                     </div>
                     <Card className="p-4 bg-background rounded-lg mb-6 text-foreground min-h-36 flex flex-col border-none">
@@ -378,7 +426,7 @@ function AdminHome() {
                                                                 <span className="font-bold bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text mr-2">3</span>
                                                                 Total Appointments
                                                             </div>
-                                                            
+
                                                         </div>
                                                     </CarouselItem>
                                                 ))}

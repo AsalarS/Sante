@@ -18,7 +18,7 @@ function NurseSidebar() {
                         navigate("/nurse/patients");
                     }}
                     path="/nurse/patients"
-                    active={location.pathname === "/nurse/patients"}
+                    active={location.pathname.startsWith("/nurse/patients")}
                 />
                 <SidebarItem
                     icon={<MessagesIcon size={20} />}
@@ -28,7 +28,7 @@ function NurseSidebar() {
                         navigate("/nurse/messages");
                     }}
                     path="/nurse/messages"
-                    active={location.pathname === "/nurse/messages"}
+                    active={location.pathname.startsWith("/nurse/messages")}
                 />
                 <hr className="my-3 border-border" />
                 {/* <SidebarItem

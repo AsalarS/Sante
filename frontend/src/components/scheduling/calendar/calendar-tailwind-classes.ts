@@ -3,8 +3,9 @@
 
 export const colorOptions = [
   {
-    value: 'blue',
-    label: 'Blue',
+    value: 'Scheduled',
+    label: 'Scheduled',
+    color: 'indigo',
     class: {
       base: 'bg-blue-500 border-blue-500 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500',
       light: 'bg-blue-300 border-blue-300 bg-blue-300/10 text-blue-300',
@@ -12,8 +13,9 @@ export const colorOptions = [
     },
   },
   {
-    value: 'indigo',
-    label: 'Indigo',
+    value: 'Cancelled',
+    label: 'Cancelled',
+    color: 'red',
     class: {
       base: 'bg-indigo-500 border-indigo-500 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500',
       light: 'bg-indigo-300 border-indigo-300 bg-indigo-300/10 text-indigo-300',
@@ -21,8 +23,9 @@ export const colorOptions = [
     },
   },
   {
-    value: 'pink',
-    label: 'Pink',
+    value: 'Completed',
+    label: 'Completed',
+    color: 'green',
     class: {
       base: 'bg-pink-500 border-pink-500 bg-pink-500/10 hover:bg-pink-500/20 text-pink-500',
       light: 'bg-pink-300 border-pink-300 bg-pink-300/10 text-pink-300',
@@ -30,8 +33,9 @@ export const colorOptions = [
     },
   },
   {
-    value: 'red',
-    label: 'Red',
+    value: 'No Show',
+    label: 'No Show',
+    color: 'orange',
     class: {
       base: 'bg-red-500 border-red-500 bg-red-500/10 hover:bg-red-500/20 text-red-500',
       light: 'bg-red-300 border-red-300 bg-red-300/10 text-red-300',
@@ -67,3 +71,38 @@ export const colorOptions = [
   //   },
   // },
 ]
+
+export const statusColors = {
+  Scheduled: {
+    value: 'Scheduled',
+    label: 'Scheduled',
+    class: {
+      base: "bg-primary/20 border-primary/20 text-primary",
+      dark: "dark:bg-primary/10 dark:border-primary/10 dark:text-primary",
+    },
+  },
+  Completed: {
+    value: 'Completed',
+    label: 'Completed',
+    class: {
+      base: "bg-green-400/20 border-green-400/20 text-green-400",
+      dark: "dark:bg-green-400/10 dark:border-green-400/10 dark:text-green-400",
+    },
+  },
+  Cancelled: {
+    value: 'Cancelled',
+    label: 'Cancelled',
+    class: {
+      base: "bg-red-400/20 border-red-400/20 text-red-400",
+      dark: "dark:bg-red-400/10 dark:border-red-400/10 dark:text-red-400",
+    },
+  },
+  "No Show": {
+    value: 'No Show',
+    label: 'No Show',
+    class: {
+      base: "bg-orange-400/20 border-orange-400/20 text-orange-400",
+      dark: "dark:bg-orange-400/10 dark:border-orange-400/10 dark:text-orange-400",
+    },
+  },
+};

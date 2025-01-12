@@ -47,7 +47,7 @@ function DoctorSidebar() {
                         navigate("/doctor/messages");
                     }}
                     path="/doctor/messages"
-                    active={location.pathname === "/doctor/messages"}
+                    active={location.pathname.startsWith("/doctor/messages")}
                 />
                 <hr className="my-3 border-border" />
                 {/* <SidebarItem

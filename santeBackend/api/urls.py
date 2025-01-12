@@ -12,6 +12,7 @@ urlpatterns = [
     path('admin/users/', get_users_admin, name='get_users_admin'),
     path('admin/users/<int:user_id>/', update_user_admin, name='get_users_admin'),
     path('logs/admin/', get_logs_admin, name='get_logs_admin'),
+    path('admin/system-report/', generate_admin_report, name='admin-system-report'),
     
     # path('users/patients/', get_patients, name='get_patients'),
     path('available-doctors/', AvailableDoctorsView.as_view(), name='available-doctors'),
@@ -20,6 +21,7 @@ urlpatterns = [
     # Schedule & Appointments
     path('schedule/', get_schedule, name='get_schedule'),
     path('user/schedule/', DoctorAppointmentsView.as_view(), name='get_schedule'),
+    path('user/schedule/<int:user_id>/', DoctorAppointmentsView.as_view(), name='get_schedule'),
     
     path('patient/appointments/<int:patient_id>/', PatientAppointmentsView.as_view(), name='patient_appointments'),
     
@@ -49,6 +51,7 @@ urlpatterns = [
     path('user/<int:user_id>/', DetailedUserView.as_view(), name='user_info_specific'), #to show a users info
     path('users/<int:user_id>/basic', BasicUserInfo.as_view(), name='user_info_basic'), #to show a users basic info
     path('users/patients/', get_patients, name='get_patients'),
+    path('users/doctors/', get_doctors, name='get_doctors'),
     
     # Chats
     path('chats/', UserChatsView.as_view(), name='chats-view'),

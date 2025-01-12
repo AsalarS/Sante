@@ -2,7 +2,7 @@ import { LogoIcon } from "../icons";
 
 export const Footer = () => {
   return (
-    <footer id="footer">
+    <footer id="footer" className="bg-background text-foreground">
       <hr className="w-11/12 mx-auto bg-background border-border" />
 
       <section className="container py-20 grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-x-12 gap-y-8 text-foreground">
@@ -18,11 +18,11 @@ export const Footer = () => {
         </div>
 
         <div className="flex flex-col gap-2">
-          <h3 className="font-bold text-lg">Follow US</h3>
+          <h3 className="font-bold text-lg">Follow Us</h3>
           <div>
             <a
               rel="noreferrer noopener"
-              href="#"
+              href="https://github.com/AsalarS/Sante"
               className="opacity-60 hover:opacity-100"
             >
               Github
@@ -45,7 +45,7 @@ export const Footer = () => {
               href="#"
               className="opacity-60 hover:opacity-100"
             >
-              Dribbble
+              Instagram
             </a>
           </div>
         </div>
@@ -111,40 +111,7 @@ export const Footer = () => {
               href="#"
               className="opacity-60 hover:opacity-100"
             >
-              FAQ
-            </a>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <h3 className="font-bold text-lg">Community</h3>
-          <div>
-            <a
-              rel="noreferrer noopener"
-              href="#"
-              className="opacity-60 hover:opacity-100"
-            >
-              Youtube
-            </a>
-          </div>
-
-          <div>
-            <a
-              rel="noreferrer noopener"
-              href="#"
-              className="opacity-60 hover:opacity-100"
-            >
-              Discord
-            </a>
-          </div>
-
-          <div>
-            <a
-              rel="noreferrer noopener"
-              href="#"
-              className="opacity-60 hover:opacity-100"
-            >
-              Twitch
+              About Us
             </a>
           </div>
         </div>
@@ -156,7 +123,7 @@ export const Footer = () => {
           <a
             rel="noreferrer noopener"
             target="_blank"
-            href="https://www.linkedin.com/in/leopoldo-miranda/"
+            href="https://www.alialfardan.com/"
             className="text-primary transition-all border-primary hover:border-b-2"
           >
             Ali Alfardan

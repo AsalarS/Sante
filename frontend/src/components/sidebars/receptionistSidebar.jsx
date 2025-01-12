@@ -23,13 +23,13 @@ function ReceptionistSidebar() {
                 />
                 <SidebarItem
                     icon={<CalendarIcon/>}
-                    text="Appointments"
+                    text="Schedules"
                     
                     onClick={() => {
-                        navigate("/receptionist/appointments");
+                        navigate("/receptionist/schedule");
                     }}
                     path="/receptionist/appointments"
-                    active={location.pathname.startsWith("/receptionist/appointments")}
+                    active={location.pathname.startsWith("/receptionist/schedule")}
                 />
                 <SidebarItem
                     icon={<User2 size={24}/>}
@@ -49,7 +49,7 @@ function ReceptionistSidebar() {
                         navigate("/receptionist/messages");
                     }}
                     path="/receptionist/messages"
-                    active={location.pathname === "/receptionist/messages"}
+                    active={location.pathname.startsWith("/receptionist/messages")}
                 />
                 <hr className="my-3 border-border" />
                 {/* <SidebarItem

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Loader2, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,75 +24,81 @@ export function AppointmentDialog({
   appointment,
   editable = true,
 }) {
-  const [dialogData, setDialogData] = useState(appointment || {});
-  const isExistingAppointment = dialogData.status != "Available";
-
+  const [dialogData, setDialogData] = useState({});
   const [patientSearch, setPatientSearch] = useState("");
   const [filteredPatients, setFilteredPatients] = useState([]);
-  const [selectedPatient, setSelectedPatient] = useState();
-  // const [selectedDoctor, setSelectedDoctor] = useState(null);
-  // const [appointmentDate, setAppointmentDate] = useState(
-  //   appointment?.date || ""
-  // );
-  // const [appointmentTime, setAppointmentTime] = useState(
-  //   appointment?.time ? convertTo24Hour(appointment?.time) : ""
-  // );
+  const [selectedPatient, setSelectedPatient] = useState(null);
   const [isSearchListVisible, setIsSearchListVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const inputRef = useRef(null);
   const containerRef = useRef(null);
 
-  useEffect(() => {
-    if (appointment) {
-      setDialogData({
-        ...appointment,
-        time: appointment.time ? convertTo24Hour(appointment.time) : "",
-      });
-
-      if (appointment.status !== "Available") {
-        setSelectedPatient({
-          id: appointment.patient_id || "",
-          first_name: appointment.patient_first_name || "",
-          last_name: appointment.patient_last_name || "",
-          email: appointment.patient_email || "",
-          CPR_number: appointment.patient_cpr || "",
-        });
-        setPatientSearch(
-          appointment.patient_first_name && appointment.patient_last_name
-            ? `${appointment.patient_first_name} ${appointment.patient_last_name}`
-            : ""
-        );
-      } else {
-        setPatientSearch("");
-        setSelectedPatient(null);
-      }
-    } else {
-      setDialogData({});
-      setPatientSearch("");
-      setSelectedPatient(null);
-    }
-  }, [appointment]);
-
-
-  // Clear Data when opening the dialog
+  // Reset form when dialog closes
   useEffect(() => {
     if (!dialogOpen) {
       setDialogData({});
       setPatientSearch("");
-      setSelectedPatient();
+      setSelectedPatient(null);
+      setError(null);
     }
-  }, [!dialogOpen]);
+  }, [dialogOpen]);
 
+  // Initialize form when appointment data changes
+  useEffect(() => {
+    if (appointment) {
+      setDialogData({
+        doctorId: appointment.doctorId,
+        doctorName: appointment.doctorName,
+        office: appointment.office,
+        date: appointment.date,
+        time: appointment.time,
+        status: appointment.status || "Scheduled",
+        app_id: appointment.app_id
+      });
+
+      // If this is an existing appointment, set up patient data
+      if (appointment.patient_id) {
+        setSelectedPatient({
+          id: appointment.patient_id,
+          first_name: appointment.patient_first_name,
+          last_name: appointment.patient_last_name,
+          email: appointment.patient_email,
+          CPR_number: appointment.patient_cpr
+        });
+        setPatientSearch(`${appointment.patient_first_name} ${appointment.patient_last_name}`);
+      } else {
+        setSelectedPatient(null);
+        setPatientSearch("");
+      }
+    }
+  }, [appointment]);
+
+  // Validation before save
+  const validateForm = () => {
+    const errors = [];
+
+    if (!selectedPatient) {
+      errors.push("Please select a patient");
+    }
+    if (!dialogData?.date) {
+      errors.push("Please select a date");
+    }
+    if (!dialogData?.time) {
+      errors.push("Please select a time");
+    }
+
+    return errors;
+  };
 
   const handleChange = (field, value) => {
     setDialogData((prev) => ({ ...prev, [field]: value }));
   };
 
-  //Handle save appointment
   const handleSave = async () => {
-    if (!selectedPatient || !dialogData.doctorId || !dialogData.date || !dialogData.time) {
-      toast.error("Please fill all required fields");
+    const errors = validateForm();
+    if (errors.length > 0) {
+      errors.forEach(error => toast.error(error));
       return;
     }
 
@@ -101,66 +107,76 @@ export function AppointmentDialog({
     try {
       const payload = {
         patient_id: selectedPatient.id,
-        doctor_id: dialogData.doctorId,
-        appointment_date: dialogData.date,
-        appointment_time: dialogData.time,
-        status: dialogData.status || "Scheduled",
+        doctor_id: dialogData?.doctorId,
+        appointment_date: dialogData?.date,
+        appointment_time: dialogData?.time,
+        status: dialogData?.status || "Scheduled"
       };
 
-      if (dialogData.app_id) {
-        payload.id = dialogData.app_id;
-      }
+      const isNewAppointment = !dialogData?.app_id;
+      let url = "/api/appointments/";
+      let method = "post";
 
-      const isNewAppointment = !dialogData.app_id;
-      const method = isNewAppointment ? "post" : "patch";
-      const url = "/api/appointments/";
+      if (!isNewAppointment) {
+        // For updates, append the appointment ID to the URL
+        url = `/api/appointments/${dialogData?.app_id}/`;
+        method = "patch";
+      }
 
       const response = await api[method](url, payload);
 
       if (response.status === 200 || response.status === 201) {
-        setDialogOpen(false);
         toast.success(`Appointment ${isNewAppointment ? 'created' : 'updated'} successfully`);
+        setDialogOpen(false);
+        // Optionally refresh the appointments list
+        if (typeof onSaveSuccess === 'function') {
+          onSaveSuccess();
+        }
       }
     } catch (err) {
       console.error("Appointment save error:", err);
-      toast.error(err.response?.data?.message || "An error occurred");
+      const errorMessage = err.response?.data?.error || 
+                          err.response?.data?.message || 
+                          "Failed to save appointment";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Debounced search handler with API call
-  const handleSearch = debounce(async (searchTerm) => {
-    if (!searchTerm.trim()) {
-      setFilteredPatients([]);
-      setIsSearchListVisible(false);
-      return;
-    }
+  // Optimized debounced search
+  const handleSearch = useMemo(
+    () =>
+      debounce(async (searchTerm) => {
+        if (!searchTerm.trim()) {
+          setFilteredPatients([]);
+          setIsSearchListVisible(false);
+          return;
+        }
 
-    setIsLoading(true);
+        setIsLoading(true);
+        setError(null);
 
-    try {
-      const response = await api.get("/api/search/patients/", {
-        params: { query: searchTerm },
-      });
+        try {
+          const response = await api.get("/api/search/patients/", {
+            params: { query: searchTerm },
+          });
 
-      if (response.data.success) {
-        const patients = response.data.patients;
-        console.log("patients", patients);
-        setFilteredPatients(patients);
-        setIsSearchListVisible(patients.length > 0);
-      } else {
-        setError("Failed to fetch patients");
-        setFilteredPatients([]);
-      }
-    } catch (err) {
-      console.error("Patient search error:", err);
-      setError("An error occurred while searching for patients");
-      setFilteredPatients([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, 300);
+          if (response.data.success) {
+            setFilteredPatients(response.data.patients);
+            setIsSearchListVisible(true);
+          } else {
+            throw new Error("Failed to fetch patients");
+          }
+        } catch (err) {
+          setError(err.message || "Failed to search patients");
+          setFilteredPatients([]);
+        } finally {
+          setIsLoading(false);
+        }
+      }, 300),
+    []
+  );
 
   // Trigger search when patientSearch changes
   useEffect(() => {
@@ -221,15 +237,17 @@ export function AppointmentDialog({
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-      <DialogContent className="text-foreground">
+      <DialogContent className="text-foreground max-w-2xl">
         <DialogHeader>
-          <div className="content-center mb-4 font-bold flex flex-row items-center">
+          <div className="content-center mb-4 font-bold flex flex-row items-center justify-between">
             <DialogTitle>
-              {isExistingAppointment ? "Edit Appointment" : "Add Appointment"}
+              {dialogData?.app_id ? "Edit Appointment" : "New Appointment"}
             </DialogTitle>
-            <Badge className="text-white ml-2">
-            {dialogData?.appointment_date ? dialogData?.status : "New"}
-            </Badge>
+            {dialogData?.status && (
+              <Badge variant={dialogData?.status === "Cancelled" ? "destructive" : "default"}>
+                {dialogData?.status}
+              </Badge>
+            )}
           </div>
         </DialogHeader>
 
@@ -240,6 +258,7 @@ export function AppointmentDialog({
               <Input
                 ref={inputRef}
                 placeholder="Search patients"
+                readOnly={dialogData?.app_id}
                 value={patientSearch}
                 onChange={(e) => {
                   setPatientSearch(e.target.value);
@@ -320,11 +339,8 @@ export function AppointmentDialog({
         <Input
           placeholder="Doctor"
           className="mb-0"
-          value={dialogData.doctorName || ""}
-          onChange={(e) =>
-            editable && handleChange("doctorName", e.target.value)
-          }
-          readOnly={!editable}
+          value={dialogData?.doctorName || ""}
+          readOnly={true}
         />
         <p className="text-sm text-muted text-right static">
           {dialogData?.office || ""}
@@ -335,7 +351,7 @@ export function AppointmentDialog({
             <Label>Date</Label>
             <Input
               type="date"
-              value={dialogData.date || ""}
+              value={dialogData?.date || ""}
               onChange={(e) => editable && handleChange("date", e.target.value)}
               readOnly={!editable}
             />
@@ -344,7 +360,7 @@ export function AppointmentDialog({
             <Label>Time</Label>
             <Input
               type="time"
-              value={dialogData.time || ""}
+              value={dialogData?.time || ""}
               onChange={(e) => editable && handleChange("time", e.target.value)}
               readOnly={!editable}
             />
@@ -352,7 +368,7 @@ export function AppointmentDialog({
         </div>
         {dialogData?.status &&
           <RadioGroup
-            value={dialogData.status || ""}
+            value={dialogData?.status || ""}
             className="flex flex-row justify-between px-2 mt-6"
             onValueChange={(value) => {
               handleChange("status", value)
@@ -376,34 +392,27 @@ export function AppointmentDialog({
             </div>
           </RadioGroup>
         }
-
-        <DialogFooter className="mt-4">
-          <Button type="submit" onClick={handleSave}>
-            {isLoading ? <Loader2 className="text-white animate-spin" /> : "Save"}
+        <DialogFooter className="mt-4 space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => setDialogOpen(false)}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : dialogData?.app_id ? "Update" : "Create"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-}
-
-function convertTo24Hour(time) {
-  // Check if time is already in 24-hour format
-  if (time.includes(":") && !time.includes(" ")) {
-    return time;
-  }
-
-  const [timePart, modifier] = time.split(" ");
-  let [hours, minutes] = timePart.split(":").map(Number);
-
-  if (modifier === "PM" && hours !== 12) {
-    hours += 12; // Convert PM hours (except 12 PM)
-  } else if (modifier === "AM" && hours === 12) {
-    hours = 0; // Convert 12 AM to 00
-  }
-
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
-    2,
-    "0"
-  )}`;
 }

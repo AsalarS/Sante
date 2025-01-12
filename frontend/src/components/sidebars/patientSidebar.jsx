@@ -38,7 +38,7 @@ function PatientSidebar() {
                         navigate("/patient/messages");
                     }}
                     path="/patient/messages"
-                    active={location.pathname === "/patient/messages"}
+                    active={location.pathname.startsWith("/patient/messages")}
                 />
                 <hr className="my-3 border-border" />
                 {/* <SidebarItem

@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 
 export const Hero = () => {
   const userInfo = localStorage.getItem('user_info');
-  
+
   let token = null;
   let role = null;
 
@@ -16,7 +16,7 @@ export const Hero = () => {
     const userInfoObject = JSON.parse(userInfo);
     role = userInfoObject.role;
     token = localStorage.getItem(ACCESS_TOKEN);
-    
+
   }
 
   return (
@@ -34,31 +34,33 @@ export const Hero = () => {
         <div className="text-center lg:text-start space-y-6">
           <main className="text-5xl md:text-6xl font-bold text-white">
             <h1 className="inline">
-              Shadcn landing page
+              Modern Health Solutions
             </h1>{" "}
             for{" "}
             <h2 className="inline">
-              <span className="inline bg-gradient-to-r from-[#61DAFB] via-[#1fc0f1] to-[#03a3d7] text-transparent bg-clip-text">
-                React
+            <span className="inline bg-gradient-to-r from-[#6c89fe] via-[#8fa9ff] to-[#98abe2] text-transparent bg-clip-text">
+                Patients
               </span>{" "}
-              developers
+              & {" "}
+              <span className="inline bg-gradient-to-r from-[#b0bce9] via-[#6c89fe] to-[#8f9edd] text-transparent bg-clip-text">
+                Providers
+              </span>
             </h2>
           </main>
 
           <p className="text-xl text-white md:w-10/12 mx-auto lg:mx-0">
-            Build your React landing page effortlessly with the required
-            sections to your project.
+            Simplify healthcare management with our intuitive system, offering secure patient records, easy scheduling, and advanced health analytics.
           </p>
 
           <div className="space-y-4 md:space-y-0 md:space-x-4">
             {token
-            ? <Button className="w-full md:w-1/3" asChild>
+              ? <Button className="w-full md:w-1/3" asChild>
                 <Link to={`/${role}`}>Dashboard</Link>
-              </Button> 
-            : <Button className="w-full md:w-1/3" asChild>
+              </Button>
+              : <Button className="w-full md:w-1/3" asChild>
                 <Link to="/register">Register</Link>
               </Button>}
-            <a 
+            <a
               rel="noreferrer noopener"
               href="#footer"
               className={`w-full md:w-1/3 text-foreground ${buttonVariants({

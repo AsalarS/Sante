@@ -4,14 +4,14 @@ import { cn } from '@/lib/utils'
 import { colorOptions } from '../calendar/calendar-tailwind-classes'
 import { Label } from '@/components/ui/label'
 
-interface ColorPickerProps {
+interface StatusPickerProps {
   field: {
     value: string
     onChange: (value: string) => void
   }
 }
 
-export function ColorPicker({ field }: ColorPickerProps) {
+export function StatusPicker({ field }: StatusPickerProps) {
   return (
     <RadioGroup
       onValueChange={field.onChange}
@@ -26,7 +26,7 @@ export function ColorPicker({ field }: ColorPickerProps) {
             id={color.value}
             className={cn(
               'size-6 border-0 shadow-none transition-all duration-200',
-              `bg-${color.color}-500`
+              `bg-${color.value}-500`
             )}
             aria-label={color.label}
           />

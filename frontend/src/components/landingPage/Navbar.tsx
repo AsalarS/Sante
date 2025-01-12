@@ -15,7 +15,7 @@ import {
 import { buttonVariants, Button } from "../ui/button";
 import { Menu, MoonIcon, SunIcon } from "lucide-react";
 import { LogoIcon } from "../icons";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ACCESS_TOKEN } from "@/constants";
 import { DarkModeContext } from "../darkMode";
 
@@ -31,7 +31,7 @@ const routeList: RouteProps[] = [
   },
   {
     href: "features",
-    label: "About",
+    label: "Features",
   },
   {
     href: "team",
@@ -51,11 +51,15 @@ export const Navbar = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
 
-  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, elementId: string) => {
+  const navigate = useNavigate();
+
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, targetId: string) => {
     e.preventDefault();
-    const element = document.getElementById(elementId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+    const targetElement = document.getElementById(targetId);
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate('/');
     }
   };
 

@@ -1,105 +1,87 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   HoverCard,
-  HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { CalendarDays } from "lucide-react";
 import { AppointmentDialog } from "./Dialogs/appointmentDialog";
-import { convertTo24HourFormat } from "@/utility/generalUtility";
 
-// Helper function to generate hours
 const generateHours = () => {
   const hours = [];
-  for (let hour = 6; hour < 20; hour++) {
-    // 6 AM to 8 PM
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const displayHour = hour > 12 ? hour - 12 : hour;
-    hours.push(`${displayHour}:00 ${ampm}`);
-    hours.push(`${displayHour}:30 ${ampm}`);
+  for (let hour = 0; hour < 24; hour++) {
+    const hourStr = hour.toString().padStart(2, '0');
+    hours.push(`${hourStr}:00`);
+    hours.push(`${hourStr}:20`);
+    hours.push(`${hourStr}:40`);
   }
   return hours;
 };
 
+const to12HourFormat = (time24) => {
+  const [hours, minutes] = time24.split(':');
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${hour12}:${minutes} ${ampm}`;
+};
+
+const timeToMinutes = (time) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+const isWithinShiftHours = (timeSlot, shiftStart, shiftEnd) => {
+  // Handle empty or invalid times
+  if (!timeSlot || !shiftStart || !shiftEnd) return false;
+  
+  const slotMinutes = timeToMinutes(timeSlot);
+  const startMinutes = timeToMinutes(shiftStart);
+  const endMinutes = timeToMinutes(shiftEnd);
+
+  if (startMinutes > endMinutes) {
+    // Overnight shift
+    return slotMinutes >= startMinutes || slotMinutes <= endMinutes;
+  } else {
+    // Same day shift - include exact start time
+    return slotMinutes >= startMinutes && slotMinutes <= endMinutes;
+  }
+};
+
+const isAvailableDay = (availableDays, currentDate) => {
+  const dayName = new Date(currentDate).toLocaleDateString('en-US', { weekday: 'long' });
+  return availableDays.includes(dayName);
+};
+
 const Scheduler = ({ scheduleData, date }) => {
   const hours = generateHours();
-  const [doctors] = useState(
-    scheduleData != null ? scheduleData.map((item) => item.doctor) : []
-  );
-  const [events, setEvents] = useState(
-    scheduleData.flatMap((item) =>
-      item.slots
-        .filter((slot) => slot.appointment)
-        .map((slot) => ({
-          id: `${item.doctor.id}-${slot.time}`,
-          doctorId: item.doctor.id,
-          start: slot.time,
-          end: slot.time,
-          patient: slot.appointment.patient || "Unknown Patient",
-        }))
-    )
-  );
-  const [highlighted, setHighlighted] = useState({ row: null, col: null });
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogContent, setDialogContent] = useState("");
-  const [selectedCellData, setSelectedCellData] = useState(null);
+  const [events, setEvents] = useState([]);
 
-  // Handle double-click on cell
-  const handleCellDoubleClick = (event, doctorId, colIndex) => {
-    const doctorEntry = scheduleData.find(
-      (item) => item.doctor.id === doctorId
-    );
+  useEffect(() => {
+    if (!scheduleData) return;
 
-    if (!doctorEntry) {
-      console.error("Doctor not found for ID:", doctorId);
-      return;
-    }
-
-    const doctor = doctorEntry.doctor; // Extract doctor details
-    const clickedHour = hours[colIndex]; // Get the hour using colIndex
-
-    if (!clickedHour) {
-      console.error("Clicked hour is undefined for column index:", colIndex);
-      return;
-    }
-
-    const clickedHour24 = convertTo24HourFormat(clickedHour);
-    const slot = doctorEntry.slots.find((slot) => slot.time === clickedHour24);
-    
-    const status = slot ? slot.status : "";  
-
-    setSelectedCellData({
-      app_id: slot?.appointment.id,
-      doctorName: doctor.name,
-      doctorId: doctor.id,
-      office: doctor.office_number,
-      time: clickedHour,
-      date: date,
-      status: status,
-      patient_id : slot?.appointment?.patient_id,
-      patient_first_name :slot?.appointment?.patient_first_name,
-      patient_last_name :slot?.appointment?.patient_last_name,
-      patient_email :slot?.appointment?.patient_email,
-      patient_cpr :slot?.appointment?.patient_cpr,
+    const processedEvents = scheduleData.flatMap((schedule) => {
+      return schedule.appointments.map((appointment) => ({
+        id: appointment.id,
+        doctorId: schedule.doctor.id,
+        time: appointment.time,
+        status: appointment.status,
+        appointment: {
+          id: appointment.id,
+          patient_id: appointment.patient_id,
+          patient_first_name: appointment.patient_first_name,
+          patient_last_name: appointment.patient_last_name,
+          patient_cpr: appointment.patient_cpr,
+          patient_email: appointment.patient_email,
+          status: appointment.status
+        }
+      }));
     });
 
-    setDialogOpen(true);
-  };
+    setEvents(processedEvents);
+  }, [scheduleData]);
 
-  // Helper to calculate event positioning
-  const calculatePosition = (start, end) => {
-    const [startHour, startMinute] = start.split(":").map(Number);
-    const [endHour, endMinute] = (end || start).split(":").map(Number);
-
-    const totalMinutesStart = (startHour - 6) * 60 + startMinute;
-    const totalMinutesEnd = (endHour - 6) * 60 + endMinute;
-
-    const top = (totalMinutesStart / (14 * 60)) * 100; // 14 hours span
-    const height = ((totalMinutesEnd - totalMinutesStart) / (14 * 60)) * 100;
-
-    return { top: `${top}%`, height: `${height}%` };
-  };
+  const [highlighted, setHighlighted] = useState({ row: null, col: null });
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedCellData, setSelectedCellData] = useState(null);
 
   const handleCellHover = (row, col) => {
     setHighlighted({ row, col });
@@ -109,120 +91,141 @@ const Scheduler = ({ scheduleData, date }) => {
     setHighlighted({ row: null, col: null });
   };
 
+  const handleCellClick = (doctor, hour, appointment = null) => {
+    const currentDate = new Date(date);
+    const formattedDate = currentDate.toISOString().split('T')[0];
+    
+    setSelectedCellData({
+      doctorId: doctor.id,
+      doctorName: doctor.name,
+      office: `Room ${doctor.office_number}`,
+      date: formattedDate,
+      time: hour,
+      ...(appointment && {
+        app_id: appointment.id,
+        patient_id: appointment.appointment.patient_id,
+        patient_first_name: appointment.appointment.patient_first_name,
+        patient_last_name: appointment.appointment.patient_last_name,
+        patient_email: appointment.appointment.patient_email,
+        patient_cpr: appointment.appointment.patient_cpr,
+        status: appointment.status
+      })
+    });
+    setDialogOpen(true);
+  };
+
+  const findAppointment = (doctorId, hour) => {
+    return events.find(
+      event => event.doctorId === doctorId && event.time === hour
+    );
+  };
+
+  const checkAvailability = (hour, doctor) => {
+    // First check if there's an existing appointment
+    const appointment = findAppointment(doctor.id, hour);
+    if (appointment) return true; // Always show existing appointments
+    
+    // Then check shift hours and available days
+    return isWithinShiftHours(hour, doctor.shift_start, doctor.shift_end) &&
+           doctor.available_days.includes(new Date(date).toLocaleDateString('en-US', { weekday: 'long' }));
+  };
+
+  if (!scheduleData || scheduleData.length === 0) {
+    return <div className="p-4 text-center">No schedule data available</div>;
+  }
+
   return (
-    <>
-      <div className="overflow-x-auto">
-        <table className="table-fixed min-w-full">
-          <thead className="sticky top-0 bg-background z-10">
-            <tr>
-              {/* Empty header 0, 0 */}
-              <th className="bg-background px-3 py-2"></th>
-
-              {/* Doctor headers */}
-              {scheduleData.map((schedule, rowIndex) => (
-                <th
-                  key={rowIndex}
-                  className={`bg-btn-normal text-foreground px-3 py-2 text-sm text-center
-                            ${highlighted.row === rowIndex ? "bg-btn-hover" : ""
-                    }`}
-                >
-                  {schedule.doctor.name}
-                </th>
-              ))}
-            </tr>
-          </thead>
-
-          <tbody>
-            {hours.map((hour, colIndex) => (
-              <tr key={colIndex}>
-                {/* Hour Row Header */}
-                <td
-                  className={`bg-background px-3 py-2 text-sm text-foreground cursor-pointer w-32 text-center
-                            ${highlighted.col === colIndex ? "bg-btn-hover" : ""
-                    }`}
-                  onMouseEnter={() => handleCellHover(null, colIndex)}
-                  onMouseLeave={handleCellLeave}
-                >
-                  {hour}
-                </td>
-
-                {/* event cells */}
+    <div className="flex flex-col w-full">
+      <div className="overflow-x-auto overflow-y-hidden">
+        <div className="inline-block min-w-full">
+          <table className="w-full">
+            <thead className="sticky top-0 bg-background z-10">
+              <tr>
+                <th className="bg-background px-3 py-2 w-32 min-w-[8rem] sticky left-0 z-20 text-center text-foreground">Time</th>
                 {scheduleData.map((schedule, rowIndex) => (
-                  <td
+                  <th
                     key={rowIndex}
-                    className={`border-y border-border/50 px-3 py-2 text-center text-sm cursor-pointer relative h-24`}
-                    onMouseEnter={() => handleCellHover(rowIndex, colIndex)}
-                    onMouseLeave={handleCellLeave}
-                    onDoubleClick={(event) =>
-                      handleCellDoubleClick(event, schedule.doctor.id, colIndex)
-                    }
+                    className={`bg-btn-normal text-foreground px-3 py-2 text-sm text-center min-w-[200px]
+                              ${highlighted.row === rowIndex ? "bg-btn-hover" : ""}`}
                   >
-                    {/* Event rendering for each hour */}
-                    {schedule.slots.filter((event) => {
-                      const eventTimeIndex =
-                        (parseInt(event.time.split(":")[0]) - 6) * 2 +
-                        (parseInt(event.time.split(":")[1]) / 30);
-                      return eventTimeIndex === colIndex;
-                    })
-                    .filter((slot) => slot.status !== "Available" && slot.appointment)
-                    .map((event) => {
-                      const { top, height } = calculatePosition(
-                        event.time,
-                        event.time + 30
-                      );
-                      return (
-                        <HoverCard key={event.id}>
-                          <HoverCardTrigger>
-                            <div className="bg-chart-5/50 border-l-8 border-chart-5 text-white p-1 rounded cursor-pointer h-full flex flex-col text-left pl-2">
-                              <span className="text-sm">{event.time} - <span className="font-semibold">{event.status}</span></span>
-                              <span className="text-xl font-semibold">
-                                {event.appointment.patient_first_name} {event.appointment.patient_last_name}
-                              </span>
-                              <span className="font-semibold text-foreground/50 leading-3">
-                                {event.appointment.patient_cpr}
-                              </span>
-                            </div>
-                          </HoverCardTrigger>
-                          {/* <HoverCardContent>
-                            <div className="flex text-left space-x-4">
-                              <Avatar>
-                                <AvatarImage src="https://github.com/vercel.png" />
-                                <AvatarFallback>
-                                  {event.patient.name}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="space-y-1">
-                                <h4 className="text-lg font-bold">
-                                  {event.patient}
-                                </h4>
-                                <p className="text-sm">{event.patient}</p>
-                                <div className="flex items-center pt-2">
-                                  <CalendarDays className="mr-2 h-4 w-4 opacity-70" />{" "}
-                                  <span className="text-xs text-muted-foreground">
-                                    {event.time}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </HoverCardContent> */}
-                        </HoverCard>
-                      );
-                    })}
-                  </td>
+                    <div className="flex flex-col items-center">
+                      <span>{schedule.doctor.name}</span>
+                      <span className="text-xs text-muted-foreground">{schedule.doctor.specialization}</span>
+                      <span className="text-xs text-muted-foreground">Room {schedule.doctor.office_number}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {to12HourFormat(schedule.doctor.shift_start)} - {to12HourFormat(schedule.doctor.shift_end)}
+                      </span>
+                    </div>
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {hours.map((hour, colIndex) => (
+                <tr key={colIndex}>
+                  <td
+                    className={`bg-background px-3 py-2 text-sm text-foreground sticky left-0 z-10 text-center
+                              ${highlighted.col === colIndex ? "bg-btn-hover" : ""}`}
+                    onMouseEnter={() => handleCellHover(null, colIndex)}
+                    onMouseLeave={handleCellLeave}
+                  >
+                    {to12HourFormat(hour)}
+                  </td>
+
+                  {scheduleData.map((schedule, rowIndex) => {
+                    const appointment = findAppointment(schedule.doctor.id, hour);
+                    const isAvailable = checkAvailability(hour, schedule.doctor);
+
+                    return (
+                      <td
+                        key={rowIndex}
+                        className={`border-y border-border/50 px-3 py-2 text-center text-sm relative h-24
+                                  ${!isAvailable && !appointment ? 'bg-gray-100 dark:bg-red-500/5 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-primary/10'}`}
+                        onMouseEnter={() => handleCellHover(rowIndex, colIndex)}
+                        onMouseLeave={handleCellLeave}
+                        onClick={() => (isAvailable || appointment) && handleCellClick(schedule.doctor, hour, appointment)}
+                      >
+                        {appointment ? (
+                          <HoverCard>
+                            <HoverCardTrigger>
+                              <div className="bg-chart-5/50 border-l-8 border-chart-5 text-foreground p-1 rounded cursor-pointer h-full flex flex-col text-left pl-2">
+                                <span className="text-sm">
+                                  {to12HourFormat(appointment.time)} - 
+                                  <span className="font-semibold">{" "}{appointment.status}</span>
+                                </span>
+                                <span className="text-xl font-semibold truncate">
+                                  {appointment.appointment.patient_first_name} {appointment.appointment.patient_last_name}
+                                </span>
+                                <span className="font-semibold text-foreground/50 leading-3">
+                                  {appointment.appointment.patient_cpr}
+                                </span>
+                              </div>
+                            </HoverCardTrigger>
+                          </HoverCard>
+                        ) : (
+                          isAvailable && (
+                            <div className="h-full flex items-center justify-center text-muted-foreground/15">
+                              Available
+                            </div>
+                          )
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-      {/* TODO: Update the scheduler when dialog closes */}
-      {/* Dialog Component */}
+      
       <AppointmentDialog
         dialogOpen={dialogOpen}
         setDialogOpen={setDialogOpen}
         appointment={selectedCellData}
       />
-    </>
+    </div>
   );
 };
 

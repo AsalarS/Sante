@@ -5,6 +5,7 @@ import { CalendarEvent, Mode } from '@/components/scheduling/calendar/calendar-t
 import { apiRequest } from '@/utility/generalUtility'
 import { Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 
 const statusColors = {
   Scheduled: "primary",
@@ -18,10 +19,11 @@ export default function DoctorSchedule() {
   const [mode, setMode] = useState<Mode>('day')
   const [date, setDate] = useState<Date>(new Date())
   const [loading, setLoading] = useState<boolean>(true)
+  const { doctorId } = useParams()
 
   const fetchSchedule = async () => {
     try {
-      const response = await apiRequest('/api/user/schedule/', 'Error fetching schedule')
+      const response = await apiRequest(`/api/user/schedule/${doctorId ? doctorId + '/' : ''}`, 'Error fetching schedule')
       const calendarEvents = response.map((event: any) => ({
         id: event.id,
         title: `${event.patient.first_name} ${event.patient.last_name}`,

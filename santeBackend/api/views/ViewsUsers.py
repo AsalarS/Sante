@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import JsonResponse
-
+from ..views.ViewsGeneral import AdminPagination
 from ..utilities import log_to_db
 from ..models import UserProfile, Patient, Employee
 from django.db import transaction
@@ -15,6 +15,7 @@ from rest_framework.decorators import authentication_classes, permission_classes
 from ..serializers import *
 import logging
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
@@ -304,7 +305,7 @@ def get_users_admin(request):
 
     return paginator.get_paginated_response(result_page)
 
-
+@authentication_classes([IsAuthenticated])
 @api_view(["GET"])
 def get_patients(request):
     """
@@ -336,6 +337,45 @@ def get_patients(request):
         patient_data.append(user_data)
 
     return Response(patient_data, status=status.HTTP_200_OK)
+
+@authentication_classes([IsAuthenticated])
+@api_view(["GET"])
+def get_doctors(request):
+    # Get search query from request parameters
+    search_query = request.query_params.get('search', '').strip()
+    
+    # Start with base queryset
+    doctors = UserProfile.objects.filter(role="doctor")
+    
+    # Apply search if query exists
+    if search_query:
+        doctors = doctors.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+    
+    # Paginate the filtered results
+    paginator = AdminPagination()
+    paginated_doctors = paginator.paginate_queryset(doctors, request)
+    
+    # Serialize the data
+    doctor_data = []
+    for user in paginated_doctors:
+        user_serializer = UserSerializer(user)
+        user_data = user_serializer.data
+        
+        try:
+            # Retrieve doctor-specific information
+            doctor = Employee.objects.get(user=user)
+            doctor_serializer = EmployeeSerializer(doctor)
+            user_data.update(doctor_serializer.data)
+        except Employee.DoesNotExist:
+            continue
+            
+        doctor_data.append(user_data)
+    
+    return paginator.get_paginated_response(doctor_data)
 
 
 # ----------------- User Management Views -----------------
