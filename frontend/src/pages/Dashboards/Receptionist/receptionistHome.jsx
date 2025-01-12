@@ -4,46 +4,82 @@ import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import api from "@/api";
 import Scheduler from "@/components/schduler";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function ReceptionistHome() {
   const [schedule, setSchedule] = useState();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [appointmentDate, setAppointmentDate] = useState(new Date().toISOString().split("T")[0]);
-  const navigate = useNavigate()
+  const [appointmentId, setAppointmentId] = useState(null);
+  const [appointmentData, setAppointmentData] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleDateChange = (date) => setAppointmentDate(date);
 
   useEffect(() => {
-    const fetchSchedule = async () => {
-      if (!appointmentDate) return;
+    const search = location.search;
+    const params = new URLSearchParams(search);
+    const appointmentIdParam = params.get("appointmentId");
 
-      setLoading(true);
-      setError(null);
+    if (appointmentIdParam) {
+      setAppointmentId(appointmentIdParam);
+      fetchAppointmentDetails(appointmentIdParam);
+    }
+  }, [location.search]);
 
-      try {
-        const response = await api.get("/api/schedule/", {
-          params: { date: appointmentDate },
-        });
-
-        if (response.status === 200) {
-          setSchedule(response.data.schedule);
-          console.log("Fetched schedule:", response.data.schedule);
-          
-        } else {
-          console.error("Failed to fetch schedule:", response.statusText);
-        }
-      } catch (err) {
-        setError("Failed to fetch schedule. Please try again.");
-        console.error("Error fetching schedule:", err);
-      } finally {
-        setLoading(false);
+  const fetchAppointmentDetails = async (appointmentId) => {
+    try {
+      const response = await api.get(`/api/appointments/${appointmentId}/`);
+      if (response.status === 200) {
+        setAppointmentData(response.data);
+        console.log("Fetched appointment details:", response.data);
+        
+      } else {
+        console.error("Failed to fetch appointment details:", response.statusText);
       }
-    };
+    } catch (err) {
+      console.error("Error fetching appointment details:", err);
+    }
+  };
 
+  const fetchSchedule = async () => {
+    if (!appointmentDate) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await api.get("/api/schedule/", {
+        params: { date: appointmentDate },
+      });
+
+      if (response.status === 200) {
+        setSchedule(response.data.schedule);
+        console.log("Fetched schedule:", response.data.schedule);
+        
+      } else {
+        console.error("Failed to fetch schedule:", response.statusText);
+      }
+    } catch (err) {
+      setError("Failed to fetch schedule. Please try again.");
+      console.error("Error fetching schedule:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
     fetchSchedule();
   }, [appointmentDate]); 
+
+  const handleSaveSuccess = () => {
+    fetchSchedule();
+    navigate("/receptionist/");
+    setAppointmentId(null);
+    setAppointmentData(null);
+  };
 
   return (
     <>
@@ -67,12 +103,17 @@ export default function ReceptionistHome() {
             >
               Today
             </Button>
-            <Button className="mt-1">Book Appointment</Button>
           </div>
         </div>
 
         <div className="overflow-x-auto max-w-full">
-          <Scheduler scheduleData={schedule ? schedule : []} date={appointmentDate}/>
+          <Scheduler 
+            scheduleData={schedule ? schedule : []} 
+            date={appointmentDate} 
+            appointmentId={appointmentId}
+            appointmentData={appointmentData}
+            onSaveSuccess={handleSaveSuccess} // Refresh schedule on save
+          />
         </div>
       </div>
     </>

@@ -230,6 +230,23 @@ class AppointmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointment
         fields = "__all__"
+        
+# Limited Serializer for receptionists
+class AppointmentLimitedSerializer(serializers.ModelSerializer):
+    patient = PatientSerializer()
+    doctor = EmployeeSerializer()
+
+    class Meta:
+        model = Appointment
+        fields = [
+            'id',
+            'patient',
+            'doctor',
+            'appointment_date',
+            'appointment_time',
+            'status',
+            'follow_up_required'
+        ]
 
 # Appointment view that returns the user object instead of the patient and doctor objects
 

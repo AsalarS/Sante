@@ -5,7 +5,7 @@ from sqlite3 import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.http import FileResponse, HttpResponse
 from rest_framework import generics, status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -30,6 +30,7 @@ class AdminPagination(PageNumberPagination):
     
 # Create your views here.
 
+@authentication_classes([IsAuthenticated])
 @api_view(["GET"])
 def get_logs_admin(request):
     if not request.user.is_authenticated:
@@ -41,9 +42,25 @@ def get_logs_admin(request):
             status=status.HTTP_403_FORBIDDEN,
         )
 
+    # Get search query from request parameters
+    search_query = request.query_params.get('search', '').strip()
+    
+    # Start with base queryset
     logs = Log.objects.select_related('user').order_by('-timestamp')
+    
+    # Apply search if query exists
+    if search_query:
+        logs = logs.filter(
+            Q(user__email__icontains=search_query) |
+            Q(action__icontains=search_query) |
+            Q(action__icontains=search_query)
+        )
+    
+    # Paginate the filtered results
     paginator = AdminPagination()
     result_page = paginator.paginate_queryset(logs, request)
+    
+    # Serialize the data
     serialized_data = LogSerializer(result_page, many=True)
     return paginator.get_paginated_response(serialized_data.data)
 

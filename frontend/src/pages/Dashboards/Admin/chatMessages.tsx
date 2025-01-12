@@ -116,18 +116,18 @@ export function ChatMessagesPage() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1); // Track current page
   const [totalPages, setTotalPages] = useState(1); // Track total pages
 
   const navigate = useNavigate();
 
-  const fetchMessages = async (page = 1) => {
+  const fetchMessages = async (page = 1, search = "") => {
     try {
       const response = await api.get(`/api/admin/chat/${chatID}/messages/`, {
-        params: { page },
+        params: { page, search },
       });
       if (response.status === 200) {
-        console.log("Fetched messages:", response.data);
         setMessages(response.data.results);
         setTotalPages(Math.ceil(response.data.count / 10));
       } else {
@@ -141,8 +141,8 @@ export function ChatMessagesPage() {
   };
 
   useEffect(() => {
-    fetchMessages(currentPage);
-  }, [currentPage, chatID]);
+    fetchMessages(currentPage, searchQuery);
+  }, [currentPage, chatID, searchQuery]);
 
   const table = useReactTable({
     data: messages,
@@ -186,13 +186,10 @@ export function ChatMessagesPage() {
           <h1 className="text-foreground font-bold text-xl ml-1">Chat Messages</h1>
         </div>
         <div className="flex flex-row ml-auto gap-4">
-          {/* TODO: Make search work */}
           <Input
             placeholder="Filter by sender..."
-            value={(table.getColumn("sender")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("sender")?.setFilterValue(event.target.value)
-            }
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
             className="max-w-sm"
           />
           <Button variant="outline" className="ml-auto">

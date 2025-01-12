@@ -2,7 +2,7 @@ from datetime import datetime
 import sys
 from sqlite3 import IntegrityError
 from rest_framework import generics, status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -226,6 +226,7 @@ def get_users_chat(request):  # List users
 # To Get all user information. ONLY FOR ADMIN
 
 
+@authentication_classes([IsAuthenticated])
 @api_view(["GET"])
 def get_users_admin(request):
     if not request.user.is_authenticated:
@@ -236,11 +237,20 @@ def get_users_admin(request):
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    # Pagination settings
-    page_size = 10
-
-    # Fetch all user fields for all users
+    # Get search query from request parameters
+    search_query = request.query_params.get('search', '').strip()
+    
+    # Start with base queryset
     users = UserProfile.objects.all()
+
+    # Apply search if query exists
+    if search_query:
+        users = users.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(role__icontains=search_query)
+        )
 
     # Prepare response data with additional data based on user role
     user_data = []
@@ -299,8 +309,7 @@ def get_users_admin(request):
         user_data.append(user_info)
 
     # Apply pagination
-    paginator = PageNumberPagination()
-    paginator.page_size = page_size
+    paginator = AdminPagination()
     result_page = paginator.paginate_queryset(user_data, request)
 
     return paginator.get_paginated_response(result_page)

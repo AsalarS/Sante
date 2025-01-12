@@ -120,18 +120,18 @@ export function ChatsAdminPage() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1); // Track current page
   const [totalPages, setTotalPages] = useState(1); // Track total pages
 
   const navigate = useNavigate();
 
-  const fetchChats = async (page = 1) => {
+  const fetchChats = async (page = 1, search = "") => {
     try {
       const response = await api.get("/api/admin/chats/", {
-        params: { page },
+        params: { page, search },
       });
       if (response.status === 200) {
-        console.log("Fetched chats:", response.data);
         setChats(response.data.results);
         setTotalPages(Math.ceil(response.data.count / 10));
       } else {
@@ -145,8 +145,8 @@ export function ChatsAdminPage() {
   };
 
   useEffect(() => {
-    fetchChats(currentPage);
-  }, [currentPage]);
+    fetchChats(currentPage, searchQuery);
+  }, [currentPage, searchQuery]);
 
   const table = useReactTable({
     data: chats,
@@ -178,13 +178,10 @@ export function ChatsAdminPage() {
           <h1 className="text-foreground font-bold text-xl ml-1">Chats</h1>
         </div>
         <div className="flex flex-row ml-auto gap-4">
-          {/* TODO: Make search work */}
           <Input
             placeholder="Filter by user..."
-            value={(table.getColumn("user1")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("user1")?.setFilterValue(event.target.value)
-            }
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
             className="max-w-sm"
           />
           <Button variant="outline" className="ml-auto">

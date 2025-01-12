@@ -23,6 +23,7 @@ export function AppointmentDialog({
   setDialogOpen,
   appointment,
   editable = true,
+  onSaveSuccess,
 }) {
   const [dialogData, setDialogData] = useState({});
   const [patientSearch, setPatientSearch] = useState("");
@@ -244,7 +245,7 @@ export function AppointmentDialog({
               {dialogData?.app_id ? "Edit Appointment" : "New Appointment"}
             </DialogTitle>
             {dialogData?.status && (
-              <Badge variant={dialogData?.status === "Cancelled" ? "destructive" : "default"}>
+              <Badge variant={dialogData?.status === "Cancelled" ? "destructive" : "default"} className="text-white mr-4">
                 {dialogData?.status}
               </Badge>
             )}

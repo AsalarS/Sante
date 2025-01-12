@@ -8,8 +8,10 @@ from ..serializers import ChatMessageSerializer, ChatSerializer
 from .ViewsGeneral import AdminPagination
 from ..utilities import log_to_db
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -138,7 +140,8 @@ class ChatMessagesView(APIView):
             "message_text": message.message_text,
             "is_read": message.is_read,
         })
-        
+
+@authentication_classes([IsAuthenticated])
 @api_view(["GET"])
 def get_chats_admin(request):
     if not request.user.is_authenticated:
@@ -150,10 +153,24 @@ def get_chats_admin(request):
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    # Retrieve all chats with related user1 and user2 data
+    # Get search query from request parameters
+    search_query = request.query_params.get('search', '').strip()
+    
+    # Start with base queryset
     chats = Chat.objects.select_related('user1', 'user2').order_by('-created_date')
+    
+    # Apply search if query exists
+    if search_query:
+        chats = chats.filter(
+            Q(user1__email__icontains=search_query) |
+            Q(user2__email__icontains=search_query)
+        )
+    
+    # Paginate the filtered results
     paginator = AdminPagination()
     result_page = paginator.paginate_queryset(chats, request)
+    
+    # Serialize the data
     serialized_data = ChatSerializer(result_page, many=True)
     return paginator.get_paginated_response(serialized_data.data)
 
@@ -171,8 +188,19 @@ def get_chat_messages_admin(request, chat_id):
     # Retrieve the chat
     chat = get_object_or_404(Chat, id=chat_id)
 
+    # Get search query from request parameters
+    search_query = request.query_params.get('search', '').strip()
+
     # Retrieve all messages for the chat
     messages = ChatMessage.objects.select_related('sender').filter(chat=chat).order_by('timestamp')
+
+    # Apply search if query exists
+    if search_query:
+        messages = messages.filter(
+            Q(sender__email__icontains=search_query) |
+            Q(message_text__icontains=search_query)
+        )
+
     paginator = AdminPagination()
     result_page = paginator.paginate_queryset(messages, request)
     serialized_data = ChatMessageSerializer(result_page, many=True)

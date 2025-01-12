@@ -51,7 +51,7 @@ const isAvailableDay = (availableDays, currentDate) => {
   return availableDays.includes(dayName);
 };
 
-const Scheduler = ({ scheduleData, date }) => {
+const Scheduler = ({ scheduleData, date, appointmentData, onSaveSuccess }) => {
   const hours = generateHours();
   const [events, setEvents] = useState([]);
 
@@ -82,6 +82,26 @@ const Scheduler = ({ scheduleData, date }) => {
   const [highlighted, setHighlighted] = useState({ row: null, col: null });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCellData, setSelectedCellData] = useState(null);
+
+  useEffect(() => {
+    if (appointmentData) {
+      setSelectedCellData({
+        doctorId: appointmentData?.doctor?.id,
+        doctorName: appointmentData?.doctor?.first_name + ' ' + appointmentData?.doctor?.last_name,
+        office: appointmentData?.office_number,
+        date: appointmentData?.appointment_date,
+        time: appointmentData?.appointment_time,
+        app_id: appointmentData?.id,
+        patient_id: appointmentData?.patient?.id,
+        patient_first_name: appointmentData?.patient?.first_name,
+        patient_last_name: appointmentData?.patient?.last_name,
+        patient_email: appointmentData?.patient?.email,
+        patient_cpr: appointmentData?.patient?.cpr,
+        status: appointmentData?.status
+      });
+      setDialogOpen(true);
+    }
+  }, [appointmentData]);
 
   const handleCellHover = (row, col) => {
     setHighlighted({ row, col });
@@ -224,6 +244,10 @@ const Scheduler = ({ scheduleData, date }) => {
         dialogOpen={dialogOpen}
         setDialogOpen={setDialogOpen}
         appointment={selectedCellData}
+        onSaveSuccess={() => {
+          setDialogOpen(false);
+          onSaveSuccess();
+        }}
       />
     </div>
   );

@@ -4,7 +4,7 @@ from django.db.models import Q
 
 from .ViewsGeneral import AdminPagination
 from ..models import Employee, Appointment, Patient, UserProfile
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.response import Response
 import logging
 from django.utils import timezone
@@ -15,10 +15,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from ..serializers import AppointmentSchedulerSerializer, AppointmentSerializer, AppointmentWithUserSerializer
+from ..serializers import AppointmentLimitedSerializer, AppointmentSchedulerSerializer, AppointmentSerializer, AppointmentWithUserSerializer
+from rest_framework.pagination import PageNumberPagination
 
 logger = logging.getLogger(__name__)
 
+class AdminPagination(PageNumberPagination):
+    page_size = 10  # Number of appointments per page
+    page_size_query_param = "page_size"
 
 @api_view(["GET"])
 def get_schedule(request):
@@ -45,10 +49,12 @@ def get_schedule(request):
 
     schedule = []
     for doctor in doctors:
-        # Get appointments for the doctor on the selected date
+        # Get appointments for the doctor on the selected date, excluding "No Show" and "Cancelled"
         appointments = Appointment.objects.filter(
             doctor=doctor,
             appointment_date=selected_date
+        ).exclude(
+            status__in=["No Show", "Cancelled"]
         ).select_related('patient', 'patient__user')
 
         # Include doctor in schedule regardless of appointments
@@ -86,28 +92,50 @@ def get_schedule(request):
     })
 
 class AppointmentView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, appointment_id=None):
+        serializer = None
         if not request.user.is_authenticated:
             return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        if request.user.role not in ["admin", "doctor", "nurse"]:
+        if request.user.role not in ["admin", "doctor", "nurse", "receptionist"]:
             return Response(
-                {"error": "Forbidden: Only admins can access this resource."},
+                {"error": "Forbidden: Only admins, doctors, nurses, and receptionists can access this resource."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         
         if appointment_id:
             try:
                 appointment = Appointment.objects.select_related('patient', 'doctor').get(id=appointment_id)
-                serializer = AppointmentWithUserSerializer(appointment)
+                if request.user.role == "receptionist":
+                    serializer = AppointmentLimitedSerializer(appointment)
+                else:
+                    serializer = AppointmentWithUserSerializer(appointment)
                 return Response(serializer.data)
             except Appointment.DoesNotExist:
                 return Response({"error": "Appointment not found"}, status=status.HTTP_404_NOT_FOUND)
         
+        # Get search query from request parameters
+        search_query = request.query_params.get('search', '').strip()
+        
+        # Start with base queryset
         appointments = Appointment.objects.select_related('patient', 'doctor').order_by('appointment_date', 'appointment_time').all()
+
+        # Apply search if query exists
+        if search_query:
+            appointments = appointments.filter(
+                Q(patient__user__email__icontains=search_query) |
+                Q(doctor__user__email__icontains=search_query) |
+                Q(status__icontains=search_query)
+            )
+        
         paginator = AdminPagination()
         result_page = paginator.paginate_queryset(appointments, request)
-        serializer = AppointmentWithUserSerializer(result_page, many=True)
+        if request.user.role == "receptionist":
+            serializer = AppointmentLimitedSerializer(result_page, many=True)
+        else:
+            serializer = AppointmentWithUserSerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
@@ -153,14 +181,42 @@ class PatientAppointmentsView(APIView):
 
         # Check if the logged-in user is the patient or has a role of receptionist, doctor, or nurse
         if user.role not in ['patient', 'receptionist', 'doctor', 'nurse'] and user.id != patient_id:
-            return Response({"error": "You do not have permission to view these appointments."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"error": "You do not have permission to view these appointments."}, 
+                          status=status.HTTP_403_FORBIDDEN)
 
         try:
             patient = Patient.objects.get(user__id=patient_id)
         except Patient.DoesNotExist:
-            return Response({"error": "Patient not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Patient not found."}, 
+                          status=status.HTTP_404_NOT_FOUND)
 
+        # Get query parameters
+        search_query = request.query_params.get('search', '').strip()
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+
+        # Start with base queryset
         appointments = Appointment.objects.filter(patient=patient)
+
+        # Apply search if query exists
+        if search_query:
+            appointments = appointments.filter(
+                Q(doctor__user__first_name__icontains=search_query) |
+                Q(doctor__user__last_name__icontains=search_query) |
+                Q(doctor__user__email__icontains=search_query) |
+                Q(status__icontains=search_query)
+            )
+
+        # Apply date filtering
+        try:
+            if date_from:
+                appointments = appointments.filter(appointment_date__gte=date_from)
+            if date_to:
+                appointments = appointments.filter(appointment_date__lte=date_to)
+        except ValueError:
+            return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+
         serializer = AppointmentWithUserSerializer(appointments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

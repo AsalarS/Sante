@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   ColumnDef,
   SortingState,
@@ -101,15 +101,16 @@ export function LogAdminPage() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
+  const [searchQuery, setSearchQuery] = useState(""); // State for search query
 
   const [currentPage, setCurrentPage] = useState(1); // Track current page
   const [totalPages, setTotalPages] = useState(1); // Track total pages
 
 
-  const fetchLogs = async (page = 1) => {
+  const fetchLogs = async (page = 1, search = "") => { // Fetch all logs from the API
     try {
       const response = await api.get("/api/logs/admin/", {
-        params: { page },
+        params: { page, search },
       });
       if (response.status === 200) {
         setLogs(response.data.results);
@@ -125,8 +126,8 @@ export function LogAdminPage() {
   };
 
   useEffect(() => {
-    fetchLogs(currentPage);
-  }, [currentPage]);
+    fetchLogs(currentPage, searchQuery);
+  }, [currentPage, searchQuery]);
 
   const table = useReactTable({
     data: logs,
@@ -147,7 +148,7 @@ export function LogAdminPage() {
   const pageCount = table.getPageCount();
 
   if (loading) {
-    return <Loader2 className="w-6 h-6 animate-spin m-auto" />;
+    return <Loader2 className="w-6 h-6 text-primary animate-spin mx-auto my-auto" />;
   }
 
   return (
@@ -159,16 +160,11 @@ export function LogAdminPage() {
         </div>
         <div className="flex flex-row ml-auto gap-4">
           <Input
-            placeholder="Filter by user..."
-            value={(table.getColumn("user")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("user")?.setFilterValue(event.target.value)
-            }
+            placeholder="Search logs..."
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
             className="max-w-sm"
           />
-          <Button variant="outline" className="ml-auto">
-            <Filter className="text-foreground" />
-          </Button>
         </div>
       </div>
       <div className="rounded-md border border-border">

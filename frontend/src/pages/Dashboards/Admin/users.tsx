@@ -34,7 +34,6 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -48,7 +47,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import AddUserDialog from "@/components/Dialogs/add-user-dialog";
@@ -174,7 +172,7 @@ export const columns = (
       header: "Address",
       cell: ({ row }) => {
         const address = row.getValue<string | null>("address");
-        return <div className=" line-clamp-1 break-all">{address || "-"}</div>;
+        return <div className="line-clamp-1 break-all">{address || "-"}</div>;
       },
     },
     {
@@ -251,17 +249,17 @@ export function UserAdminPage() {
   const [rowSelection, setRowSelection] = useState({});
   const [selectedUser, setSelectedUser] = useState<User | null>(null); // State for the selected user
   const [dialogOpen, setDialogOpen] = useState(false); // State for user details dialog visibility
+  const [searchQuery, setSearchQuery] = useState(""); // State for search query
 
   const [currentPage, setCurrentPage] = useState(1); // Track current page
   const [totalPages, setTotalPages] = useState(1); // Track total pages
 
-  const fetchUsers = async (page = 1) => { // Fetch all users from the API
+  const fetchUsers = async (page = 1, search = "") => { // Fetch all users from the API
     try {
       const response = await api.get("/api/admin/users/", {
-        params: { page },
+        params: { page, search },
       });
       if (response.status === 200) {
-
         setUsers(response.data.results);
         setTotalPages(Math.ceil(response.data.count / 10));
       } else {
@@ -275,8 +273,8 @@ export function UserAdminPage() {
   };
 
   useEffect(() => {
-    fetchUsers(currentPage);
-  }, [currentPage]);
+    fetchUsers(currentPage, searchQuery);
+  }, [currentPage, searchQuery]);
 
   const handleSaveUser = async (updatedUser: User) => { // Update user details
     try {
@@ -302,9 +300,7 @@ export function UserAdminPage() {
 
   const handleRegisterUser = async (registerData: User) => { // Register a new user
     try {
-
       const response = await api.post(`api/user/register/admin`, registerData);
-
       if (response.status === 200 || response.status === 201) {
         setDialogOpen(false);
         toast.success("User added successfully!");
@@ -315,7 +311,6 @@ export function UserAdminPage() {
       if (error.response.status === 400) {
         toast.error("Missing or incorrect input: " + error.message);
         console.log(error.response);
-
       } else {
         toast.error("Failed to add user: " + error);
       }
@@ -352,13 +347,10 @@ export function UserAdminPage() {
           <h1 className="text-foreground font-bold text-xl ml-1">Users</h1>
         </div>
         <div className="flex flex-row ml-auto gap-4">
-          {/* TODO: Add backend based search */}
           <Input
             placeholder="Filter by email..."
-            value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("email")?.setFilterValue(event.target.value)
-            }
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
             className="max-w-sm"
           />
           <Button

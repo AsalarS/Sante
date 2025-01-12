@@ -25,7 +25,7 @@ export const statusColors = {
 // Cache for storing fetched detail data
 const detailsCache = new Map();
 
-export function useAppointmentDetails() {
+export function useAppointmentDetails(searchQuery = "", dateRange = {}) {
   const userId = localStorage.getItem('user_id');
   const [appointments, setAppointments] = useState(null);
   const [loadingAppointments, setLoadingAppointments] = useState(true);
@@ -35,7 +35,12 @@ export function useAppointmentDetails() {
   const fetchAppointments = async () => {
     if (!userId) return;
     try {
-      const response = await apiRequest(`/api/patient/appointments/${userId}/`, "Failed to fetch appointments");
+      const response = await apiRequest(
+        `/api/patient/appointments/${userId}/`,
+        "Failed to fetch appointments",
+        "GET",
+        { search: searchQuery === "all" ? "" : searchQuery }
+      );
       setAppointments(response);
     } finally {
       setLoadingAppointments(false);
@@ -44,7 +49,6 @@ export function useAppointmentDetails() {
 
   // Fetch details for a specific appointment
   const fetchAppointmentDetails = useCallback(async (appointmentId) => {
-    // Check cache first
     if (detailsCache.has(appointmentId)) {
       const cachedData = detailsCache.get(appointmentId);
       setAppointments(prev => prev.map(apt =>
@@ -53,11 +57,9 @@ export function useAppointmentDetails() {
       return;
     }
 
-    // Set loading state for this specific appointment
     setLoadingDetails(prev => ({ ...prev, [appointmentId]: true }));
 
     try {
-      // Fetch all details in parallel
       const [prescriptions, diagnoses, carePlans] = await Promise.all([
         apiRequest(`/api/appointments/prescriptions/${appointmentId}/`, "Failed to fetch prescriptions"),
         apiRequest(`/api/appointments/diagnoses/${appointmentId}/`, "Failed to fetch diagnoses"),
@@ -65,11 +67,8 @@ export function useAppointmentDetails() {
       ]);
 
       const details = { prescriptions, diagnoses, carePlans };
-
-      // Update cache
       detailsCache.set(appointmentId, details);
 
-      // Update appointment with details
       setAppointments(prev => prev.map(apt =>
         apt.id === appointmentId ? { ...apt, ...details } : apt
       ));
@@ -80,7 +79,6 @@ export function useAppointmentDetails() {
     }
   }, []);
 
-  // Clear cache when component unmounts or when appointments refresh
   useEffect(() => {
     return () => {
       detailsCache.clear();
@@ -89,7 +87,7 @@ export function useAppointmentDetails() {
 
   useEffect(() => {
     fetchAppointments();
-  }, [userId]);
+  }, [userId, searchQuery, dateRange.from, dateRange.to]);
 
   return {
     appointments,
@@ -101,45 +99,46 @@ export function useAppointmentDetails() {
 
 function PatientAppointments() {
   const userId = localStorage.getItem('user_id');
-  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [appointmentDate, setAppointmentDate] = useState(new Date());
+  const [dateRange, setDateRange] = useState({
+    from: new Date(),
+    to: undefined,
+  });
+  
 
   const {
     appointments,
     loadingAppointments,
     loadingDetails,
     fetchAppointmentDetails
-  } = useAppointmentDetails();
-
-  // const fetchAppointments = async () => {
-  //   if (!userId) return;
-  //   try {
-  //     const response = await apiRequest(`/api/patient/appointments/${userId}/`, "Failed to fetch appointments");
-  //     setAppointments(response);
-  //     console.log(response);
-
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   fetchAppointments();
-  // }, [userId]);
+  } = useAppointmentDetails(searchQuery, dateRange);
 
   const handleAccordionChange = (appointmentId) => {
-    // Only fetch if appointmentId exists (opening) and details haven't been fetched yet
     if (appointmentId && !appointments?.find(apt => apt.id === appointmentId)?.prescriptions) {
       fetchAppointmentDetails(appointmentId);
     }
   };
 
+  const handleDateRangeChange = (range) => {
+    setDateRange(range);
+  };
+
+  const handleTodayClick = () => {
+    const today = new Date();
+    setDateRange({
+      from: today,
+      to: undefined,
+    });
+  };
+  
 
   const formatAppointmentDate = (dateString) => {
     const date = new Date(dateString);
     return {
-      day: format(date, 'EEE'), // Gets abbreviated day name (Wed)
-      date: format(date, 'd'),  // Gets day of month (23)
-      month: format(date, 'MMM') // Gets abbreviated month (Oct)
+      day: format(date, 'EEE'),
+      date: format(date, 'd'),
+      month: format(date, 'MMM')
     };
   };
 
@@ -147,10 +146,15 @@ function PatientAppointments() {
     <div className="container mx-auto px-4 py-3 text-foreground">
       <div className="bg-background rounded-md w-full h-16 flex justify-between items-center p-4 mb-6">
         <div className="flex justify-between">
-          <Input placeholder="Search appointments" />
+          <Input
+            placeholder="Search appointments"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-sm"
+          />
         </div>
-        <div className="flex justify-end gap-4 items-center">
-          <Select>
+        {/* <div className="flex justify-end gap-4 items-center">
+          <Select onValueChange={setSearchQuery}>
             <SelectTrigger className="w-[180px] text-foreground">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
@@ -163,16 +167,16 @@ function PatientAppointments() {
             </SelectContent>
           </Select>
           <DatePickerWithRange
-          // initialValue={appointmentDate}
-          // onDateChange={handleDateChange}
+            date={dateRange}
+            onDateChange={handleDateRangeChange}
           />
           <Button
             className="mt-1"
-            onClick={() => setAppointmentDate(new Date().toISOString().split("T")[0])}
+            onClick={() => handleTodayClick()}
           >
             Today
           </Button>
-        </div>
+        </div> */}
       </div>
       <Accordion
         type="single"
@@ -220,7 +224,6 @@ function PatientAppointments() {
                     <div className="flex flex-col text-left ml-2">
                       <span className="font-semibold text-foreground">Dr. {appointment?.doctor?.first_name} {appointment?.doctor?.last_name}</span>
                       {appointment?.doctor?.specialization && (
-
                         <span className="text-sm text-foreground/50">{appointment?.doctor?.specialization}</span>
                       )}
                     </div>

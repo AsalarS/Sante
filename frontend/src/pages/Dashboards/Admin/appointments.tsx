@@ -233,7 +233,6 @@ export const columns: ColumnDef<Appointment>[] = [
                 <AlertDialogAction
                   className="bg-red-600 hover:bg-red-500"
                   onClick={() => {
-                    console.log("Appointment deleted:", row.original);
                     setIsAlertOpen(false);
                   }}
                 >
@@ -256,15 +255,15 @@ export function AppointmentsAdminPage() {
   const [rowSelection, setRowSelection] = useState({});
   const [currentPage, setCurrentPage] = useState(1); // Track current page
   const [totalPages, setTotalPages] = useState(1); // Track total pages
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
-  const fetchAppointments = async (page = 1) => { // Fetch all appointments from the API
+  const fetchAppointments = async (page = 1, search = "") => { // Fetch all appointments from the API
     try {
       const response = await api.get("/api/appointments/", {
-        params: { page },
+        params: { page, search },
       });
       if (response.status === 200) {
-        console.log("Fetched appointments:", response.data);
         setAppointments(response.data.results);
         setTotalPages(Math.ceil(response.data.count / 10));
       } else {
@@ -278,8 +277,8 @@ export function AppointmentsAdminPage() {
   };
 
   useEffect(() => {
-    fetchAppointments(currentPage);
-  }, [currentPage]);
+    fetchAppointments(currentPage, searchQuery);
+  }, [currentPage, searchQuery]);
 
   const table = useReactTable({
     data: appointments,
@@ -311,13 +310,10 @@ export function AppointmentsAdminPage() {
           <h1 className="text-foreground font-bold text-xl ml-1">Appointments</h1>
         </div>
         <div className="flex flex-row ml-auto gap-4">
-          {/* TODO: Add backend based search */}
           <Input
             placeholder="Filter by patient..."
-            value={(table.getColumn("patient")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("patient")?.setFilterValue(event.target.value)
-            }
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
             className="max-w-sm"
           />
           <Button variant="outline" className="ml-auto">

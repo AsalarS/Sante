@@ -91,8 +91,7 @@ export default function CalendarEvent({
             state: { patientId: event?.patient?.id }
           })
         } else {
-          setSelectedEvent(event)
-          setManageEventDialogOpen(true)
+          navigate(`/receptionist/dashboard?date=${event.start.toISOString().split('T')[0]}&appointmentId=${event.id}`);
         }
       }}
     >
