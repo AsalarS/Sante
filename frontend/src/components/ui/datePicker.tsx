@@ -8,9 +8,10 @@ interface Props {
   onDateChange?: (date: string) => void;
   className?: string;
   initialValue?: Date;
+  allowFutureDates?: boolean;
 }
 
-export function DatePicker({ id = "datePicker", onDateChange, className, initialValue }: Props) {
+export function DatePicker({ id = "datePicker", onDateChange, className, initialValue, allowFutureDates = true}: Props) {
   const [date, setDate] = React.useState<Date | undefined>(initialValue || new Date());
   const [inputValue, setInputValue] = React.useState(date ? format(date, "yyyy-MM-dd") : "");
 
@@ -36,7 +37,7 @@ export function DatePicker({ id = "datePicker", onDateChange, className, initial
       id={id}
       value={inputValue}
       onChange={handleInputChange}
-      max={format(endOfToday(), "yyyy-MM-dd")}
+      max={allowFutureDates ? undefined : format(endOfToday(), "yyyy-MM-dd")}
       className={cn(
         className,
         "bg-background border-muted p-2 border rounded-md text-foreground",

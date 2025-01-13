@@ -159,6 +159,7 @@ function ProfilePage() {
                         <Label className="w-36 text-lg font-medium mr-64 text-foreground">Date of Birth</Label>
                         <DatePicker
                             id="dob"
+                            allowFutureDates={false}
                             onDateChange={(date) => setDob(format(new Date(date), "yyyy-MM-dd"))}
                             className="w-64"
                             initialValue={new Date(dob)}

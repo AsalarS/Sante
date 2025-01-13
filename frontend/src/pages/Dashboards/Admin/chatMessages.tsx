@@ -192,9 +192,6 @@ export function ChatMessagesPage() {
             onChange={(event) => setSearchQuery(event.target.value)}
             className="max-w-sm"
           />
-          <Button variant="outline" className="ml-auto">
-            <Filter className="text-foreground" />
-          </Button>
         </div>
       </div>
       <div className="rounded-md border border-border">

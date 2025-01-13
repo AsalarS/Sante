@@ -17,6 +17,7 @@ import { InputTags } from "../ui/input-tags";
 import { PasswordInput } from "../ui/password-input";
 import PhoneInput from "../ui/phoneInput";
 import { toast } from "sonner";
+import { DatePicker } from "../ui/datePicker";
 
 const availableDaysOptions = [
   { label: "Monday", value: "Monday" },
@@ -188,7 +189,8 @@ const AddUserDialog = ({ open, onClose, onSave, isPatient = false }) => {
       </div>
       <div>
         <Label>Date of Birth</Label>
-        <Input
+        <DatePicker
+          allowFutureDates={false}
           type="date"
           value={userData.date_of_birth}
           onChange={(e) =>
@@ -354,7 +356,8 @@ const AddUserDialog = ({ open, onClose, onSave, isPatient = false }) => {
       </div>
       <div>
         <Label>Date of Birth</Label>
-        <Input
+        <DatePicker
+          allowFutureDates={false}
           type="date"
           value={userData.date_of_birth}
           onChange={(e) =>

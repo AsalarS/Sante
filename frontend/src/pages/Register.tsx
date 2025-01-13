@@ -24,7 +24,6 @@ const Register = () => {
     const [address, setAddress] = useState("");
     const [dob, setDob] = useState("");
     const [phone, setPhone] = useState("");
-    const [role, setRole] = useState("");
     const [gender, setGender] = useState("Other");
     const [loading, setLoading] = useState(false);
     const [emailError, setEmailError] = useState<string | null>(null);
@@ -55,7 +54,7 @@ const Register = () => {
             password,
             date_of_birth: dob,
             phone_number: phone,
-            role,
+            role: "patient",
             gender,
         };
 
@@ -81,8 +80,8 @@ const Register = () => {
                 <div className="flex flex-grow justify-center items-center bg-background">
                     <Card className="mx-auto max-w-lg bg-background border-foreground/50">
                         <CardHeader>
-                            <CardTitle className="text-2xl">Register</CardTitle>
-                            <CardDescription>Enter your details below to register.</CardDescription>
+                            <CardTitle className="text-2xl">Patient Register</CardTitle>
+                            <CardDescription>Enter your details below to register as a patient.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={handleSubmit} className="grid gap-4 grid-cols-1 md:grid-cols-2">
@@ -135,6 +134,7 @@ const Register = () => {
                                 <div className="grid gap-2">
                                     <Label htmlFor="dob">Date of Birth</Label>
                                     <DatePicker
+                                        allowFutureDates={false}
                                         id="dob"
                                         onDateChange={(date) => setDob(date)}
                                     />
@@ -180,7 +180,7 @@ const Register = () => {
                                         </div>
                                     </RadioGroup>
                                 </div>
-                                {/* ROLE DDL */}
+                                {/* ROLE DDL
                                 <div className="grid gap-2">
                                     <Label htmlFor="role">Role</Label>
                                     <select
@@ -197,7 +197,7 @@ const Register = () => {
                                         <option value="nurse">Nurse</option>
                                         <option value="receptionist">Receptionist</option>
                                     </select>
-                                </div>
+                                </div> */}
                                 {/* SUBMIT BUTTON */}
                                 <Button type="submit" className="w-full col-span-1 md:col-span-2 text-white" disabled={loading}>
                                     {loading ? <Loader2 className="animate-spin m-auto text-primary" /> : "Register"}
