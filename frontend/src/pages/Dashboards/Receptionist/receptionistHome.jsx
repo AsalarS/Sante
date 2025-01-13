@@ -35,7 +35,7 @@ export default function ReceptionistHome() {
       if (response.status === 200) {
         setAppointmentData(response.data);
         console.log("Fetched appointment details:", response.data);
-        
+
       } else {
         console.error("Failed to fetch appointment details:", response.statusText);
       }
@@ -57,8 +57,7 @@ export default function ReceptionistHome() {
 
       if (response.status === 200) {
         setSchedule(response.data.schedule);
-        console.log("Fetched schedule:", response.data.schedule);
-        
+
       } else {
         console.error("Failed to fetch schedule:", response.statusText);
       }
@@ -69,10 +68,10 @@ export default function ReceptionistHome() {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchSchedule();
-  }, [appointmentDate]); 
+  }, [appointmentDate]);
 
   const handleSaveSuccess = () => {
     fetchSchedule();
@@ -90,6 +89,7 @@ export default function ReceptionistHome() {
           </div>
           <div className="flex justify-end gap-4">
             <DatePicker
+              allowFutureDates={true}
               className="h-12"
               initialValue={appointmentDate}
               onDateChange={handleDateChange}
@@ -107,9 +107,9 @@ export default function ReceptionistHome() {
         </div>
 
         <div className="overflow-x-auto max-w-full">
-          <Scheduler 
-            scheduleData={schedule ? schedule : []} 
-            date={appointmentDate} 
+          <Scheduler
+            scheduleData={schedule ? schedule : []}
+            date={appointmentDate}
             appointmentId={appointmentId}
             appointmentData={appointmentData}
             onSaveSuccess={handleSaveSuccess} // Refresh schedule on save

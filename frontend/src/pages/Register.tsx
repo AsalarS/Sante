@@ -15,7 +15,6 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { isEmail } from "@/utility/validators";
 
-// TODO: change this so that only a patien can register before submission
 const Register = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");

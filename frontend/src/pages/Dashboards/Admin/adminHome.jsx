@@ -23,34 +23,81 @@ import {
     CarouselPrevious,
 } from "@/components/ui/carousel"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Bar, BarChart, CartesianGrid, Label, Pie, PieChart, XAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Label, Pie, PieChart, XAxis } from "recharts";
 import { chartData, chartConfig, patientDummyData, BarChartConfig, BarChartData } from '../Doctor/dashboardData'
-import { apiRequest } from "@/utility/generalUtility";
 import { toast } from "sonner";
+import { calculateAge, formatTimeNoSeconds } from "@/utility/generalUtility";
 
 function AdminHome() {
-    const [patients, setPatients] = useState([]);
+    const [stats, setStats] = useState({
+        todays_appointments: 0,
+        completed_appointments: 0,
+        new_patients: 0,
+        returning_patients: 0,
+        avg_daily_appointments: 0
+    });
+    const [appointmentChartData, setAppointmentChartData] = useState([]);
+    const [doctorPerformance, setDoctorPerformance] = useState([]);
+    const [pastWeekAppointments, setPastWeekAppointments] = useState([]);
+    const [pieChartData, setPieChartData] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [reportLoading, setReportLoading] = useState(false);
 
-    const fetchPatients = async () => {
+    // Fetch all dashboard data
+    const fetchDashboardData = async () => {
         try {
-            const response = await api.get("/api/users/patients/");
-            if (response.status === 200) {
-                setPatients(response.data);
-            } else {
-                console.error("Failed to fetch patient data:", response.statusText);
-            }
+            setLoading(true);
+            const [statsRes, chartRes, performanceRes, appointmentsRes, appointmentsPieRes] = await Promise.all([
+                api.get("/api/dashboard/admin/stats/"),
+                api.get("/api/dashboard/admin/appointments-chart/"),
+                api.get("/api/dashboard/admin/doctor-performance/"),
+                api.get("/api/dashboard/admin/past-week-appointments/"),
+                api.get("/api/dashboard/admin./appointments-pie-chart/")
+            ]);
+
+            setStats(statsRes.data);
+            setAppointmentChartData(chartRes.data);
+            setDoctorPerformance(performanceRes.data);
+            setPastWeekAppointments(appointmentsRes.data);
+            setPieChartData(appointmentsPieRes.data);
+
         } catch (error) {
-            console.error("Error fetching patient data:", error);
+            console.error("Error fetching dashboard data:", error);
+            toast.error("Failed to load dashboard data");
         } finally {
             setLoading(false);
         }
     };
 
+    // Search handler for past week appointments
+    const handleSearch = async () => {
+        try {
+            const response = await api.get(`/api/dashboard/admin/past-week-appointments/?search=${searchQuery}`);
+            setPastWeekAppointments(response.data);
+        } catch (error) {
+            console.error("Error searching appointments:", error);
+            toast.error("Failed to search appointments");
+        }
+    };
+
     useEffect(() => {
-        fetchPatients();
+        fetchDashboardData();
     }, []);
+
+    // Handle search input changes with debounce
+    useEffect(() => {
+        const debounceTimer = setTimeout(() => {
+            if (searchQuery !== '') {
+                handleSearch();
+            } else {
+                // If search is empty, fetch all appointments
+                fetchDashboardData();
+            }
+        }, 500);
+
+        return () => clearTimeout(debounceTimer);
+    }, [searchQuery]);
 
     const statusColors = {
         Scheduled: "bg-primary/20 text-primary font-semibold",
@@ -59,15 +106,12 @@ function AdminHome() {
         "No Show": "bg-orange-400/20 text-orange-400 font-semibold",
     };
 
-    const [activeChart, setActiveChart] = useState("desktop")
-
-    const totalBar = useMemo(
-        () => ({
-            desktop: BarChartData.reduce((acc, curr) => acc + curr.desktop, 0),
-            mobile: BarChartData.reduce((acc, curr) => acc + curr.mobile, 0),
-        }),
-        []
-    )
+    const PieStatusColors = {
+        Scheduled: "#6b88fe",
+        Completed: "#2eb88a",
+        Cancelled: "#fe6c8c",
+        "No Show": "#FB923C"
+    };
 
     // Calculate total visitors
     const totalPie = useMemo(() => {
@@ -113,16 +157,16 @@ function AdminHome() {
                 <div className="col-span-12 lg:col-span-6">
                     <div className="grid grid-cols-12 md:grid-cols-12 lg:grid-cols-8 gap-6">
                         <div className="col-span-12 md:col-span-6 lg:col-span-2">
-                            <StatBox title="Todays Patients" number="34" />
+                            <StatBox title="Today's Patients" number={stats.todays_appointments} />
                         </div>
                         <div className="col-span-12 md:col-span-6 lg:col-span-2">
-                            <StatBox title="Appt. Done" number="10" />
+                            <StatBox title="Completed Appt." number={stats.completed_appointments} />
                         </div>
                         <div className="col-span-12 md:col-span-6 lg:col-span-2">
-                            <StatBox title="New Patients" number="15" />
+                            <StatBox title="New Patients" number={stats.new_patients} />
                         </div>
                         <div className="col-span-12 md:col-span-6 lg:col-span-2">
-                            <StatBox title="Returning Patients" number="20" />
+                            <StatBox title="Returning Patients" number={stats.returning_patients} />
                         </div>
                     </div>
 
@@ -132,22 +176,8 @@ function AdminHome() {
                         <Card className="p-4 bg-background rounded-lg mb-6 text-foreground mt-6 border-none">
                             <CardHeader className="flex flex-col items-stretch space-y-0 border-b border-border p-0 sm:flex-row">
                                 <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-                                    <CardTitle>Bar Chart - Interactive</CardTitle>
-                                    <CardDescription>
-                                        Showing total visitors for the last 3 months
-                                    </CardDescription>
-                                </div>
-                                <div className="flex">
-                                    <div
-                                        className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l border-border sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
-                                    >
-                                        <span className="text-xs text-muted-foreground">
-                                            Total Appointments
-                                        </span>
-                                        <span className="text-lg font-bold leading-none sm:text-3xl">
-                                            192,212
-                                        </span>
-                                    </div>
+                                    <CardTitle>Appointments Over Time</CardTitle>
+                                    <CardDescription>Last 6 months of appointment data</CardDescription>
                                 </div>
                             </CardHeader>
                             <CardContent className="px-2 sm:p-6">
@@ -157,7 +187,7 @@ function AdminHome() {
                                 >
                                     <BarChart
                                         accessibilityLayer
-                                        data={BarChartData}
+                                        data={appointmentChartData}
                                         margin={{
                                             left: 12,
                                             right: 12,
@@ -182,7 +212,7 @@ function AdminHome() {
                                             content={
                                                 <ChartTooltipContent
                                                     className="w-[150px]"
-                                                    nameKey="views"
+                                                    nameKey="Appointments"
                                                     labelFormatter={(value) => {
                                                         return new Date(value).toLocaleDateString("en-US", {
                                                             month: "short",
@@ -193,7 +223,7 @@ function AdminHome() {
                                                 />
                                             }
                                         />
-                                        <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
+                                        <Bar dataKey={"appointments"} fill={`var(--color-${"desktop"})`} />
                                     </BarChart>
                                 </ChartContainer>
                             </CardContent>
@@ -201,12 +231,16 @@ function AdminHome() {
                         {/* Calendar */}
                         <div className="p-4 bg-background rounded-lg mb-6 text-foreground h-fill">
                             <div className="flex justify-between mb-4">
-                                <div className="flex justify-between">
-                                    <Input placeholder="Search patients" />
+                                <div className="flex justify-between gap-4 text-foreground text-lg items-center ml-2 font-semibold">
+                                    <h1 className="font-bold">Past Weeks Patients</h1>
                                 </div>
                                 <div className="flex justify-end gap-4">
-                                    <DatePickerWithRange />
-                                    <Button>Today</Button>
+                                    <Input
+                                        placeholder="Search patients..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="max-w-xs"
+                                    />
                                 </div>
                             </div>
                             {/* Table */}
@@ -223,34 +257,35 @@ function AdminHome() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {patientDummyData.map((patient) => (
-                                            <TableRow key={patient.id} className="border-border">
+                                        {console.log(pastWeekAppointments)}
+                                        {pastWeekAppointments.map((patient) => (
+                                            <TableRow key={patient?.id} className="border-border">
                                                 {/* Avatar */}
                                                 <TableCell className="text-center">
                                                     <Avatar className="w-12 h-12">
-                                                        <AvatarImage src={patient.profile_image} alt="profile image" />
+                                                        <AvatarImage src={patient?.profile_image} alt="profile image" />
                                                         <AvatarFallback className="bg-muted">
-                                                            {patient.first_name.charAt(0).toUpperCase() +
-                                                                patient.last_name.charAt(0).toUpperCase()}
+                                                            {patient?.first_name.charAt(0).toUpperCase() +
+                                                                patient?.last_name.charAt(0).toUpperCase()}
                                                         </AvatarFallback>
                                                     </Avatar>
                                                 </TableCell>
                                                 {/* Name */}
                                                 <TableCell className="font-semibold text-lg text-left">
-                                                    {`${patient.first_name} ${patient.last_name}`}
+                                                    {`${patient?.first_name} ${patient?.last_name}`}
                                                 </TableCell>
                                                 {/* Gender */}
-                                                <TableCell>{patient.gender}</TableCell>
+                                                <TableCell>{patient?.gender}</TableCell>
                                                 {/* Age */}
-                                                <TableCell>{patient.age}</TableCell>
+                                                <TableCell>{calculateAge(patient?.dob)}</TableCell>
                                                 {/* Appointment */}
-                                                <TableCell>{patient.appointment}</TableCell>
+                                                <TableCell>{patient?.appointment_date} - {patient?.appointment_time}</TableCell>
                                                 {/* Status */}
                                                 <TableCell className="text-center">
                                                     <div
-                                                        className={`px-2 py-1 text-sm rounded-md ${statusColors[patient.status]}`}
+                                                        className={`px-2 py-1 text-sm rounded-md ${statusColors[patient?.status]}`}
                                                     >
-                                                        {patient.status}
+                                                        {patient?.status}
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
@@ -266,7 +301,7 @@ function AdminHome() {
                 <div className="col-span-12 lg:col-span-2 flex flex-col">
                     <div className="grid grid-cols-2 grid-rows-2 gap-6 mb-6">
                         <div className="col-span-12 md:col-span-6 lg:col-span-2">
-                            <StatBox title="Todays Patients" number="34" />
+                            <StatBox title="Avg. Appt. Daily" number={stats.avg_daily_appointments} />
                         </div>
                         <div className="col-span-12 md:col-span-6 lg:col-span-2 bg-background rounded-lg p-4 text-foreground">
                             <div className="flex flex-row items-center justify-between text-center">
@@ -285,67 +320,81 @@ function AdminHome() {
                             </div>
                         </div>
                     </div>
-                    <Card className="p-4 bg-background rounded-lg mb-6 text-foreground min-h-36 flex flex-col border-none">
-                        <CardHeader className="items-center pb-0">
-                            <CardTitle>Appointment Chart</CardTitle>
-                            <CardDescription>January - June 2024</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex-1 pb-0">
-                            <ChartContainer
-                                config={chartConfig}
-                                className="mx-auto aspect-square max-h-[250px]"
-                            >
-                                <PieChart>
-                                    <ChartTooltip
-                                        cursor={false}
-                                        content={<ChartTooltipContent hideLabel />}
-                                    />
-                                    <Pie
-                                        data={chartData}
-                                        dataKey="visitors"
-                                        nameKey="browser"
-                                        innerRadius={60}
-                                        strokeWidth={5}
-                                    >
-                                        <Label
-                                            content={({ viewBox }) => {
-                                                if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                                                    return (
-                                                        <text
-                                                            x={viewBox.cx}
-                                                            y={viewBox.cy}
-                                                            textAnchor="middle"
-                                                            dominantBaseline="middle"
-                                                        >
-                                                            <tspan
+                    {pieChartData && pieChartData.chart_data && (
+                        <Card className="p-4 bg-background rounded-lg mb-6 text-foreground min-h-36 flex flex-col border-none">
+                            <CardHeader className="items-center pb-0">
+                                <CardTitle>Appointment Chart</CardTitle>
+                                <CardDescription>
+                                    {pieChartData?.period.start_date} - {pieChartData?.period.end_date}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-1 pb-0">
+                                <ChartContainer
+                                    config={{
+                                        type: "pie",
+                                        data: pieChartData.chart_data,
+                                        options: {}
+                                    }}
+                                    className="mx-auto aspect-square max-h-[250px]"
+                                >
+                                    <PieChart>
+                                        <ChartTooltip
+                                            cursor={false}
+                                            content={<ChartTooltipContent hideLabel />}
+                                        />
+                                        <Pie
+                                            data={pieChartData.chart_data}
+                                            dataKey="count"
+                                            nameKey="appointments"
+                                            innerRadius={60}
+                                            strokeWidth={5}
+                                        >
+                                            {pieChartData.chart_data.map((entry, index) => (
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={PieStatusColors[entry.appointments]}
+                                                />
+                                            ))}
+                                            <Label
+                                                content={({ viewBox }) => {
+                                                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                                        return (
+                                                            <text
                                                                 x={viewBox.cx}
                                                                 y={viewBox.cy}
-                                                                className="fill-foreground text-3xl font-bold"
+                                                                textAnchor="middle"
+                                                                dominantBaseline="middle"
                                                             >
-                                                                {totalPie.toLocaleString()}
-                                                            </tspan>
-                                                            <tspan
-                                                                x={viewBox.cx}
-                                                                y={(viewBox.cy || 0) + 24}
-                                                                className="fill-muted-foreground"
-                                                            >
-                                                                Appointments
-                                                            </tspan>
-                                                        </text>
-                                                    )
-                                                }
-                                            }}
-                                        />
-                                    </Pie>
-                                </PieChart>
-                            </ChartContainer>
-                        </CardContent>
-                        <CardFooter className="flex-col gap-2 text-sm">
-                            <div className="leading-none text-muted-foreground">
-                                6 month appointment data
-                            </div>
-                        </CardFooter>
-                    </Card>
+                                                                <tspan
+                                                                    x={viewBox.cx}
+                                                                    y={viewBox.cy}
+                                                                    className="fill-foreground text-3xl font-bold"
+                                                                >
+                                                                    {pieChartData.total_appointments}
+                                                                </tspan>
+                                                                <tspan
+                                                                    x={viewBox.cx}
+                                                                    y={(viewBox.cy || 0) + 24}
+                                                                    className="fill-muted-foreground"
+                                                                >
+                                                                    Appointments
+                                                                </tspan>
+                                                            </text>
+                                                        );
+                                                    }
+                                                }}
+                                            />
+                                        </Pie>
+                                    </PieChart>
+                                </ChartContainer>
+                            </CardContent>
+                            <CardFooter className="flex-col gap-2 text-sm">
+                                <div className="leading-none text-muted-foreground">
+                                    6 month appointment data
+                                </div>
+                            </CardFooter>
+                        </Card>
+                    )}
                     <Card className="px-4 mb-6 bg-background rounded-lg flex-grow text-foreground border-none content-center items-center">
                         {loading ? (
                             <Loader2 className="animate-spin text-primary" />
@@ -366,7 +415,7 @@ function AdminHome() {
                                                 </div>
                                             </div>
                                             <CarouselContent>
-                                                {Array.from({ length: 5 }).map((_, index) => (
+                                                {doctorPerformance.map((doctor, index) => (
                                                     <CarouselItem key={index}>
                                                         <div className="flex flex-col aspect-square items-center justify-center bg-background">
                                                             <ChartContainer
@@ -379,12 +428,18 @@ function AdminHome() {
                                                                         content={<ChartTooltipContent hideLabel />}
                                                                     />
                                                                     <Pie
-                                                                        data={chartData}
+                                                                        data={doctor?.chart_data}
                                                                         dataKey="visitors"
                                                                         nameKey="browser"
                                                                         innerRadius={60}
                                                                         strokeWidth={5}
                                                                     >
+                                                                        {doctor?.chart_data.map((entry, index) => (
+                                                                            <Cell
+                                                                                key={`cell-${index}`}
+                                                                                fill={PieStatusColors[entry.browser]}
+                                                                            />
+                                                                        ))}
                                                                         <Label
                                                                             content={({ viewBox }) => {
                                                                                 if (viewBox && "cx" in viewBox && "cy" in viewBox) {
@@ -400,7 +455,7 @@ function AdminHome() {
                                                                                                 y={viewBox.cy}
                                                                                                 className="fill-foreground text-3xl font-bold"
                                                                                             >
-                                                                                                {totalPie.toLocaleString()}
+                                                                                                {doctor?.total_appointments}
                                                                                             </tspan>
                                                                                             <tspan
                                                                                                 x={viewBox.cx}
@@ -410,7 +465,7 @@ function AdminHome() {
                                                                                                 Appointments
                                                                                             </tspan>
                                                                                         </text>
-                                                                                    )
+                                                                                    );
                                                                                 }
                                                                             }}
                                                                         />
@@ -418,13 +473,11 @@ function AdminHome() {
                                                                 </PieChart>
                                                             </ChartContainer>
                                                             <div className="text-center space-y-2">
-                                                                <h3 className="text-xl font-semibold">Ali Alfardan</h3>
+                                                                <h3 className="text-xl font-semibold">{doctor?.doctor_name}</h3>
                                                                 <div className="flex justify-center space-x-4">
-                                                                    <span className="text-sm text-gray-500">36.133</span>
-                                                                    <span className="text-sm text-gray-500">Specilzation</span>
+                                                                    <span className="text-sm text-gray-500">{doctor?.office_number}</span>
+                                                                    <span className="text-sm text-gray-500">{doctor?.specialization}</span>
                                                                 </div>
-                                                                <span className="font-bold bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text mr-2">3</span>
-                                                                Total Appointments
                                                             </div>
 
                                                         </div>

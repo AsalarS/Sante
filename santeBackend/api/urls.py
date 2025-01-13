@@ -24,8 +24,6 @@ urlpatterns = [
     path('user/schedule/<int:user_id>/', DoctorAppointmentsView.as_view(), name='get_schedule'),
     
     path('patient/appointments/<int:patient_id>/', PatientAppointmentsView.as_view(), name='patient_appointments'),
-    
-    # path('appointment/<uuid:appointment_id>/', AppointmentDetailView.as_view(), name='appointment_detail'),``
     path('appointments/', AppointmentView.as_view(), name='appointment_view'),
     path('appointments/<uuid:appointment_id>/', AppointmentView.as_view(), name='appointment-update'),
     
@@ -60,5 +58,30 @@ urlpatterns = [
     path('chats/<uuid:chat_id>/messages/', ChatMessagesView.as_view(), name='chat_messages'),
     path('admin/chats/', get_chats_admin, name='chats-admin-view'),
     path('admin/chat/<uuid:chat_id>/messages/', get_chat_messages_admin, name='chat-messages-admin-view'),
+
     
+# Dashboard
+    
+    # Admin
+    path('dashboard/admin/stats/', AdminDashboardStatsView.as_view(), name='dashboard-stats'),
+    path('dashboard/admin/appointments-chart/', AdminAppointmentsChartView.as_view(), name='appointments-chart'),
+    path('dashboard/admin/doctor-performance/', AdminDoctorPerformanceView.as_view(), name='doctor-performance'),
+    path('dashboard/admin/past-week-appointments/', AdminPastWeekAppointmentsView.as_view(), name='past-week-appointments'),
+    path('dashboard/admin./appointments-pie-chart/', AdminAppointmentStatusPie.as_view(), name='appointments-pie-chart'),
+    
+    # Doctor
+    path('doctor/dashboard/stats/', DoctorDashboardStatsView.as_view(), name='doctor-dashboard-stats'),
+    path('doctor/appointments/next/', DoctorNextAppointmentsView.as_view(), name='doctor-next-appointments'),
+    path('doctor/appointments/chart/', DoctorAppointmentsChartView.as_view(), name='doctor-appointments-chart'),
+    path('doctor/appointments/status-pie/', DoctorAppointmentStatusPieView.as_view(), name='doctor-appointment-status-pie'),
+    path('doctor/appointments/past-week/', DoctorPastWeekAppointmentsView.as_view(), name='doctor-past-week-appointments'),
+    
+    # Patient
+    path('patient/stats/', PatientStatsView.as_view(), name='patient-stats'),
+    path('patient/next-appointment/', PatientNextAppointmentView.as_view(), name='patient-next-appointment'),
+    path('patient/previous-doctors/', PatientPreviousDoctorsView.as_view(), name='patient-previous-doctors'),
+    path('patient/pie-chart/', PatientAppointmentsPieChartView.as_view(), name='patient-pie-chart'),
+    path('patient/care-plans/', PatientCarePlansView.as_view(), name='patient-care-plans'),
+    path('patient/diagnoses/', PatientDiagnosesView.as_view(), name='patient-diagnoses'),
+    path('patient/prescriptions/', PatientPrescriptionsView.as_view(), name='patient-prescriptions'),
 ]

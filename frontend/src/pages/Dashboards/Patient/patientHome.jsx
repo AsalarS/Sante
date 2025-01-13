@@ -21,12 +21,93 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Label, Pie, PieChart } from "recharts";
+import { Cell, Label, Pie, PieChart } from "recharts";
 import { chartData, chartConfig, patientDummyData } from '../Doctor/dashboardData'
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
+import NextAppointmentCard from "@/components/patientAppointmentDisplay";
 
 function PatientHome() {
   const [loading, setLoading] = useState(false);
+  const [carePlans, setCarePlans] = useState([]);
+  const [diagnoses, setDiagnoses] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [statusPieChartData, setStatusPieChartData] = useState({});
+  const [nextAppointment, setNextAppointment] = useState({});
+  const [previousDoctors, setPreviousDoctors] = useState([]);
+  const [patientStats, setPatientStats] = useState({});
+
+  const fetchPatientDashboardData = async () => {
+    try {
+      setLoading(true);
+
+      const [
+        statusPieChartRes,
+        nextAppointmentRes,
+        previousDoctorsRes,
+        patientStatsRes
+      ] = await Promise.all([
+        api.get("/api/patient/pie-chart/"),
+        api.get("/api/patient/next-appointment/"),
+        api.get("/api/patient/previous-doctors/"),
+        api.get("/api/patient/stats/")
+      ]);
+
+      // Set the responses into state
+      setStatusPieChartData(statusPieChartRes.data);
+      setNextAppointment(nextAppointmentRes.data);
+      setPreviousDoctors(previousDoctorsRes.data);
+      setPatientStats(patientStatsRes.data);
+
+
+    } catch (error) {
+      console.error("Error fetching patient's dashboard data:", error);
+      toast.error("Failed to load patient's dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // Fetch all patient's dashboard data
+  const fetchPatientTables = async () => {
+    try {
+      setLoading(true);
+
+      const [
+        carePlansRes,
+        diagnosesRes,
+        prescriptionsRes
+      ] = await Promise.all([
+        api.get("/api/patient/care-plans/"),
+        api.get("/api/patient/diagnoses/"),
+        api.get("/api/patient/prescriptions/")
+      ]);
+
+      // Setting data for the patient dashboard
+      setCarePlans(carePlansRes.data);
+      setDiagnoses(diagnosesRes.data);
+      setPrescriptions(prescriptionsRes.data);
+
+    } catch (error) {
+      console.error("Error fetching patient's dashboard data:", error);
+      toast.error("Failed to load patient's dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const PieStatusColors = {
+    Scheduled: "#6b88fe",
+    Completed: "#2eb88a",
+    Cancelled: "#fe6c8c",
+    "No Show": "#FB923C"
+  };
+
+  useEffect(() => {
+    fetchPatientDashboardData();
+    fetchPatientTables();
+  }, []);
 
   // Calculate total visitors
   const totalPie = useMemo(() => {
@@ -40,16 +121,16 @@ function PatientHome() {
         <div className="col-span-12 lg:col-span-6">
           <div className="grid grid-cols-12 md:grid-cols-12 lg:grid-cols-8 gap-6">
             <div className="col-span-12 md:col-span-6 lg:col-span-2">
-              <StatBox title="Total Appointments" number="34" />
+              <StatBox title="Total Appointments" number={patientStats?.total_appointments} />
             </div>
             <div className="col-span-12 md:col-span-6 lg:col-span-2">
-              <StatBox title="Appt. Done" number="10" />
+              <StatBox title="Appt. Done" number={patientStats?.completed_appointments} />
             </div>
             <div className="col-span-12 md:col-span-6 lg:col-span-2">
-              <StatBox title="Medications" number="15" />
+              <StatBox title="Cancelled Appt." number={patientStats?.canceled_appointments} />
             </div>
             <div className="col-span-12 md:col-span-6 lg:col-span-2">
-              <StatBox title="Careplans" number="20" />
+              <StatBox title="Diagnoses" number={diagnoses.length} />
             </div>
           </div>
 
@@ -69,17 +150,17 @@ function PatientHome() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {dummyCarePlans.map((plan) => (
-                    <TableRow key={plan.id} className="border-border">
+                  {carePlans?.map((plan) => (
+                    <TableRow key={crypto.randomUUID()} className="border-border">
                       <TableCell className="font-semibold text-lg text-left line-clamp-1 break-all">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div>
-                              {plan.care_plan_title}
+                              {plan?.care_plan_title}
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>{plan.care_plan_title}</p>
+                            <p>{plan?.care_plan_title}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TableCell>
@@ -87,22 +168,22 @@ function PatientHome() {
                         <div className={`px-2 py-1 text-sm text-center rounded-md ${{
                           Immediate: "bg-primary/20 text-primary",
                           "Long-term": "bg-chart-5/20 text-chart-5",
-                        }[plan.care_plan_type]
+                        }[plan?.care_plan_type]
                           }`}>
-                          {plan.care_plan_type}
+                          {plan?.care_plan_type}
                         </div>
                       </TableCell>
-                      <TableCell>{plan.date_of_completion}</TableCell>
-                      <TableCell>{`${plan.done_by.first_name} ${plan.done_by.last_name}`}</TableCell>
+                      <TableCell>{plan?.date_of_completion}</TableCell>
+                      <TableCell>{plan?.done_by}</TableCell>
                       <TableCell className="line-clamp-2 break-words">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div>
-                              {plan.additional_instructions}
+                              {plan?.additional_instructions}
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>{plan.additional_instructions}</p>
+                            <p>{plan?.additional_instructions}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TableCell>
@@ -126,8 +207,8 @@ function PatientHome() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {dummyPrescriptions.map((prescription) => (
-                      <TableRow key={prescription.id} className="border-border">
+                    {prescriptions?.map((prescription) => (
+                      <TableRow key={prescription.id + crypto.randomUUID()} className="border-border">
                         <TableCell className="font-semibold text-lg text-left line-clamp-1 break-all">
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -171,8 +252,8 @@ function PatientHome() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {dummyDiagnoses.map((diagnosis) => (
-                    <TableRow key={diagnosis.id} className="border-border">
+                  {diagnoses?.map((diagnosis) => (
+                    <TableRow key={diagnosis.id + crypto.randomUUID()} className="border-border">
                       <TableCell className="font-semibold text-lg text-left line-clamp-1 break-all">
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -204,38 +285,16 @@ function PatientHome() {
 
         {/* Sidebar */}
         <div className="col-span-12 lg:col-span-2 flex flex-col mb-3">
-          <Card className="p-4 bg-background rounded-lg mb-6 text-foreground flex flex-col items-center justify-center border-none">
-            <CardHeader className="text-2xl font-semibold text-foreground">
-              Next Appointment
-            </CardHeader>
-
-            <div className="flex flex-col space-y-4 w-full">
-
-
-              <div className="flex flex-row justify-between w-full">
-                <div>
-                  <h3 className="text-xl font-semibold">Dr. Ali Alfardan</h3>
-                  <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                    <span>36.133</span>
-                    <span>•</span>
-                    <span>Specialization</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-primary/10 rounded-full">
-                    <Clock size={12} className="text-primary" />
-                    <span className="text-xs font-medium text-primary">Today</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-border items-center gap-4">
-                <span className="text-sm text-muted-foreground">Until Appointment</span>
-                <span className="text-2xl font-bold bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
-                  30:00
-                </span>
-              </div>
-            </div>
-          </Card>
+          <NextAppointmentCard
+            nextAppointment={{
+              doctor_name: nextAppointment?.doctor_name,
+              office_number: nextAppointment?.office_number,
+              specialization: nextAppointment?.specialization,
+              date: nextAppointment?.appointment_date,
+              time: nextAppointment?.appointment_time,
+              appointment_id: nextAppointment?.appointment_id,
+            }}
+          />
           <Card className="py-4 bg-background rounded-lg mb-6 text-foreground min-h-36 flex flex-col border-none">
             <CardHeader className="items-center pb-0">
               <CardTitle>Appointment Chart</CardTitle>
@@ -252,12 +311,18 @@ function PatientHome() {
                     content={<ChartTooltipContent hideLabel />}
                   />
                   <Pie
-                    data={chartData}
-                    dataKey="visitors"
-                    nameKey="browser"
+                    data={statusPieChartData?.chart_data}
+                    dataKey="count"
+                    nameKey="status"
                     innerRadius={60}
                     strokeWidth={5}
                   >
+                    {statusPieChartData?.chart_data?.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={PieStatusColors[entry.status]}
+                      />
+                    ))}
                     <Label
                       content={({ viewBox }) => {
                         if (viewBox && "cx" in viewBox && "cy" in viewBox) {
@@ -273,7 +338,7 @@ function PatientHome() {
                                 y={viewBox.cy}
                                 className="fill-foreground text-3xl font-bold"
                               >
-                                {totalPie.toLocaleString()}
+                                {statusPieChartData?.total_appointments?.toLocaleString()}
                               </tspan>
                               <tspan
                                 x={viewBox.cx}
@@ -283,7 +348,7 @@ function PatientHome() {
                                 Appointments
                               </tspan>
                             </text>
-                          )
+                          );
                         }
                       }}
                     />
@@ -305,7 +370,7 @@ function PatientHome() {
                 <div className="w-full flex flex-col items-center">
                   <div className="w-full max-w-xs flex flex-col items-center">
                     <Carousel className="w-full">
-                      <div className="flex flex-row justify-between">
+                      <div className="flex flex-row justify-between mt-4">
                         <span className="text-2xl font-semibold text-left">Previous Doctors</span>
                         <div className="flex justify-end gap-2 mb-4">
                           <CarouselPrevious
@@ -317,24 +382,25 @@ function PatientHome() {
                         </div>
                       </div>
                       <CarouselContent>
-                        {Array.from({ length: 5 }).map((_, index) => (
-                          <CarouselItem key={index}>
+                        {previousDoctors.map((doctor) => (
+                          <CarouselItem key={crypto.randomUUID()}>
                             <div className="flex flex-col aspect-square items-center justify-center bg-background">
                               <Avatar className="w-36 h-36 mb-4">
-                                <AvatarImage src="path-to-image.jpg" alt="Ali Alfardan's profile image" />
+                                <AvatarImage src={doctor?.profileImage} alt={`${doctor?.firstNafirst_nameme} ${doctor?.first_name}'s profile image`} />
                                 <AvatarFallback className="bg-muted text-4xl">
-                                  AA
+                                  {doctor?.first_name?.charAt(0)}{doctor?.last_name?.charAt(0)}
                                 </AvatarFallback>
                               </Avatar>
 
                               <div className="text-center space-y-2">
-                                <h3 className="text-xl font-semibold">Ali Alfardan</h3>
+                                <h3 className="text-xl font-semibold">{doctor?.first_name} {doctor?.last_name}</h3>
                                 <div className="flex justify-center space-x-4">
-                                  <span className="text-sm text-gray-500">36.133</span>
-                                  <span className="text-sm text-gray-500">Specilzation</span>
+                                  <span className="text-sm text-gray-500">{doctor?.office_number}</span>
+                                  <span className="text-sm text-gray-500">{doctor?.specialization}</span>
                                 </div>
-                                <span className="font-bold bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text mr-2">3</span>
-                                Total Appointments
+                                <span className="font-bold bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text mr-2">
+                                  {doctor?.totalAppointments}
+                                </span>
                               </div>
                             </div>
                           </CarouselItem>

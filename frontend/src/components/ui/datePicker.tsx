@@ -11,23 +11,37 @@ interface Props {
   allowFutureDates?: boolean;
 }
 
-export function DatePicker({ id = "datePicker", onDateChange, className, initialValue, allowFutureDates = true}: Props) {
+export function DatePicker({ 
+  id = "datePicker", 
+  onDateChange, 
+  className, 
+  initialValue, 
+  allowFutureDates = true
+}: Props) {
   const [date, setDate] = React.useState<Date | undefined>(initialValue || new Date());
   const [inputValue, setInputValue] = React.useState(date ? format(date, "yyyy-MM-dd") : "");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
-    
+   
     const parsedDate = parse(newValue, "yyyy-MM-dd", new Date());
-    if (isValid(parsedDate) && isBefore(parsedDate, endOfToday())) {
+    
+    // Only validate the date if it's valid
+    if (isValid(parsedDate)) {
+      // If future dates are not allowed, check if the date is in the past
+      if (!allowFutureDates && !isBefore(parsedDate, endOfToday())) {
+        setDate(undefined);
+        return;
+      }
+      
+      // If we reach here, the date is valid and meets our criteria
       setDate(parsedDate);
       if (onDateChange) {
         onDateChange(format(parsedDate, "yyyy-MM-dd"));
       }
     } else {
       setDate(undefined);
-      console.error("Entered date must be in the past");
     }
   };
 

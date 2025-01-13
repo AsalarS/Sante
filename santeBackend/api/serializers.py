@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
@@ -248,6 +248,20 @@ class AppointmentLimitedSerializer(serializers.ModelSerializer):
             'follow_up_required'
         ]
 
+
+class PatientAppointmentSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='patient.user.first_name')
+    last_name = serializers.CharField(source='patient.user.last_name')
+    gender = serializers.CharField(source='patient.user.gender')
+    profile_image = serializers.URLField(source='patient.user.profile_image')
+    dob = serializers.CharField(source='patient.user.date_of_birth')
+    
+    class Meta:
+        model = Appointment
+        fields = ['id', 'first_name', 'last_name', 'gender', 'dob', 
+                 'appointment_date', 'appointment_time', 'status', 'profile_image']
+    
+    
 # Appointment view that returns the user object instead of the patient and doctor objects
 
 

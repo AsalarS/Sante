@@ -13,6 +13,7 @@ import { DatePicker } from "@/components/ui/datePicker";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 function ProfilePage() {
     const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
@@ -72,8 +73,10 @@ function ProfilePage() {
             if (response.status === 200) {
                 const updatedUserInfo = response.data;
                 setUserInfo(updatedUserInfo);
+                toast.success('User info updated successfully');
             } else {
                 console.error('Failed to update user info:', response.statusText);
+                toast.error('Failed to update user info');
             }
         } catch (error) {
             if (error.response) {
@@ -96,7 +99,7 @@ function ProfilePage() {
     return (
         <div className="bg-background h-full">
             <div className="flex gap-8 flex-col ml-24">
-                {/* Profile Image */}
+                {/* Profile Image
                 <div className="flex items-center mt-6">
                     <Label className="w-36 text-lg font-medium mr-64 text-foreground">Profile Photo</Label>
                     <ChatBubbleAvatar
@@ -116,7 +119,7 @@ function ProfilePage() {
                     <Label className="cursor-pointer text-blue-500 ml-6">
                         Clear Image
                     </Label>
-                </div>
+                </div> */}
             </div>
             <div className="w-full">
                 <Separator className="my-12 w-11/12 mx-auto" />
@@ -141,7 +144,7 @@ function ProfilePage() {
                             className="w-64"
                             placeholder="Enter your first name"
                             value={first_name}
-                            onChange={(e) => setFirstName(e.target.value)}
+                            onChange={(e) => setFirst_name(e.target.value)}
                         />
                     </div>
                     {/* Last Name */}
@@ -151,7 +154,7 @@ function ProfilePage() {
                             className="w-64"
                             placeholder="Enter your last name"
                             value={last_name}
-                            onChange={(e) => setLastName(e.target.value)}
+                            onChange={(e) => setLast_name(e.target.value)}
                         />
                     </div>
                     {/* BIRTHDAY */}
