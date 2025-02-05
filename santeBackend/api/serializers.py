@@ -230,6 +230,14 @@ class AppointmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointment
         fields = "__all__"
+
+class AppointmentWriteSerializer(serializers.ModelSerializer):
+    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all())
+    doctor = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all())
+
+    class Meta:
+        model = Appointment
+        fields = "__all__"
         
 # Limited Serializer for receptionists
 class AppointmentLimitedSerializer(serializers.ModelSerializer):

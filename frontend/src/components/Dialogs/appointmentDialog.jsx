@@ -107,13 +107,13 @@ export function AppointmentDialog({
 
     try {
       const payload = {
-        patient_id: selectedPatient.id,
-        doctor_id: dialogData?.doctorId,
+        patient: selectedPatient.id,
+        doctor: dialogData?.doctorId,
         appointment_date: dialogData?.date,
         appointment_time: dialogData?.time,
         status: dialogData?.status || "Scheduled"
       };
-
+      
       const isNewAppointment = !dialogData?.app_id;
       let url = "/api/appointments/";
       let method = "post";
@@ -123,8 +123,11 @@ export function AppointmentDialog({
         url = `/api/appointments/${dialogData?.app_id}/`;
         method = "patch";
       }
-
+      console.log(payload);
+      
       const response = await api[method](url, payload);
+      
+      
 
       if (response.status === 200 || response.status === 201) {
         toast.success(`Appointment ${isNewAppointment ? 'created' : 'updated'} successfully`);

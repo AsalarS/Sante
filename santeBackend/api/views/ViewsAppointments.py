@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from ..serializers import AppointmentLimitedSerializer, AppointmentSchedulerSerializer, AppointmentSerializer, AppointmentWithUserSerializer
+from ..serializers import AppointmentLimitedSerializer, AppointmentWriteSerializer, AppointmentSchedulerSerializer, AppointmentSerializer, AppointmentWithUserSerializer
 from rest_framework.pagination import PageNumberPagination
 
 logger = logging.getLogger(__name__)
@@ -139,7 +139,7 @@ class AppointmentView(APIView):
         return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
-        serializer = AppointmentSerializer(data=request.data)
+        serializer = AppointmentWriteSerializer(data=request.data)
         if serializer.is_valid():
             appointment = serializer.save()
             log_to_db(request, "CREATE: Appointment", f"Created appointment {appointment.id} by {request.user.email}")

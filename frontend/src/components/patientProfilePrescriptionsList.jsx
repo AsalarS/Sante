@@ -23,7 +23,12 @@ export default function PrescriptionList({
     onSave,
     appointmentId,
 }) {
-    const [prescriptions, setPrescriptions] = useState(initialData.map(p => ({ ...p })));
+    console.log(initialData);
+    
+    const [prescriptions, setPrescriptions] = useState(
+        Array.isArray(initialData) ? initialData.map(p => ({ ...p })) : []
+      );      
+      
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
     const [pendingAction, setPendingAction] = useState(null);
@@ -34,7 +39,13 @@ export default function PrescriptionList({
     const [modifiedPrescriptions, setModifiedPrescriptions] = useState(new Set());
 
     useEffect(() => {
-        setPrescriptions(initialData.map(p => ({ ...p })));
+        // Only call map if initialData is an array
+        if (Array.isArray(initialData)) {
+            setPrescriptions(initialData.map(p => ({ ...p })));
+        } else {
+            setPrescriptions([]); // Default to empty array if not an array
+        }
+
         setNewPrescriptions(new Set());
         setDeletedPrescriptions(new Set());
         setModifiedPrescriptions(new Set());

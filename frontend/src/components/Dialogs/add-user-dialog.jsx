@@ -80,20 +80,42 @@ const AddUserDialog = ({ open, onClose, onSave, isPatient = false }) => {
     onClose();
   }, [onClose, resetForm]);
 
+  // Modified handleChange to better handle date changes
   const handleChange = useCallback((setter) => (field, value) => {
     setter((prev) => ({ ...prev, [field]: value }));
   }, []);
 
   const validateDate = useCallback((date) => {
+    console.log(date);
+    
+    // If no date is provided, return false
     if (!date) return false;
-    const dateParts = date.split("-");
-    if (dateParts.length !== 3) return false;
-    const [year, month, day] = dateParts.map(Number);
-    return (
-      !isNaN(year) && year > 0 &&
-      !isNaN(month) && month > 0 && month <= 12 &&
-      !isNaN(day) && day > 0 && day <= 31
-    );
+
+    try {
+      // Create a Date object from the input
+      const dateObj = new Date(date);
+      
+      // Check if it's a valid date
+      if (isNaN(dateObj.getTime())) {
+        return false;
+      }
+
+      // Check if the date is not in the future
+      if (dateObj > new Date()) {
+        return false;
+      }
+
+      // Check if the person is not over 150 years old
+      const minDate = new Date();
+      minDate.setFullYear(minDate.getFullYear() - 150);
+      if (dateObj < minDate) {
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      return false;
+    }
   }, []);
 
   const handleSave = useCallback(() => {
@@ -189,8 +211,7 @@ const AddUserDialog = ({ open, onClose, onSave, isPatient = false }) => {
       </div>
       <div>
         <Label>Date of Birth</Label>
-        <DatePicker
-          allowFutureDates={false}
+        <Input
           type="date"
           value={userData.date_of_birth}
           onChange={(e) =>
@@ -356,8 +377,7 @@ const AddUserDialog = ({ open, onClose, onSave, isPatient = false }) => {
       </div>
       <div>
         <Label>Date of Birth</Label>
-        <DatePicker
-          allowFutureDates={false}
+        <Input
           type="date"
           value={userData.date_of_birth}
           onChange={(e) =>

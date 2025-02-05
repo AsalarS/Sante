@@ -408,7 +408,7 @@ function PatientProfile({ patientId }) {
                 <PrescriptionList
                   readOnly
                   onClickMinimize={handleMinimizeClick}
-                  initialData={prescriptions}
+                  initialData={prescriptions || {}}
                   onSave={(updatedPrescriptions) => handleListSave('prescriptions', updatedPrescriptions)}
                 />
               ) : (
@@ -481,7 +481,6 @@ function PatientProfile({ patientId }) {
             </div>
             {userRole === "doctor" && (
               <div className="max-w-64 p-4 bg-background rounded-lg shadow-md flex flex-col gap-4">
-                <Button className="w-full">Generate Documents</Button>
                 <Button
                   className="w-full"
                   onClick={() => navigate("/doctor/patients/appointment/", {
