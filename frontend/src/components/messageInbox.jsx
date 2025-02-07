@@ -141,7 +141,7 @@ function MessageInbox({ onSelectConversation, userId }) {
                     <Input
                         type="text"
                         placeholder="Search Inbox"
-                        className="flex-grow rounded-lg appearance-none pl-8 text-xs"
+                        className="grow rounded-lg appearance-none pl-8 text-xs"
                         value={inboxSearch}
                         onChange={(e) => setInboxSearch(e.target.value)}
                     />

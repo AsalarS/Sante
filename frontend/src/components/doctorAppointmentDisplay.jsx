@@ -127,7 +127,7 @@ const AppointmentDisplay = ({ nextAppointment }) => {
                         navigate(`/doctor/patients/appointment/${nextAppointment?.appointment_id}`);
                     }
                 }}>
-                <span className="font-bold bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
+                <span className="font-bold bg-linear-to-b from-primary/60 to-primary text-transparent bg-clip-text">
                     {showCountdown ? (
                         formatCountdown()
                     ) : (

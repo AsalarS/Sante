@@ -67,7 +67,7 @@ const SelectTagInput = React.forwardRef<HTMLInputElement, SelectTagInputProps>(
       <div className={cn("relative", className)}>
         <div
           className={cn(
-            "flex w-full flex-wrap gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 max-h-24"
+            "flex w-full flex-wrap gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 max-h-24"
           )}
         >
           {value.map((val) => (
@@ -85,7 +85,7 @@ const SelectTagInput = React.forwardRef<HTMLInputElement, SelectTagInputProps>(
           ))}
           <input
             className={cn(
-              "flex-1 outline-none bg-background placeholder:text-muted-foreground text-foreground"
+              "flex-1 outline-hidden bg-background placeholder:text-muted-foreground text-foreground"
             )}
             value={pendingDataPoint}
             onChange={(e) => {
@@ -100,7 +100,7 @@ const SelectTagInput = React.forwardRef<HTMLInputElement, SelectTagInputProps>(
         </div>
         {isDropdownOpen && pendingDataPoint && (
           <ul
-            className="absolute left-0 mt-1 max-h-60 w-full overflow-auto rounded-md border border-input bg-background py-1 text-sm shadow-lg ring-1 ring-ring ring-opacity-5 focus:outline-none"
+            className="absolute left-0 mt-1 max-h-60 w-full overflow-auto rounded-md border border-input bg-background py-1 text-sm shadow-lg ring-1 ring-ring ring-opacity-5 focus:outline-hidden"
             role="listbox"
             onMouseDown={handleDropdownClick}
           >

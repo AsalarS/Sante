@@ -395,7 +395,7 @@ function AdminHome() {
                             </CardFooter>
                         </Card>
                     )}
-                    <Card className="px-4 mb-6 bg-background rounded-lg flex-grow text-foreground border-none content-center items-center">
+                    <Card className="px-4 mb-6 bg-background rounded-lg grow text-foreground border-none content-center items-center">
                         {loading ? (
                             <Loader2 className="animate-spin text-primary" />
                         ) : (

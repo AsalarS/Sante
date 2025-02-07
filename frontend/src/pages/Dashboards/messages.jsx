@@ -131,7 +131,7 @@ function MessagesPage() {
                 <Loader2 className="animate-spin w-12 h-12 text-primary m-auto" />
             )}
 
-            <div className="flex-grow">
+            <div className="grow">
                 {user && chatID ? (
                     <MessagesConversation
                         chatID={chatID}

@@ -68,7 +68,7 @@ function Login() {
         <>
             <div className="flex flex-col min-h-screen">
                 <Navbar />
-                <div className="flex flex-grow justify-center items-center bg-background">
+                <div className="flex grow justify-center items-center bg-background">
                     <Card className="mx-auto max-w-sm w-96 bg-background border-foreground/50">
                         <CardHeader>
                             <CardTitle className="text-2xl">Login</CardTitle>

@@ -38,11 +38,11 @@ export const Hero = () => {
             </h1>{" "}
             for{" "}
             <h2 className="inline">
-            <span className="inline bg-gradient-to-r from-[#6c89fe] via-[#8fa9ff] to-[#98abe2] text-transparent bg-clip-text">
+            <span className="inline bg-linear-to-r from-[#6c89fe] via-[#8fa9ff] to-[#98abe2] text-transparent bg-clip-text">
                 Patients
               </span>{" "}
               & {" "}
-              <span className="inline bg-gradient-to-r from-[#b0bce9] via-[#6c89fe] to-[#8f9edd] text-transparent bg-clip-text">
+              <span className="inline bg-linear-to-r from-[#b0bce9] via-[#6c89fe] to-[#8f9edd] text-transparent bg-clip-text">
                 Providers
               </span>
             </h2>

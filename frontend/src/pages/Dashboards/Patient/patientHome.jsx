@@ -362,7 +362,7 @@ function PatientHome() {
               </div>
             </CardFooter>
           </Card>
-          <Card className="px-4 bg-background rounded-lg flex-grow text-foreground border-none content-center items-center">
+          <Card className="px-4 bg-background rounded-lg grow text-foreground border-none content-center items-center">
             {loading ? (
               <Loader2 className="animate-spin text-primary" />
             ) : (
@@ -398,7 +398,7 @@ function PatientHome() {
                                   <span className="text-sm text-gray-500">{doctor?.office_number}</span>
                                   <span className="text-sm text-gray-500">{doctor?.specialization}</span>
                                 </div>
-                                <span className="font-bold bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text mr-2">
+                                <span className="font-bold bg-linear-to-b from-primary/60 to-primary text-transparent bg-clip-text mr-2">
                                   {doctor?.totalAppointments}
                                 </span>
                               </div>

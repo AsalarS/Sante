@@ -459,7 +459,7 @@ function AppointmentPage() {
     return (
         <div className="bg-even-darker-background flex flex-col sm:flex-row p-6 gap-4 h-lvh ">
             {/* Left Section (Main Content) */}
-            <div className="flex flex-col space-y-4 flex-grow sm:w-3/4 overflow-y-auto">
+            <div className="flex flex-col space-y-4 grow sm:w-3/4 overflow-y-auto">
                 {/* Title */}
                 <div className="rounded-md flex flex-row items-center justify-between">
                     <div className="flex flex-row">
@@ -499,7 +499,7 @@ function AppointmentPage() {
                         </div>
                     }
                 </div>
-                <div className="flex flex-col space-y-4 flex-grow overflow-y-auto">
+                <div className="flex flex-col space-y-4 grow overflow-y-auto">
                     <Card className="bg-background p-4 rounded-lg inline-block border-none">
                         <div className="flex flex-row justify-between mb-2">
                             <span className="text-lg font-semibold mb-2 ml-1">Vitals</span>
@@ -708,14 +708,14 @@ function AppointmentPage() {
                                     readOnly={readOnly}
                                     value={appointment?.notes || ""}
                                     placeholder="Enter details..."
-                                    className="w-full flex-grow bg-muted dark:bg-border resize-none text-foreground"
+                                    className="w-full grow bg-muted dark:bg-border resize-none text-foreground"
                                     onChange={(e) => handleAppointmentChange("notes", e.target.value)}
                                 />
                             </Card>
                         </>
                     ) : (
                         activeListType === 'prescriptions' ? (
-                            <Card className="bg-background p-4 rounded-lg flex-grow flex flex-col border-none">
+                            <Card className="bg-background p-4 rounded-lg grow flex flex-col border-none">
                                 <PrescriptionList
                                     readOnly={userRole !== "doctor"}
                                     onClickMinimize={handleMinimizeClick}
@@ -725,7 +725,7 @@ function AppointmentPage() {
                                 />
                             </Card>
                         ) : (
-                            <Card className="bg-background p-4 rounded-lg flex-grow flex flex-col border-none">
+                            <Card className="bg-background p-4 rounded-lg grow flex flex-col border-none">
                                 <PatientProfileList
                                     readOnly={userRole !== "doctor"}
                                     onClickMinimize={handleMinimizeClick}
@@ -755,7 +755,7 @@ function AppointmentPage() {
                         data={["℃ 37", "92%", "80/70", "9 g/dL", "℃ 37", "92%", "80/70", "9 g/dL", "℃ 37", "92%", "80/70", "9 g/dL"]}
                         onClickIcon={() => console.log("General Stats icon clicked")}
                         onClickSelf={() => console.log("General Stats clicked")}
-                        className="flex-grow"
+                        className="grow"
                     />
                 </div> */}
                 {/* Patient Card */}
@@ -845,7 +845,7 @@ function AppointmentPage() {
                         title="Allergies"
                         data={patient?.allergies || {}}
                         onClickIcon={() => console.log("Allergies icon clicked")}
-                        className="flex-grow"
+                        className="grow"
                     />
                 </div>
                 <div className="max-w-64">
@@ -853,7 +853,7 @@ function AppointmentPage() {
                     <CompactPrescriptionList
                         prescriptions={prescriptions}
                         onClickIcon={() => handleIconClick('prescriptions')}
-                        className="flex-grow"
+                        className="grow"
                     />
                 </div>
                 <div className="max-w-64">
@@ -862,7 +862,7 @@ function AppointmentPage() {
                         title="Surgeries"
                         data={patient?.past_surgeries || {}}
                         onClickIcon={() => handleIconClick('past_surgeries')}
-                        className="flex-grow"
+                        className="grow"
                     />
                 </div>
                 <div className="max-w-64">
@@ -871,7 +871,7 @@ function AppointmentPage() {
                         title="Chronic Conditions"
                         data={patient?.chronic_conditions || {}}
                         onClickIcon={() => handleIconClick('chronic_conditions')}
-                        className="flex-grow"
+                        className="grow"
                     />
                 </div>
                 {!readOnly && (

@@ -327,7 +327,7 @@ export default function PatientProfileTables({
                             </h3>
                             <Textarea
                                 placeholder="Enter notes..."
-                                className="w-full min-h-28 flex-grow bg-border/50 resize-none text-foreground text-sm"
+                                className="w-full min-h-28 grow bg-border/50 resize-none text-foreground text-sm"
                                 value={patient?.patient_notes || ""}
                                 onChange={(e) => handleNotesChange("patient_notes", e.target.value)}
                                 readOnly={userRole !== "doctor"}
@@ -339,7 +339,7 @@ export default function PatientProfileTables({
                             </h3>
                             <Textarea
                                 placeholder="Enter notes..."
-                                className="w-full min-h-28 flex-grow bg-border/50 resize-none text-foreground text-sm"
+                                className="w-full min-h-28 grow bg-border/50 resize-none text-foreground text-sm"
                                 value={patient?.family_history || ""}
                                 onChange={(e) => handleNotesChange("family_history", e.target.value)}
                                 readOnly={userRole !== "doctor"}

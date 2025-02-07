@@ -76,7 +76,7 @@ const Register = () => {
         <>
             <div className="flex flex-col min-h-screen">
                 <Navbar />
-                <div className="flex flex-grow justify-center items-center bg-background">
+                <div className="flex grow justify-center items-center bg-background">
                     <Card className="mx-auto max-w-lg bg-background border-foreground/50">
                         <CardHeader>
                             <CardTitle className="text-2xl">Patient Register</CardTitle>

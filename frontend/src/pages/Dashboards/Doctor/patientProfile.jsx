@@ -249,7 +249,7 @@ function PatientProfile({ patientId }) {
     <div className="">
       <div className="flex flex-col sm:flex-row p-6 gap-4 h-lvh">
         {/* Left Section (Main Content) */}
-        <div className="flex flex-col space-y-4 flex-grow sm:w-3/4">
+        <div className="flex flex-col space-y-4 grow sm:w-3/4">
           <Card className=" bg-background rounded-lg flex flex-col border-none h-fit">
             <CardHeader className="flex flex-row justify-between">
               <div className="flex items-center space-x-2">
@@ -402,7 +402,7 @@ function PatientProfile({ patientId }) {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-background p-4 rounded-lg flex-grow flex flex-col border-none">
+          <Card className="bg-background p-4 rounded-lg grow flex flex-col border-none">
             {showProfileList ? (
               activeListType === 'prescriptions' ? (
                 <PrescriptionList
@@ -451,14 +451,14 @@ function PatientProfile({ patientId }) {
                 title="Allergies"
                 data={patient?.allergies || {}}
                 onClickIcon={() => handleIconClick('allergies')}
-                className="flex-grow"
+                className="grow"
               />
             </div>
             <div className="max-w-64">
               <CompactPrescriptionList
                 prescriptions={prescriptions}
                 onClickIcon={() => handleIconClick('prescriptions')}
-                className="flex-grow"
+                className="grow"
               />
             </div>
             <div className="max-w-64">
@@ -467,7 +467,7 @@ function PatientProfile({ patientId }) {
                 title="Surgeries"
                 data={patient?.past_surgeries || {}}
                 onClickIcon={() => handleIconClick('past_surgeries')}
-                className="flex-grow"
+                className="grow"
               />
             </div>
             <div className="max-w-64">
@@ -476,7 +476,7 @@ function PatientProfile({ patientId }) {
                 title="Chronic Conditions"
                 data={patient?.chronic_conditions || {}}
                 onClickIcon={() => handleIconClick('chronic_conditions')}
-                className="flex-grow"
+                className="grow"
               />
             </div>
             {userRole === "doctor" && (

@@ -102,7 +102,7 @@ const NextAppointmentCard = ({ nextAppointment }) => {
         {showCountdown && (
           <div className="flex justify-between pt-2 border-t border-border items-center gap-4">
             <span className="text-sm text-muted-foreground">Until Appointment</span>
-            <span className="text-2xl font-bold bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
+            <span className="text-2xl font-bold bg-linear-to-b from-primary/60 to-primary text-transparent bg-clip-text">
               {formatCountdown()}
             </span>
           </div>

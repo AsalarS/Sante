@@ -211,7 +211,7 @@ function ProfilePage() {
                             </div>
                         </RadioGroup>
                     </div>
-                    <Button type="submit" className="mt-4 !mr-64 w-40" onClick={handleSubmit}>Update Information</Button>
+                    <Button type="submit" className="mt-4 mr-64! w-40" onClick={handleSubmit}>Update Information</Button>
                 </Form>
             </div>
             <div className="w-full">

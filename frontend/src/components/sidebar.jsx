@@ -53,7 +53,7 @@ export default function Sidebar({ children, onImageClick }) {
 
   return (
     <aside className="h-screen sticky top-0">
-      <nav className="h-full inline-flex flex-col bg-background border-r border-border/50 shadow-sm">
+      <nav className="h-full inline-flex flex-col bg-background border-r border-border/50 shadow-xs">
         <div className="p-4 pb-2 flex justify-between items-center">
           <div
             className={`transition-all overflow-hidden ${expanded ? "max-w-xs" : "max-w-0"
@@ -77,7 +77,7 @@ export default function Sidebar({ children, onImageClick }) {
         </SidebarContext.Provider>
 
         <div className="border-t border-border/50 flex p-3">
-          <Avatar className="!rounded-md bg-[#C4CFFE] text-lg font-semibold text-[#405298]" onClick={onImageClick}>
+          <Avatar className="rounded-md! bg-[#C4CFFE] text-lg font-semibold text-[#405298]" onClick={onImageClick}>
             <AvatarImage src={userInfo.profile_image} />
             <AvatarFallback>{userInfo.first_name.charAt(0).toUpperCase()}{userInfo.last_name.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>

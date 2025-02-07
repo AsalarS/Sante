@@ -65,7 +65,7 @@ const InputTags = React.forwardRef<HTMLInputElement, InputTagsProps>(
       <div className={cn("relative", className)}>
         <div
           className={cn(
-            "flex w-full flex-wrap gap-2 overflow-y-auto rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+            "flex w-full flex-wrap gap-2 overflow-y-auto rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
             "max-h-24"
           )}
         >
@@ -87,7 +87,7 @@ const InputTags = React.forwardRef<HTMLInputElement, InputTagsProps>(
             </Badge>
           ))}
           <input
-            className="flex-1 outline-none bg-background placeholder:text-muted-foreground text-foreground"
+            className="flex-1 outline-hidden bg-background placeholder:text-muted-foreground text-foreground"
             value={pendingKey}
             onChange={(e) => setPendingKey(e.target.value)}
             onKeyDown={handleKeyDown}

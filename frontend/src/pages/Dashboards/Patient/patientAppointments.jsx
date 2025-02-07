@@ -200,7 +200,7 @@ function PatientAppointments() {
                         <span className="text-foreground">
                           {formatAppointmentDate(appointment.appointment_date).day}
                         </span>
-                        <span className="text-4xl font-semibold bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
+                        <span className="text-4xl font-semibold bg-linear-to-b from-primary/60 to-primary text-transparent bg-clip-text">
                           {formatAppointmentDate(appointment.appointment_date).date}
                         </span>
                         <span className="text-foreground text-xs">
@@ -213,7 +213,7 @@ function PatientAppointments() {
                 </div>
 
                 {/* Middle section - Appointment Details */}
-                <div className="flex flex-row flex-grow mx-4 items-center">
+                <div className="flex flex-row grow mx-4 items-center">
                   <div className="flex items-center">
                     <Avatar className="size-12 mr-2">
                       <AvatarImage src="link" alt="Doctor Profile Image" />

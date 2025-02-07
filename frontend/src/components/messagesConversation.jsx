@@ -215,7 +215,7 @@ export default function MessagesConversation({ chatID, sender, messages: initial
                     </div>
                 </div>
             )}
-            <div className="flex flex-col flex-grow overflow-y-auto p-4">
+            <div className="flex flex-col grow overflow-y-auto p-4">
                 {isLoading ? (
                     <MessageLoading />
                 ) : (
@@ -275,7 +275,7 @@ export default function MessagesConversation({ chatID, sender, messages: initial
                     onChange={handleInputChange}
                     onKeyDown={handleKeyPress}
                     placeholder="Type a message..."
-                    className="flex-grow rounded-full text-foreground"
+                    className="grow rounded-full text-foreground"
                 />
                 <Button
                     className="rounded-2xl"

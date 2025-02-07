@@ -10,7 +10,7 @@ export default function CalendarBodyDayContent({ date }: { date: Date }) {
   const dayEvents = events.filter((event) => isSameDay(event.start, date))
 
   return (
-    <div className="flex flex-col flex-grow border-border">
+    <div className="flex flex-col grow border-border">
       <CalendarBodyHeader date={date} />
 
       <div className="flex-1 relative">

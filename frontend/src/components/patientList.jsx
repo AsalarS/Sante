@@ -59,7 +59,7 @@ function PatientList({
             <Input
               type="text"
               placeholder="Search Patients"
-              className="flex-grow rounded-lg appearance-none pl-8 text-xs"
+              className="grow rounded-lg appearance-none pl-8 text-xs"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />

@@ -8,7 +8,7 @@ function StatBox({ title, number, ...props }) {
           {title}
         </h3>
       </div>
-      <div className="text-4xl md:text-3xl font-bold bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text text-center md:text-right">
+      <div className="text-4xl md:text-3xl font-bold bg-linear-to-b from-primary/60 to-primary text-transparent bg-clip-text text-center md:text-right">
         {number}
       </div>
     </Card>
