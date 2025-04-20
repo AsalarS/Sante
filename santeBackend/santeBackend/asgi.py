@@ -21,7 +21,7 @@ import api.routing as routing
 django_asgi_app = get_asgi_application()
 
 # 3. Define the ProtocolTypeRouter
-application = ProtocolTypeRouter({
+application = ProtocolTypeRPouter({
     "http": django_asgi_app,
     "websocket": SimpleJWTAuthMiddleware(
         URLRouter(
